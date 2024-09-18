@@ -1,4 +1,4 @@
-package com.sep.pha;
+package com.fu.pha;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

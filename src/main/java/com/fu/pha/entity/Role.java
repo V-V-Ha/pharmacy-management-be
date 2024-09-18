@@ -1,6 +1,6 @@
-package com.sep.pha.entity;
+package com.fu.pha.entity;
 
-import com.sep.pha.enums.Erole;
+import com.fu.pha.enums.Erole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

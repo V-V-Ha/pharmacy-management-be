@@ -1,4 +1,4 @@
-package com.sep.pha.security.jwt;
+package com.fu.pha.security.jwt;
 
 public class JwtUtils {
 }

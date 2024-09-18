@@ -1,4 +1,4 @@
-package com.sep.pha.enums;
+package com.fu.pha.enums;
 
 public enum Erole {
     ROLE_PRODUCT_OWNER,

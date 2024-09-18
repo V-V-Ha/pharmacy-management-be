@@ -1,7 +1,7 @@
-package com.sep.pha.repository;
+package com.fu.pha.repository;
 
-import com.sep.pha.entity.Role;
-import com.sep.pha.enums.Erole;
+import com.fu.pha.entity.Role;
+import com.fu.pha.enums.Erole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,4 +1,4 @@
-package com.sep.pha.entity;
+package com.fu.pha.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
