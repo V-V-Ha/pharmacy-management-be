@@ -1,4 +1,4 @@
-package com.example.project;
+package com.sep.pha;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
