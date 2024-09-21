@@ -1,6 +1,6 @@
 package com.fu.pha.entity;
 
-import com.fu.pha.enums.Erole;
+import com.fu.pha.enums.ERole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +20,7 @@ public class Role {
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private Erole name;
+    private ERole name;
 
 
 }
