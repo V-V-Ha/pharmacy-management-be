@@ -16,25 +16,25 @@ public class TestController {
     }
 
     @GetMapping("/user")
-    @PreAuthorize("hasRole('ROLE_PRODUCT_OWNER') or hasRole('ROLE_SALE') or hasRole('ROLE_STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE') or hasRole('STOCK')")
     public String userAccess() {
         return "User Content.";
     }
 
     @GetMapping("/product_owner")
-    @PreAuthorize("hasRole('ROLE_PRODUCT_OWNER')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public String productOwnerAccess() {
         return "Product Owner Board.";
     }
 
     @GetMapping("/sale")
-    @PreAuthorize("hasRole('ROLE_SALE')")
+    @PreAuthorize("hasRole('SALE')")
     public String saleAccess() {
         return "Sale Board.";
     }
 
     @GetMapping("/stock")
-    @PreAuthorize("hasRole('ROLE_STOCK')")
+    @PreAuthorize("hasRole('STOCK')")
     public String stockAccess() {
         return "Stock Board.";
     }

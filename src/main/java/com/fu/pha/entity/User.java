@@ -1,16 +1,25 @@
 package com.fu.pha.entity;
 
+import com.fu.pha.dto.request.LoginDtoRequest;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+
 @Table(name = "users",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = "username"),
-                @UniqueConstraint(columnNames = "email")
+                @UniqueConstraint(columnNames = "email"),
+                @UniqueConstraint(columnNames = "phone")
         })
 public class User extends BaseEntity {
     @Id
@@ -30,53 +39,32 @@ public class User extends BaseEntity {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
-    public User() {
+    @Column(name = "address")
+    private String address;
+
+    @Column(name = "dob")
+    private Instant dob;
+
+    @Column(name = "gender")
+    private String gender;
+
+    @Column(name = "full_name")
+    private String fullName;
+
+    @Column(name = "avatar")
+    private String avatar;
+
+    @Column(name = "phone")
+    private String phone;
+
+    @Column(name = "cic")
+    private String cic;
+
+    public User(LoginDtoRequest request){
+        this.username = request.getUsername();
+        this.password = request.getPassword();
     }
 
-    public User(String username, String email, String password) {
-        this.username = username;
-        this.email = email;
-        this.password = password;
-    }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
 
 }
