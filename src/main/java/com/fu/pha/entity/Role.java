@@ -20,6 +20,4 @@ public class Role extends BaseEntity{
     @Column(length = 20)
     private ERole name;
 
-
-
 }

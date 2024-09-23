@@ -1,6 +1,8 @@
 package com.fu.pha.entity;
 
 import com.fu.pha.dto.request.LoginDtoRequest;
+import com.fu.pha.enums.Gender;
+import com.fu.pha.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -46,7 +48,7 @@ public class User extends BaseEntity {
     private Instant dob;
 
     @Column(name = "gender")
-    private String gender;
+    private Gender gender;
 
     @Column(name = "full_name")
     private String fullName;
@@ -59,6 +61,9 @@ public class User extends BaseEntity {
 
     @Column(name = "cic")
     private String cic;
+
+    @Column(name = "status")
+    private UserStatus status;
 
     public User(LoginDtoRequest request){
         this.username = request.getUsername();
