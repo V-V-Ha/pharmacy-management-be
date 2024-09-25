@@ -31,6 +31,7 @@ public class UserDto {
     private String phone;
     private String cic;
     private UserStatus status;
+    private String note;
     private Instant createDate;
     private Instant lastModifiedDate;
     private String createBy;
@@ -43,7 +44,7 @@ public class UserDto {
         this.email = user.getEmail();
         this.password = user.getPassword();
         this.rolesDto = user.getRoles() != null
-                ? user.getRoles().stream().map(RoleDto::new).collect(Collectors.toSet())
+                ? user.getRoles().stream().map(role -> new RoleDto(role.getId(), String.valueOf(role.getName()))).collect(Collectors.toSet())
                 : new HashSet<>();
 
         this.address = user.getAddress();
@@ -54,6 +55,7 @@ public class UserDto {
         this.phone = user.getPhone();
         this.cic = user.getCic() != null ? user.getCic() : "";
         this.status = user.getStatus();
+        this.note = user.getNote();
         this.createDate=user.getCreateDate();
         this.createBy=user.getCreateBy();
         this.lastModifiedDate=user.getLastModifiedDate();

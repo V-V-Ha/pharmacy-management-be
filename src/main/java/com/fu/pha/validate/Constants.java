@@ -1,5 +1,7 @@
 package com.fu.pha.validate;
 
+import java.time.Instant;
+
 public class Constants {
     public static final String REGEX_NAME = "^[a-zA-ZàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđĐ\\s]+$";
     public static final String REGEX_PHONE = "^[0-9]{10,11}$";
@@ -7,8 +9,6 @@ public class Constants {
     public static final String REGEX_PASSWORD = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,}$";
     public static final String REGEX_GMAIL = "^[\\w.+\\-]+@gmail\\.com$";
     public static final String REGEX_ADDRESS = "^[a-zA-Z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđĐ\\s\\-]+$";
-    public static final String REGEX_AO_CODE = "^KH-\\d+$";
-    public static final String REGEX_GENDER = "^(Nam|Nữ)$";
     public static final String REGEX_CCCD = "^\\d{12}$";
 
 }

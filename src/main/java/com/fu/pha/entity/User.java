@@ -48,6 +48,7 @@ public class User extends BaseEntity {
     private Instant dob;
 
     @Column(name = "gender")
+    @Enumerated(EnumType.STRING)
     private Gender gender;
 
     @Column(name = "full_name")
@@ -63,7 +64,10 @@ public class User extends BaseEntity {
     private String cic;
 
     @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     private UserStatus status;
+    @Column(name ="note")
+    private String note;
 
     public User(LoginDtoRequest request){
         this.username = request.getUsername();
