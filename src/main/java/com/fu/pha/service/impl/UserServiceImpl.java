@@ -1,7 +1,9 @@
 package com.fu.pha.service.impl;
 
+import com.fu.pha.dto.request.ChangePasswordDto;
 import com.fu.pha.dto.request.LoginDtoRequest;
 import com.fu.pha.dto.request.UserDto;
+import com.fu.pha.dto.response.CloudinaryResponse;
 import com.fu.pha.dto.response.MessageResponse;
 import com.fu.pha.dto.response.JwtResponse;
 import com.fu.pha.entity.Role;
@@ -14,6 +16,9 @@ import com.fu.pha.repository.RoleRepository;
 import com.fu.pha.repository.UserRepository;
 import com.fu.pha.security.impl.UserDetailsImpl;
 import com.fu.pha.security.jwt.JwtUtils;
+import com.fu.pha.service.CloudinaryService;
+import com.fu.pha.util.FileUploadUtil;
+import com.fu.pha.validate.Constants;
 import com.fu.pha.validate.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,9 +31,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,6 +53,9 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     @Autowired
     PasswordEncoder encoder;
+
+    @Autowired
+    CloudinaryService cloudinaryService;
 
     @Autowired
     Validate validate;
@@ -222,5 +232,84 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         return ResponseEntity.status(HttpStatus.OK).body(users.getContent());
     }
 
+    @Override
+    public ResponseEntity<Object> forgotPassword(String email) {
 
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<Object> resetPassword(ChangePasswordDto request, String token) {
+        // Validate the token
+        if (!jwtUtils.validateJwtToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse(Message.INVALID_TOKEN, HttpStatus.UNAUTHORIZED.value()));
+        }
+
+        // Get the username from the token
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+
+        // Find the user by username
+        Optional<User> user = userRepository.findByUsername(username);
+        if (user.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(Message.USER_NOT_FOUND, HttpStatus.NOT_FOUND.value()));
+        }
+        //check null field
+        if (request.getNewPassword() == null || request.getConfirmPassword() == null || request.getOldPassword() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.NULL_FILED, HttpStatus.BAD_REQUEST.value()));
+        }
+
+        //check Old password
+        if (!encoder.matches(request.getOldPassword(), user.get().getPassword())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.INVALID_OLD_PASSWORD, HttpStatus.BAD_REQUEST.value()));
+        }
+
+        // check new password match Regex
+        if (!request.getNewPassword().matches(Constants.REGEX_PASSWORD)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.INVALID_PASSWORD, HttpStatus.BAD_REQUEST.value()));
+        }
+
+        // Validate the new password and confirm password
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.NOT_MATCH_PASSWORD, HttpStatus.BAD_REQUEST.value()));
+        }
+
+        // Update the user's password
+        user.get().setPassword(encoder.encode(request.getNewPassword()));
+        user.get().setLastModifiedDate(Instant.now());
+        user.get().setLastModifiedBy(username);
+        userRepository.save(user.get());
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(Message.CHANGE_PASS_SUCCESS, HttpStatus.OK.value()));
+    }
+    @Override
+    public ResponseEntity<Object> uploadImage(final Long id ,final MultipartFile file) {
+        // Check if the file is empty
+        if (file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(Message.EMPTY_FILE, HttpStatus.NOT_FOUND.value()));
+        }
+
+        // Check if the file is an image
+        if (!FileUploadUtil.isAllowedExtension(file.getOriginalFilename(), FileUploadUtil.IMAGE_PATTERN)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.INVALID_FILE, HttpStatus.BAD_REQUEST.value()));
+        }
+
+        // Check if the file size is greater than 2MB
+        if (file.getSize() > FileUploadUtil.MAX_FILE_SIZE) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.INVALID_FILE_SIZE, HttpStatus.BAD_REQUEST.value()));
+        }
+        User user = userRepository.getUserById(id);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(Message.USER_NOT_FOUND, HttpStatus.NOT_FOUND.value()));
+        }
+        String customFileName = user.getFullName() + "avatar";
+
+        // Upload the image to Cloudinary
+        CloudinaryResponse cloudinaryResponse = cloudinaryService.upLoadFile(file, FileUploadUtil.getFileName(customFileName));
+
+        // Save the image URL to the database
+        user.setAvatar(cloudinaryResponse.getUrl());
+        userRepository.save(user);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(Message.UPLOAD_SUCCESS, HttpStatus.OK.value()));
+    }
 }

@@ -34,7 +34,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
 
     // get user paging and search by full name , filter by role
 
-    @Query("SELECT new com.fu.pha.dto.request.UserDto(u) FROM User u JOIN u.roles r WHERE " +
+    @Query("SELECT DISTINCT new com.fu.pha.dto.request.UserDto(u) FROM User u JOIN u.roles r WHERE " +
             "((LOWER(u.fullName) LIKE LOWER(CONCAT('%', :fullName, '%')) OR :fullName IS NULL OR :fullName = '') AND " +
             "(r.name = :role OR :role IS NULL OR :role = '') AND " +
             "(u.status = :status OR :status IS NULL OR :status = '')) " +

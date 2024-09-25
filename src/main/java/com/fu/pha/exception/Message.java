@@ -34,4 +34,11 @@ public class Message {
     public static final String INVALID_TOKEN = "Token không hợp lệ";
     public static final String ROLE_NOT_FOUND = "Không tìm thấy quyền truy cập";
     public static final String STATUS_NOT_FOUND = "Không tìm thấy trạng thái";
+    public static final String NOT_MATCH_PASSWORD = "Mật khẩu không khớp";
+    public static final String CHANGE_PASS_SUCCESS = "Đổi mật khẩu thành công";
+    public static final String INVALID_OLD_PASSWORD = "Mật khẩu cũ không chính xác";
+    public static final String UPLOAD_SUCCESS = "Upload file thành công";
+    public static final String EMPTY_FILE = "File không được trống";
+    public static final String INVALID_FILE = "Chỉ những định dạng ảnh sau được phép: jpg,png,gif,bmp";
+    public static final String INVALID_FILE_SIZE = "Kích thước file phải bé hơn 2MB";
 }

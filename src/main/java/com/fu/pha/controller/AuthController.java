@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "*" , maxAge = 3600)
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -28,7 +28,7 @@ public class AuthController {
         return userService.createUser(request);
     }
 
-    @PostMapping("/update-user")
+    @PutMapping("/update-user")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<Object> updateUser(@RequestBody UserDto request) {
         return userService.updateUser(request);

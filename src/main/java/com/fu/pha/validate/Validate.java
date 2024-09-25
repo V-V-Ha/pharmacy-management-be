@@ -64,8 +64,7 @@ public class Validate {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.EXIST_CCCD, HttpStatus.BAD_REQUEST.value()));
             if (userRepository.getUserByPhone(userDto.getPhone()) != null)
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.EXIST_PHONE, HttpStatus.BAD_REQUEST.value()));
-        }
-        if(option.equals("update")){
+        } else if (option.equals("update")) {
             User user = userRepository.getUserById(userDto.getId());
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.USER_NOT_FOUND, HttpStatus.BAD_REQUEST.value()));
