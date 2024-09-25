@@ -19,9 +19,8 @@ public interface UserService {
     ResponseEntity<Object> deActiveUser(UserDto userDto);
 
     ResponseEntity<Object> viewDetailUser(Long id);
-
     // get all user and paging
-     ResponseEntity<Object> getAllUserPaging(int page, int size, String fullName, String role, String status);
+    ResponseEntity<Object> getAllUserPaging(int page, int size, String fullName, String role, String status);
 
 
 

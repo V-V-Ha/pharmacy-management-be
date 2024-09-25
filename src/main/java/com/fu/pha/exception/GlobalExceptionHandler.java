@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<MessageResponse> handleGenericException(Exception ex) {
-        MessageResponse errorResponse = new MessageResponse(Message.LOGIN_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.value());
+        MessageResponse errorResponse = new MessageResponse(Message.OTHER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.value());
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

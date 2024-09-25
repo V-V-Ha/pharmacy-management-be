@@ -1,7 +1,6 @@
 package com.fu.pha.controller;
 
 import com.fu.pha.dto.request.UserDto;
-import com.fu.pha.enums.ERole;
 import com.fu.pha.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +40,9 @@ public class UserController {
     public ResponseEntity<Object> viewDetailUser(@RequestParam Long id) {
         return userService.viewDetailUser(id);
     }
+
+
+
 
 }
 
