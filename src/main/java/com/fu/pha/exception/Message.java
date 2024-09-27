@@ -41,4 +41,6 @@ public class Message {
     public static final String EMPTY_FILE = "File không được trống";
     public static final String INVALID_FILE = "Chỉ những định dạng ảnh sau được phép: jpg,png,gif,bmp";
     public static final String INVALID_FILE_SIZE = "Kích thước file phải bé hơn 2MB";
+    public static final String CATEGORY_NOT_FOUND = "Nhóm sản phẩm không tồn tại";
+    public static final String CATEGORY_EXIST = "Nhóm sản phẩm đã tồn tại";
 }

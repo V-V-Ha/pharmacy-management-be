@@ -205,31 +205,31 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     //view all user with paging
     @Override
-    public ResponseEntity<Object> getAllUserPaging(int page, int size, String fullName, String role, String status) {
+    public Page<UserDto> getAllUserPaging(int page, int size, String fullName, String role, String status) {
         Pageable pageable = PageRequest.of(page, size);
         ERole eRole = null;
         UserStatus userStatus = null;
-        if(role != null) {
+        if (role != null) {
             try {
                 eRole = ERole.valueOf(role);
             } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.ROLE_NOT_FOUND, HttpStatus.BAD_REQUEST.value()));
+                throw new CustomUpdateException(Message.ROLE_NOT_FOUND);
             }
         }
 
-        if(status != null) {
+        if (status != null) {
             try {
                 userStatus = UserStatus.valueOf(status);
             } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.STATUS_NOT_FOUND, HttpStatus.BAD_REQUEST.value()));
+                throw new CustomUpdateException(Message.STATUS_NOT_FOUND);
             }
         }
 
-        Page<UserDto> users = userRepository.getAllUserPaging(fullName,eRole, userStatus, pageable);
+        Page<UserDto> users = userRepository.getAllUserPaging(fullName, eRole, userStatus, pageable);
         if (users.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(Message.USER_NOT_FOUND, HttpStatus.NOT_FOUND.value()));
+            throw new CustomUpdateException(Message.USER_NOT_FOUND);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(users.getContent());
+        return users;
     }
 
     @Override
@@ -308,6 +308,8 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
         // Save the image URL to the database
         user.setAvatar(cloudinaryResponse.getUrl());
+        user.setLastModifiedBy(user.getFullName());
+        user.setLastModifiedDate(Instant.now());
         userRepository.save(user);
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(Message.UPLOAD_SUCCESS, HttpStatus.OK.value()));
