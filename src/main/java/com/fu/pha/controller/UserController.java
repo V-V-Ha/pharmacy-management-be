@@ -25,7 +25,7 @@ public class UserController {
         return userService.activeUser(request);
     }
 
-    @PutMapping("/de-active-user")
+    @PutMapping("/in-active-user")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<Object> deActiveUser(@RequestBody UserDto request) {
         return userService.deActiveUser(request);
@@ -49,7 +49,6 @@ public class UserController {
                 .listData(listData)
                 .build();
         return ResponseEntity.ok(response);
-
     }
 
 
@@ -72,6 +71,18 @@ public class UserController {
         return userService.uploadImage(id ,file);
     }
 
+
+    @PostMapping("/create-user")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
+    public ResponseEntity<Object> createUser(@RequestBody UserDto request) {
+        return userService.createUser(request);
+    }
+
+    @PutMapping("/update-user")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
+    public ResponseEntity<Object> updateUser(@RequestBody UserDto request) {
+        return userService.updateUser(request);
+    }
 
 
 

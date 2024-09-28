@@ -69,9 +69,17 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     @Override
     public ResponseEntity<JwtResponse> login(LoginDtoRequest loginDtoRequest) {
+        //check username and password
+        if (loginDtoRequest.getUsername() == null || loginDtoRequest.getUsername().trim().isEmpty()) {
+            throw new CustomUpdateException(Message.MUST_FILL_USERNAME);
+        }
+        if (loginDtoRequest.getPassword() == null || loginDtoRequest.getPassword().trim().isEmpty()) {
+            throw new CustomUpdateException(Message.MUST_FILL_PASSWORD);
+        }
         // Xác thực thông tin đăng nhập
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDtoRequest.getUsername(), loginDtoRequest.getPassword()));
+
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
@@ -111,6 +119,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         user.setPhone(request.getPhone());
         user.setCic(request.getCic());
         user.setStatus(request.getStatus());
+        user.setNote(request.getNote());
         user.setCreateDate(Instant.now());
         user.setCreateBy(SecurityContextHolder.getContext().getAuthentication().getName());
         user.setLastModifiedDate(Instant.now());
@@ -142,6 +151,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         user.setPhone(request.getPhone());
         user.setCic(request.getCic());
         user.setStatus(request.getStatus());
+        user.setNote(request.getNote());
         user.setLastModifiedDate(Instant.now());
         user.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
         Set<Role> roles = request.getRolesDto().stream().map(roleDto -> {
@@ -234,7 +244,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     @Override
     public ResponseEntity<Object> forgotPassword(String email) {
-
         return null;
     }
 

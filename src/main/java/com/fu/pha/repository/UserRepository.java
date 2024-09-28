@@ -38,7 +38,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
             "((LOWER(u.fullName) LIKE LOWER(CONCAT('%', :fullName, '%')) OR :fullName IS NULL OR :fullName = '') AND " +
             "(r.name = :role OR :role IS NULL OR :role = '') AND " +
             "(u.status = :status OR :status IS NULL OR :status = '')) " +
-            "ORDER BY u.id DESC")
+            "ORDER BY u.lastModifiedDate DESC")
     Page<UserDto> getAllUserPaging(@Param("fullName") String fullName,
                                    @Param("role") ERole role,
                                    @Param("status") UserStatus status,

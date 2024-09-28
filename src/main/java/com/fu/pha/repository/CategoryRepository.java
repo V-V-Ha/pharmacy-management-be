@@ -13,11 +13,8 @@ public interface CategoryRepository extends JpaRepository<Category,Long> {
    // get all category and paging with search name
     @Query("SELECT c FROM Category c WHERE " +
             "(LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL OR :name = '') " +
-            "ORDER BY c.id DESC")
+            "ORDER BY c.lastModifiedDate DESC")
     Page<CategoryDto> findAllByNameContaining(String name, Pageable pageable);
-
-
-
 
 
 }

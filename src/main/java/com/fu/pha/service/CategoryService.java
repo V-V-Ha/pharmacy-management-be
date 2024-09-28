@@ -1,6 +1,8 @@
 package com.fu.pha.service;
 
 import com.fu.pha.dto.request.CategoryDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.ResponseEntity;
 
 public interface CategoryService {
@@ -14,6 +16,6 @@ public interface CategoryService {
     ResponseEntity<Object> deleteCategory(Long id);
 
     //get all category and paging
-    ResponseEntity<Object> getAllCategoryPaging(int page, int size, String name);
+    Page<CategoryDto> getAllCategoryPaging(int page, int size, String name);
 
 }

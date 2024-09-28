@@ -1,6 +1,7 @@
 package com.fu.pha.service.impl;
 
 import com.fu.pha.dto.request.CategoryDto;
+import com.fu.pha.dto.request.UserDto;
 import com.fu.pha.dto.response.MessageResponse;
 import com.fu.pha.entity.Category;
 import com.fu.pha.exception.CustomUpdateException;
@@ -30,6 +31,11 @@ public class CategoryServiceImpl implements CategoryService {
         // Validate the request
         if (request == null || request.getName() == null || request.getName().isEmpty()) {
             throw new CustomUpdateException(Message.NULL_FILED);
+        }
+        //existing category
+        Category categoryExist = categoryRepository.findByName(request.getName());
+        if (categoryExist != null) {
+            throw new CustomUpdateException(Message.CATEGORY_EXIST);
         }
 
         // Create a new category entity
@@ -77,14 +83,18 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public ResponseEntity<Object> deleteCategory(Long id) {
         //condition delete if
+        //if
         return null;
     }
 
     @Override
-    public ResponseEntity<Object> getAllCategoryPaging(int page, int size, String name) {
+    public Page<CategoryDto> getAllCategoryPaging(int page, int size, String name) {
         Pageable pageable = PageRequest.of(page, size);
         Page<CategoryDto> categoryPage = categoryRepository.findAllByNameContaining(name, pageable);
-        return ResponseEntity.status(HttpStatus.OK).body(categoryPage);
+        if(categoryPage.isEmpty()){
+            throw new CustomUpdateException(Message.CATEGORY_NOT_FOUND);
+        }
+        return categoryPage;
     }
 
 }
