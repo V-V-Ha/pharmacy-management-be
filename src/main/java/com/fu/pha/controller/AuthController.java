@@ -1,5 +1,6 @@
 package com.fu.pha.controller;
 
+import com.fu.pha.dto.request.ChangePasswordDto;
 import com.fu.pha.dto.request.LoginDtoRequest;
 import com.fu.pha.dto.request.UserDto;
 import com.fu.pha.dto.response.JwtResponse;
@@ -22,17 +23,11 @@ public class AuthController {
         return userService.login(request);
     }
 
-    @PostMapping("/create-user")
-    @PreAuthorize("hasRole('PRODUCT_OWNER')")
-    public ResponseEntity<Object> createUser(@RequestBody UserDto request) {
-        return userService.createUser(request);
+    @PutMapping("/reset-password")
+    public ResponseEntity<Object> resetPassword(@RequestBody ChangePasswordDto request, @RequestParam String token) {
+        return userService.resetPassword(request, token);
     }
 
-    @PutMapping("/update-user")
-    @PreAuthorize("hasRole('PRODUCT_OWNER')")
-    public ResponseEntity<Object> updateUser(@RequestBody UserDto request) {
-        return userService.updateUser(request);
-    }
 
 
 

@@ -69,9 +69,17 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     @Override
     public ResponseEntity<JwtResponse> login(LoginDtoRequest loginDtoRequest) {
+        //check username and password
+        if (loginDtoRequest.getUsername() == null || loginDtoRequest.getUsername().trim().isEmpty()) {
+            throw new CustomUpdateException(Message.MUST_FILL_USERNAME);
+        }
+        if (loginDtoRequest.getPassword() == null || loginDtoRequest.getPassword().trim().isEmpty()) {
+            throw new CustomUpdateException(Message.MUST_FILL_PASSWORD);
+        }
         // Xác thực thông tin đăng nhập
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDtoRequest.getUsername(), loginDtoRequest.getPassword()));
+
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
@@ -111,6 +119,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         user.setPhone(request.getPhone());
         user.setCic(request.getCic());
         user.setStatus(request.getStatus());
+        user.setNote(request.getNote());
         user.setCreateDate(Instant.now());
         user.setCreateBy(SecurityContextHolder.getContext().getAuthentication().getName());
         user.setLastModifiedDate(Instant.now());
@@ -142,6 +151,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         user.setPhone(request.getPhone());
         user.setCic(request.getCic());
         user.setStatus(request.getStatus());
+        user.setNote(request.getNote());
         user.setLastModifiedDate(Instant.now());
         user.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
         Set<Role> roles = request.getRolesDto().stream().map(roleDto -> {
@@ -205,36 +215,35 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     //view all user with paging
     @Override
-    public ResponseEntity<Object> getAllUserPaging(int page, int size, String fullName, String role, String status) {
+    public Page<UserDto> getAllUserPaging(int page, int size, String fullName, String role, String status) {
         Pageable pageable = PageRequest.of(page, size);
         ERole eRole = null;
         UserStatus userStatus = null;
-        if(role != null) {
+        if (role != null) {
             try {
                 eRole = ERole.valueOf(role);
             } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.ROLE_NOT_FOUND, HttpStatus.BAD_REQUEST.value()));
+                throw new CustomUpdateException(Message.ROLE_NOT_FOUND);
             }
         }
 
-        if(status != null) {
+        if (status != null) {
             try {
                 userStatus = UserStatus.valueOf(status);
             } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.STATUS_NOT_FOUND, HttpStatus.BAD_REQUEST.value()));
+                throw new CustomUpdateException(Message.STATUS_NOT_FOUND);
             }
         }
 
-        Page<UserDto> users = userRepository.getAllUserPaging(fullName,eRole, userStatus, pageable);
+        Page<UserDto> users = userRepository.getAllUserPaging(fullName, eRole, userStatus, pageable);
         if (users.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(Message.USER_NOT_FOUND, HttpStatus.NOT_FOUND.value()));
+            throw new CustomUpdateException(Message.USER_NOT_FOUND);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(users.getContent());
+        return users;
     }
 
     @Override
     public ResponseEntity<Object> forgotPassword(String email) {
-
         return null;
     }
 
@@ -308,6 +317,8 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
         // Save the image URL to the database
         user.setAvatar(cloudinaryResponse.getUrl());
+        user.setLastModifiedBy(user.getFullName());
+        user.setLastModifiedDate(Instant.now());
         userRepository.save(user);
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(Message.UPLOAD_SUCCESS, HttpStatus.OK.value()));

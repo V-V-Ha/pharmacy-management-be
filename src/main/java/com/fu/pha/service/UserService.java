@@ -6,6 +6,7 @@ import com.fu.pha.dto.request.UserDto;
 import com.fu.pha.dto.response.JwtResponse;
 import com.fu.pha.entity.User;
 import com.fu.pha.enums.ERole;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,7 +23,7 @@ public interface UserService {
 
     ResponseEntity<Object> viewDetailUser(Long id);
     // get all user and paging
-    ResponseEntity<Object> getAllUserPaging(int page, int size, String fullName, String role, String status);
+    Page<UserDto> getAllUserPaging(int page, int size, String fullName, String role, String status);
 
     //forgot password and send email
     ResponseEntity<Object> forgotPassword(String email);
