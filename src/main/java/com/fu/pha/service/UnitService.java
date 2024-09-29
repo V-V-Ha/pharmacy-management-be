@@ -1,13 +1,14 @@
 package com.fu.pha.service;
 
 import com.fu.pha.dto.request.UnitDto;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 public interface UnitService {
-    List<UnitDto> getAllUnit();
+    Page<UnitDto> getAllUnitPaging(int page, int size, String name);
     UnitDto getUnitById(Long id);
-    UnitDto createUnit(UnitDto unitDto);
-    UnitDto updateUnit(UnitDto unitDto);
+    void createUnit(UnitDto unitDto);
+    void updateUnit(UnitDto unitDto);
     void deleteUnit(Long id);
 }

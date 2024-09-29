@@ -9,9 +9,10 @@ import com.fu.pha.dto.response.JwtResponse;
 import com.fu.pha.entity.Role;
 import com.fu.pha.entity.User;
 import com.fu.pha.enums.ERole;
-import com.fu.pha.enums.UserStatus;
-import com.fu.pha.exception.CustomUpdateException;
+import com.fu.pha.enums.Status;
+import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
+import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.RoleRepository;
 import com.fu.pha.repository.UserRepository;
 import com.fu.pha.security.impl.UserDetailsImpl;
@@ -34,6 +35,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -68,13 +72,13 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
     }
 
     @Override
-    public ResponseEntity<JwtResponse> login(LoginDtoRequest loginDtoRequest) {
+    public JwtResponse login(LoginDtoRequest loginDtoRequest) {
         //check username and password
         if (loginDtoRequest.getUsername() == null || loginDtoRequest.getUsername().trim().isEmpty()) {
-            throw new CustomUpdateException(Message.MUST_FILL_USERNAME);
+            throw new ResourceNotFoundException(Message.MUST_FILL_USERNAME);
         }
         if (loginDtoRequest.getPassword() == null || loginDtoRequest.getPassword().trim().isEmpty()) {
-            throw new CustomUpdateException(Message.MUST_FILL_PASSWORD);
+            throw new ResourceNotFoundException(Message.MUST_FILL_PASSWORD);
         }
         // Xác thực thông tin đăng nhập
         Authentication authentication = authenticationManager.authenticate(
@@ -89,128 +93,183 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        JwtResponse jwtResponse = new JwtResponse(
+        return new JwtResponse(
                 jwt,
                 userDetails.getId(),
                 userDetails.getUsername(),
                 userDetails.getEmail(),
                 roles);
 
-        return ResponseEntity.ok(jwtResponse);
     }
 
     @Override
-    public ResponseEntity<Object> createUser(UserDto request) {
+    public void createUser(UserDto userDto) {
 
-        //used to validate user information
-        if(!validate.validateUser(request,"create").getStatusCode().equals(HttpStatus.OK))
-            return validate.validateUser(request,"create");
+        checkValidate(userDto);
+
+        if (userRepository.existsByUsername(userDto.getUsername())) {
+            throw new BadRequestException(Message.EXIST_USERNAME);
+        }
+        if (userRepository.existsByEmail(userDto.getEmail())) {
+            throw new BadRequestException(Message.EXIST_EMAIL);
+        }
+        if (userRepository.getUserByCic(userDto.getCic()) != null) {
+            throw new BadRequestException(Message.EXIST_CCCD);
+        }
+        if (userRepository.getUserByPhone(userDto.getPhone()) != null) {
+            throw new BadRequestException(Message.EXIST_PHONE);
+        }
 
 
         User user = new User();
-        user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
-        user.setPassword(encoder.encode(request.getPassword()));
-        user.setAddress(request.getAddress());
-        user.setDob(request.getDob());
-        user.setGender(request.getGender());
-        user.setFullName(request.getFullName());
-        user.setAvatar(request.getAvatar());
-        user.setPhone(request.getPhone());
-        user.setCic(request.getCic());
-        user.setStatus(request.getStatus());
-        user.setNote(request.getNote());
+        user.setUsername(userDto.getUsername());
+        user.setEmail(userDto.getEmail());
+        user.setPassword(encoder.encode(userDto.getPassword()));
+        user.setAddress(userDto.getAddress());
+        user.setDob(userDto.getDob());
+        user.setGender(userDto.getGender());
+        user.setFullName(userDto.getFullName());
+        user.setAvatar(userDto.getAvatar());
+        user.setPhone(userDto.getPhone());
+        user.setCic(userDto.getCic());
+        user.setStatus(userDto.getStatus());
+        user.setNote(userDto.getNote());
         user.setCreateDate(Instant.now());
         user.setCreateBy(SecurityContextHolder.getContext().getAuthentication().getName());
         user.setLastModifiedDate(Instant.now());
         user.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
-        Set<Role> roles = request.getRolesDto().stream().map(roleDto -> {
+        Set<Role> roles = userDto.getRolesDto().stream().map(roleDto -> {
             Role role = roleRepository.findByName(ERole.valueOf(roleDto.getName()))
-                    .orElseThrow(() -> new CustomUpdateException("Error: Role is not found."));
+                    .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND));
             return role;
         }).collect(Collectors.toSet());
         user.setRoles(roles);
         userRepository.save(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse(Message.CREATE_SUCCESS, HttpStatus.CREATED.value()));
     }
 
     @Override
-    public ResponseEntity<Object> updateUser(UserDto request) {
+    public void updateUser(UserDto userDto) {
         //used to validate user information
-        if(!validate.validateUser(request,"update").getStatusCode().equals(HttpStatus.OK))
-            return validate.validateUser(request,"update");
+        checkValidate(userDto);
 
-        User user = userRepository.getUserById(request.getId());
-        user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
-        user.setAddress(request.getAddress());
-        user.setDob(request.getDob());
-        user.setGender(request.getGender());
-        user.setFullName(request.getFullName());
-        user.setAvatar(request.getAvatar());
-        user.setPhone(request.getPhone());
-        user.setCic(request.getCic());
-        user.setStatus(request.getStatus());
-        user.setNote(request.getNote());
+        User user = userRepository.getUserById(userDto.getId());
+        if (user == null) {
+            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
+        }
+        User emailUser = userRepository.getUserByEmail(userDto.getEmail());
+        User phoneUser = userRepository.getUserByPhone(userDto.getPhone());
+        User cicUser = userRepository.getUserByCic(userDto.getCic());
+        Optional<User> usernameUser = userRepository.findByUsername(userDto.getUsername());
+
+        if (emailUser != null && !emailUser.equals(user)) {
+            throw new BadRequestException(Message.EXIST_EMAIL);
+        }
+        if (phoneUser != null && !phoneUser.equals(user)) {
+            throw new BadRequestException(Message.EXIST_PHONE);
+        }
+        if (cicUser != null && !cicUser.equals(user)) {
+            throw new BadRequestException(Message.EXIST_CCCD);
+        }
+        if (usernameUser.isPresent() && !usernameUser.get().equals(user)) {
+            throw new BadRequestException(Message.EXIST_USERNAME);
+        }
+
+        user.setUsername(userDto.getUsername());
+        user.setEmail(userDto.getEmail());
+        user.setAddress(userDto.getAddress());
+        user.setDob(userDto.getDob());
+        user.setGender(userDto.getGender());
+        user.setFullName(userDto.getFullName());
+        user.setAvatar(userDto.getAvatar());
+        user.setPhone(userDto.getPhone());
+        user.setCic(userDto.getCic());
+        user.setStatus(userDto.getStatus());
+        user.setNote(userDto.getNote());
         user.setLastModifiedDate(Instant.now());
         user.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
-        Set<Role> roles = request.getRolesDto().stream().map(roleDto -> {
+        Set<Role> roles = userDto.getRolesDto().stream().map(roleDto -> {
             Role role = roleRepository.findByName(ERole.valueOf(roleDto.getName()))
-                    .orElseThrow(() -> new CustomUpdateException("Error: Role is not found."));
+                    .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND));
             return role;
         }).collect(Collectors.toSet());
         user.setRoles(roles);
         userRepository.save(user);
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(Message.UPDATE_SUCCESS, HttpStatus.OK.value()));
+    }
+
+    private void checkValidate(UserDto userDto) {
+        if (userDto.getFullName() == null || userDto.getEmail() == null || userDto.getPhone() == null ||
+                userDto.getDob() == null || userDto.getAddress() == null ||
+                userDto.getGender() == null || userDto.getCic() == null || userDto.getUsername() == null ||
+                userDto.getPassword() == null || userDto.getRolesDto() == null || userDto.getStatus() == null) {
+            throw new BadRequestException(Message.NULL_FILED);
+        }
+        if (!checkUserAge(userDto)) {
+            throw new BadRequestException(Message.INVALID_AGE);
+        }
+        if (!userDto.getFullName().matches(Constants.REGEX_NAME)) {
+            throw new BadRequestException(Message.INVALID_NAME);
+        }
+        if (!userDto.getEmail().matches(Constants.REGEX_GMAIL)) {
+            throw new BadRequestException(Message.INVALID_GMAIL);
+        }
+        if (!userDto.getPhone().matches(Constants.REGEX_PHONE)) {
+            throw new BadRequestException(Message.INVALID_PHONE);
+        }
+        if (!userDto.getAddress().matches(Constants.REGEX_ADDRESS)) {
+            throw new BadRequestException(Message.INVALID_ADDRESS);
+        }
+        if (!userDto.getCic().matches(Constants.REGEX_CCCD)) {
+            throw new BadRequestException(Message.INVALID_CCCD);
+        }
+        if (!userDto.getUsername().matches(Constants.REGEX_USER_NAME)) {
+            throw new BadRequestException(Message.INVALID_USERNAME_C);
+        }
+        if (!userDto.getPassword().matches(Constants.REGEX_PASSWORD)) {
+            throw new BadRequestException(Message.INVALID_PASSWORD);
+        }
     }
 
     @Override
-    public ResponseEntity<Object> activeUser(UserDto userDto) {
+    public void activeUser(UserDto userDto) {
 
         // Find the user by ID
         User user = userRepository.getUserById(userDto.getId());
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(Message.USER_NOT_FOUND, HttpStatus.NOT_FOUND.value()));
+            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
         }
 
         // Activate the user
-        user.setStatus(UserStatus.ACTIVE);
+        user.setStatus(Status.ACTIVE);
         user.setLastModifiedDate(Instant.now());
         user.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
 
         // Save the user
         userRepository.save(user);
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(Message.ACTIVE_SUCCESS, HttpStatus.OK.value()));
     }
 
     @Override
-    public ResponseEntity<Object> deActiveUser(UserDto userDto) {
+    public void deActiveUser(UserDto userDto) {
 
         // Find the user by ID
         User user = userRepository.getUserById(userDto.getId());
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(Message.USER_NOT_FOUND, HttpStatus.NOT_FOUND.value()));
+            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
         }
         // deActivate the user
-        user.setStatus(UserStatus.INACTIVE);
+        user.setStatus(Status.INACTIVE);
         user.setLastModifiedDate(Instant.now());
         user.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
         // Save the user
         userRepository.save(user);
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(Message.DEACTIVE_SUCCESS, HttpStatus.OK.value()));
-
     }
 
 
     //view detail user
     @Override
-    public ResponseEntity<Object> viewDetailUser(Long id) {
-        User user = userRepository.getUserById(id);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(Message.USER_NOT_FOUND, HttpStatus.NOT_FOUND.value()));
-        }
-        UserDto userDto = new UserDto(user);
-        return ResponseEntity.status(HttpStatus.OK).body(userDto);
+    public UserDto viewDetailUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
+        return new UserDto(user);
     }
 
     //view all user with paging
@@ -218,26 +277,26 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
     public Page<UserDto> getAllUserPaging(int page, int size, String fullName, String role, String status) {
         Pageable pageable = PageRequest.of(page, size);
         ERole eRole = null;
-        UserStatus userStatus = null;
+        Status userStatus = null;
         if (role != null) {
             try {
                 eRole = ERole.valueOf(role);
             } catch (Exception e) {
-                throw new CustomUpdateException(Message.ROLE_NOT_FOUND);
+                throw new ResourceNotFoundException(Message.ROLE_NOT_FOUND);
             }
         }
 
         if (status != null) {
             try {
-                userStatus = UserStatus.valueOf(status);
+                userStatus = Status.valueOf(status);
             } catch (Exception e) {
-                throw new CustomUpdateException(Message.STATUS_NOT_FOUND);
+                throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
             }
         }
 
         Page<UserDto> users = userRepository.getAllUserPaging(fullName, eRole, userStatus, pageable);
         if (users.isEmpty()) {
-            throw new CustomUpdateException(Message.USER_NOT_FOUND);
+            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
         }
         return users;
     }
@@ -248,10 +307,10 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
     }
 
     @Override
-    public ResponseEntity<Object> resetPassword(ChangePasswordDto request, String token) {
+    public void resetPassword(ChangePasswordDto request, String token) {
         // Validate the token
         if (!jwtUtils.validateJwtToken(token)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse(Message.INVALID_TOKEN, HttpStatus.UNAUTHORIZED.value()));
+            throw new BadRequestException(Message.INVALID_TOKEN);
         }
 
         // Get the username from the token
@@ -260,26 +319,26 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         // Find the user by username
         Optional<User> user = userRepository.findByUsername(username);
         if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(Message.USER_NOT_FOUND, HttpStatus.NOT_FOUND.value()));
+            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
         }
         //check null field
         if (request.getNewPassword() == null || request.getConfirmPassword() == null || request.getOldPassword() == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.NULL_FILED, HttpStatus.BAD_REQUEST.value()));
+            throw new BadRequestException(Message.NULL_FILED);
         }
 
         //check Old password
         if (!encoder.matches(request.getOldPassword(), user.get().getPassword())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.INVALID_OLD_PASSWORD, HttpStatus.BAD_REQUEST.value()));
+            throw new BadRequestException(Message.INVALID_OLD_PASSWORD);
         }
 
         // check new password match Regex
         if (!request.getNewPassword().matches(Constants.REGEX_PASSWORD)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.INVALID_PASSWORD, HttpStatus.BAD_REQUEST.value()));
+            throw new BadRequestException(Message.INVALID_PASSWORD);
         }
 
         // Validate the new password and confirm password
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.NOT_MATCH_PASSWORD, HttpStatus.BAD_REQUEST.value()));
+            throw new BadRequestException(Message.NOT_MATCH_PASSWORD);
         }
 
         // Update the user's password
@@ -287,28 +346,26 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         user.get().setLastModifiedDate(Instant.now());
         user.get().setLastModifiedBy(username);
         userRepository.save(user.get());
-
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(Message.CHANGE_PASS_SUCCESS, HttpStatus.OK.value()));
     }
     @Override
-    public ResponseEntity<Object> uploadImage(final Long id ,final MultipartFile file) {
+    public void uploadImage(final Long id ,final MultipartFile file) {
         // Check if the file is empty
         if (file.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(Message.EMPTY_FILE, HttpStatus.NOT_FOUND.value()));
+            throw new BadRequestException(Message.EMPTY_FILE);
         }
 
         // Check if the file is an image
         if (!FileUploadUtil.isAllowedExtension(file.getOriginalFilename(), FileUploadUtil.IMAGE_PATTERN)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.INVALID_FILE, HttpStatus.BAD_REQUEST.value()));
+            throw new BadRequestException(Message.INVALID_FILE);
         }
 
         // Check if the file size is greater than 2MB
         if (file.getSize() > FileUploadUtil.MAX_FILE_SIZE) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.INVALID_FILE_SIZE, HttpStatus.BAD_REQUEST.value()));
+            throw new BadRequestException(Message.INVALID_FILE_SIZE);
         }
         User user = userRepository.getUserById(id);
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(Message.USER_NOT_FOUND, HttpStatus.NOT_FOUND.value()));
+            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
         }
         String customFileName = user.getFullName() + "avatar";
 
@@ -320,7 +377,11 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         user.setLastModifiedBy(user.getFullName());
         user.setLastModifiedDate(Instant.now());
         userRepository.save(user);
+    }
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(Message.UPLOAD_SUCCESS, HttpStatus.OK.value()));
+    public boolean checkUserAge(UserDto userDto) {
+        LocalDate birthDate = userDto.getDob().atZone(ZoneId.systemDefault()).toLocalDate();
+        int age = Period.between(birthDate, LocalDate.now()).getYears();
+        return age >= 18;
     }
 }

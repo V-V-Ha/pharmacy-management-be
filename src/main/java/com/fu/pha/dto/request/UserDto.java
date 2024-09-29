@@ -1,11 +1,8 @@
 package com.fu.pha.dto.request;
 
-import com.fu.pha.dto.response.MessageResponse;
-import com.fu.pha.entity.Role;
 import com.fu.pha.entity.User;
 import com.fu.pha.enums.Gender;
-import com.fu.pha.enums.UserStatus;
-import jakarta.persistence.*;
+import com.fu.pha.enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -31,7 +28,7 @@ public class UserDto {
     private String avatar;
     private String phone;
     private String cic;
-    private UserStatus status;
+    private Status status;
     private String note;
     private Instant createDate;
     private Instant lastModifiedDate;

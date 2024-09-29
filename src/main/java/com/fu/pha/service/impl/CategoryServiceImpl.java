@@ -4,10 +4,11 @@ import com.fu.pha.dto.request.CategoryDto;
 import com.fu.pha.dto.request.UserDto;
 import com.fu.pha.dto.response.MessageResponse;
 import com.fu.pha.entity.Category;
-import com.fu.pha.exception.CustomUpdateException;
 import com.fu.pha.exception.Message;
+import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.CategoryRepository;
 import com.fu.pha.service.CategoryService;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,15 +28,15 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     @Override
-    public void createCategory(CategoryDto request) {
-        // Validate the request
+    public void createCategory(CategoryDto request) throws BadRequestException {
+    // Validate the request
         if (request == null || request.getName() == null || request.getName().isEmpty()) {
-            throw new CustomUpdateException(Message.NULL_FILED);
+            throw new BadRequestException(Message.NULL_FILED);
         }
         //existing category
         Category categoryExist = categoryRepository.findByCategoryName(request.getName());
         if (categoryExist != null) {
-            throw new CustomUpdateException(Message.CATEGORY_EXIST);
+            throw new BadRequestException(Message.CATEGORY_EXIST);
         }
 
         // Create a new category entity
@@ -48,26 +49,26 @@ public class CategoryServiceImpl implements CategoryService {
         category.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
 
         // Save the category to the database
-        categoryRepository.save(category);
+         categoryRepository.save(category);
     }
 
 
     @Override
-    public void updateCategory(CategoryDto request) {
+    public void updateCategory(CategoryDto request) throws BadRequestException {
         // Validate the request
         if (request == null || request.getId() == null || request.getName() == null || request.getName().isEmpty()) {
-            throw new CustomUpdateException(Message.NULL_FILED);
+            throw new BadRequestException(Message.NULL_FILED);
         }
 
         // Find the existing category by ID
         Category existingCategory = categoryRepository.findById(request.getId()).orElse(null);
         if (existingCategory == null) {
-            throw new CustomUpdateException(Message.CATEGORY_NOT_FOUND);
+            throw new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND);
         }
         // Check if the category name is already taken
         Category category = categoryRepository.findByCategoryName(request.getName());
         if (category != null && !category.getId().equals(request.getId())) {
-            throw new CustomUpdateException(Message.CATEGORY_EXIST);
+            throw new BadRequestException(Message.CATEGORY_EXIST);
         }
 
         // Update the category fields
@@ -92,9 +93,15 @@ public class CategoryServiceImpl implements CategoryService {
         Pageable pageable = PageRequest.of(page, size);
         Page<CategoryDto> categoryPage = categoryRepository.findAllByNameContaining(name, pageable);
         if(categoryPage.isEmpty()){
-            throw new CustomUpdateException(Message.CATEGORY_NOT_FOUND);
+            throw new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND);
         }
         return categoryPage;
+    }
+
+    @Override
+    public CategoryDto getCategoryById(Long id) {
+        Category category = categoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
+        return new CategoryDto(category);
     }
 
 }

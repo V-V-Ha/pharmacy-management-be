@@ -2,7 +2,7 @@ package com.fu.pha.entity;
 
 import com.fu.pha.dto.request.LoginDtoRequest;
 import com.fu.pha.enums.Gender;
-import com.fu.pha.enums.UserStatus;
+import com.fu.pha.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -66,7 +66,7 @@ public class User extends BaseEntity {
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
-    private UserStatus status;
+    private Status status;
 
     @Column(name ="note")
     private String note;
