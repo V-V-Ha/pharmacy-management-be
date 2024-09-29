@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -66,14 +67,21 @@ public class User extends BaseEntity {
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private UserStatus status;
+
     @Column(name ="note")
     private String note;
+
+    @OneToMany(mappedBy = "userId")
+    private List<ExportSlip> exportSlipList;
+
+    @OneToMany(mappedBy = "userId")
+    private List<Import> importList;
+
+    @OneToMany(mappedBy = "userId")
+    private List<SaleOrder> saleOrderList;
 
     public User(LoginDtoRequest request){
         this.username = request.getUsername();
         this.password = request.getPassword();
     }
-
-
-
 }

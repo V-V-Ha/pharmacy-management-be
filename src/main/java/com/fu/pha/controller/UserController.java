@@ -28,7 +28,7 @@ public class UserController {
     }
 
     @GetMapping("/get-all-user-paging")
-    @PreAuthorize("hasRole('PRODUCT_OWNER')")
+//    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<Object> getAllUserPaging(@RequestParam int page,
                                                    @RequestParam int size,
                                                    @RequestParam(required = false) String fullName,

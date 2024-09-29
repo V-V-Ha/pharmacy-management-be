@@ -75,4 +75,13 @@ public class Product extends BaseEntity{
 
     @OneToMany(mappedBy = "productId")
     private List<RetailPrice> retailPrices;
+
+    @OneToMany(mappedBy = "productId")
+    private List<ExportSlipItem> exportSlipItems;
+
+    @OneToMany(mappedBy = "productId")
+    private List<ImportItem> importItems;
+
+    @OneToMany(mappedBy = "productId")
+    private List<SaleOrderItem> saleOrderItemList;
 }
