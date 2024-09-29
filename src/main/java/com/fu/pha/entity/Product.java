@@ -1,6 +1,8 @@
 package com.fu.pha.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -68,12 +70,15 @@ public class Product extends BaseEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
+    @JsonBackReference
     private Category categoryId;
 
-    @OneToMany(mappedBy = "productId")
+    @OneToMany(mappedBy = "productId",cascade = CascadeType.ALL,orphanRemoval = true)
+    @JsonManagedReference
     private List<ProductUnit> productUnitList;
 
     @OneToMany(mappedBy = "productId")
+    @JsonManagedReference
     private List<RetailPrice> retailPrices;
 
     @OneToMany(mappedBy = "productId")

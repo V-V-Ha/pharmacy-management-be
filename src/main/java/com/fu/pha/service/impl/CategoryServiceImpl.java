@@ -33,14 +33,14 @@ public class CategoryServiceImpl implements CategoryService {
             throw new CustomUpdateException(Message.NULL_FILED);
         }
         //existing category
-        Category categoryExist = categoryRepository.findByName(request.getName());
+        Category categoryExist = categoryRepository.findByCategoryName(request.getName());
         if (categoryExist != null) {
             throw new CustomUpdateException(Message.CATEGORY_EXIST);
         }
 
         // Create a new category entity
         Category category = new Category();
-        category.setName(request.getName());
+        category.setCategoryName(request.getName());
         category.setDescription(request.getDescription());
         category.setCreateDate(Instant.now());
         category.setCreateBy(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -65,13 +65,13 @@ public class CategoryServiceImpl implements CategoryService {
             throw new CustomUpdateException(Message.CATEGORY_NOT_FOUND);
         }
         // Check if the category name is already taken
-        Category category = categoryRepository.findByName(request.getName());
+        Category category = categoryRepository.findByCategoryName(request.getName());
         if (category != null && !category.getId().equals(request.getId())) {
             throw new CustomUpdateException(Message.CATEGORY_EXIST);
         }
 
         // Update the category fields
-        existingCategory.setName(request.getName());
+        existingCategory.setCategoryName(request.getName());
         existingCategory.setDescription(request.getDescription());
         existingCategory.setLastModifiedDate(Instant.now());
         existingCategory.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());

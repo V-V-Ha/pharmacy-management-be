@@ -1,5 +1,6 @@
 package com.fu.pha.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,6 +29,7 @@ public class Unit extends BaseEntity{
     @Column(name = "description")
     private String description;
 
-    @OneToMany(mappedBy = "unitId")
+    @OneToMany(mappedBy = "unitId",cascade = CascadeType.ALL ,orphanRemoval = true)
+    @JsonManagedReference
     private List<ProductUnit> productUnitList;
 }

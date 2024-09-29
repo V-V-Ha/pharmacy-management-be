@@ -1,5 +1,6 @@
 package com.fu.pha.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,5 +30,6 @@ public class Category extends BaseEntity{
     private Boolean status;
 
     @OneToMany(mappedBy = "categoryId")
+    @JsonManagedReference
     private List<Product> productList;
 }
