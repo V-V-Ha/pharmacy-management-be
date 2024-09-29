@@ -4,11 +4,11 @@ spring:
   main:
     lazy-initialization: true
     log-startup-info: true
-#  devtools:
-#    add-properties: false
-#    remote:
-#      restart:
-#        enabled: false
+  devtools:
+    add-properties: false
+    remote:
+      restart:
+        enabled: false
 
 # DB Postgres SQL
   datasource:
