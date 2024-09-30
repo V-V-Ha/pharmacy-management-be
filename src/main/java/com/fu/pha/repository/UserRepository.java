@@ -45,7 +45,6 @@ public interface UserRepository extends JpaRepository<User,Long> {
 
 
     //check condition delete user if user does not exist in other table
-    int checkConditionDeleteUser(@Param("id") Long id);
 
 
 

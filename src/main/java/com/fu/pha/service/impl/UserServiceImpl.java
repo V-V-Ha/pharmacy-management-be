@@ -96,9 +96,9 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
         return new JwtResponse(
                 jwt,
-                userDetails.getId(),
+                userDetails.getUser().getId(),
                 userDetails.getUsername(),
-                userDetails.getEmail(),
+                userDetails.getUser().getEmail(),
                 roles);
 
     }
@@ -150,31 +150,35 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     @Override
     public void updateUser(UserDto userDto) {
-        //used to validate user information
+        // Validate user information
         checkValidate(userDto);
 
+        // Retrieve the user by ID
         User user = userRepository.getUserById(userDto.getId());
         if (user == null) {
             throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
         }
+
+        // Check for existing users with the same email, phone, CIC, and username
         User emailUser = userRepository.getUserByEmail(userDto.getEmail());
         User phoneUser = userRepository.getUserByPhone(userDto.getPhone());
         User cicUser = userRepository.getUserByCic(userDto.getCic());
         Optional<User> usernameUser = userRepository.findByUsername(userDto.getUsername());
 
-        if (emailUser != null && !emailUser.equals(user)) {
+        if (emailUser != null && !emailUser.getId().equals(user.getId())) {
             throw new BadRequestException(Message.EXIST_EMAIL);
         }
-        if (phoneUser != null && !phoneUser.equals(user)) {
+        if (phoneUser != null && !phoneUser.getId().equals(user.getId())) {
             throw new BadRequestException(Message.EXIST_PHONE);
         }
-        if (cicUser != null && !cicUser.equals(user)) {
+        if (cicUser != null && !cicUser.getId().equals(user.getId())) {
             throw new BadRequestException(Message.EXIST_CCCD);
         }
-        if (usernameUser.isPresent() && !usernameUser.get().equals(user)) {
+        if (usernameUser.isPresent() && !usernameUser.get().getId().equals(user.getId())) {
             throw new BadRequestException(Message.EXIST_USERNAME);
         }
 
+        // Update user details
         user.setUsername(userDto.getUsername());
         user.setEmail(userDto.getEmail());
         user.setAddress(userDto.getAddress());
@@ -188,12 +192,16 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         user.setNote(userDto.getNote());
         user.setLastModifiedDate(Instant.now());
         user.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        // Update user roles
         Set<Role> roles = userDto.getRolesDto().stream().map(roleDto -> {
             Role role = roleRepository.findByName(ERole.valueOf(roleDto.getName()))
                     .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND));
             return role;
         }).collect(Collectors.toSet());
         user.setRoles(roles);
+
+        // Save the updated user
         userRepository.save(user);
     }
 

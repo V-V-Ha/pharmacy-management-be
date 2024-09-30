@@ -32,18 +32,21 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(BadCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseEntity<MessageResponse> handleBadCredentialsException(BadCredentialsException ex) {
         MessageResponse errorResponse = new MessageResponse(Message.INVALID_USERNAME, HttpStatus.UNAUTHORIZED.value());
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(LockedException.class)
+    @ResponseStatus(HttpStatus.LOCKED)
     public ResponseEntity<MessageResponse> handleLockedException(LockedException ex) {
         MessageResponse errorResponse = new MessageResponse(Message.ACCOUNT_LOCKED, HttpStatus.LOCKED.value());
         return new ResponseEntity<>(errorResponse, HttpStatus.LOCKED);
     }
 
     @ExceptionHandler(DisabledException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     public ErrorMessage handleDisabledException(DisabledException ex,WebRequest request) {
         return new ErrorMessage(
                 HttpStatus.FORBIDDEN.value(),
@@ -52,12 +55,14 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     public ResponseEntity<MessageResponse> handleAccessDeniedException(AccessDeniedException ex) {
         MessageResponse errorResponse = new MessageResponse(Message.ACCESS_DENIED, HttpStatus.FORBIDDEN.value());
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<MessageResponse> handleGenericException(Exception ex) {
         MessageResponse errorResponse = new MessageResponse(Message.OTHER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.value());
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
