@@ -44,9 +44,11 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DisabledException.class)
-    public ResponseEntity<MessageResponse> handleDisabledException(DisabledException ex) {
-        MessageResponse errorResponse = new MessageResponse(Message.ACCOUNT_DISABLED, HttpStatus.FORBIDDEN.value());
-        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    public ErrorMessage handleDisabledException(DisabledException ex,WebRequest request) {
+        return new ErrorMessage(
+                HttpStatus.FORBIDDEN.value(),
+                Message.ACCOUNT_DISABLED,
+                toExactlyPath(request.getDescription(false)));
     }
 
     @ExceptionHandler(AccessDeniedException.class)

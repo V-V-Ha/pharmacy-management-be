@@ -85,10 +85,11 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
                 new UsernamePasswordAuthenticationToken(loginDtoRequest.getUsername(), loginDtoRequest.getPassword()));
 
 
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
 
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
@@ -377,6 +378,15 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         user.setLastModifiedBy(user.getFullName());
         user.setLastModifiedDate(Instant.now());
         userRepository.save(user);
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+        //check condition delete user if user does not exist in other table
+        if (userRepository.getUserById(id) == null) {
+            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
+        }
+        userRepository.deleteById(id);
     }
 
     public boolean checkUserAge(UserDto userDto) {

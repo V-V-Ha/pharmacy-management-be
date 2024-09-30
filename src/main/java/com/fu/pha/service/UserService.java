@@ -33,6 +33,9 @@ public interface UserService {
 
     void uploadImage(final Long id, final MultipartFile file);
 
+    //soft delete user
+    void deleteUser(Long id);
+
 
 
 }

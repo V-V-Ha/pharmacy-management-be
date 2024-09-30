@@ -13,5 +13,5 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
             "ORDER BY u.lastModifiedDate DESC")
     Page<UnitDto> findAllByNameContaining(String name, Pageable pageable);
 
-    Unit findByName(String name);
+    Unit findByUnitName(String name);
 }

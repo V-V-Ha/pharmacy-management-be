@@ -3,6 +3,7 @@ package com.fu.pha.security.impl;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fu.pha.entity.User;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -10,7 +11,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 public class UserDetailsImpl implements UserDetails {
     private static final long serialVersionUID = 1L;
@@ -18,19 +18,21 @@ public class UserDetailsImpl implements UserDetails {
     private Long id;
 
     private String username;
-
     private String email;
+    
+    private final User user;
 
     @JsonIgnore
     private String password;
 
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailsImpl(Long id, String username, String email, String password,
+    public UserDetailsImpl(Long id, String username, String email, User user, String password,
                            Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
         this.email = email;
+        this.user = user;
         this.password = password;
         this.authorities = authorities;
     }
@@ -44,7 +46,7 @@ public class UserDetailsImpl implements UserDetails {
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getPassword(),
+                user, user.getPassword(),
                 authorities);
     }
 
@@ -88,7 +90,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return user.getStatus().name().equals("ACTIVE");
     }
 
     @Override
