@@ -3,8 +3,11 @@ package com.fu.pha.controller;
 import com.fu.pha.dto.request.CategoryDto;
 import com.fu.pha.dto.response.MessageResponse;
 import com.fu.pha.dto.response.PageResponseModel;
+import com.fu.pha.entity.Category;
+import com.fu.pha.entity.User;
 import com.fu.pha.service.CategoryService;
 import com.fu.pha.exception.Message;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,21 +24,28 @@ public class CategoryController {
 
      @PostMapping("/create-category")
      @PreAuthorize("hasRole('PRODUCT_OWNER') and hasRole('STOCK')")
-     public ResponseEntity<Object> createCategory(@RequestBody CategoryDto request) {
-         categoryService.createCategory(request);
-         return ResponseEntity.ok(new MessageResponse(Message.CREATE_SUCCESS, HttpStatus.OK.value()));
+        public ResponseEntity<String> createCategory(@RequestBody CategoryDto request) throws BadRequestException {
+            categoryService.createCategory(request);
+            return ResponseEntity.ok(Message.CREATE_SUCCESS);
+        }
+
+     @PutMapping("/update-category")
+     @PreAuthorize("hasRole('PRODUCT_OWNER') and hasRole('STOCK')")
+     public ResponseEntity<String> updateCategory(@RequestBody CategoryDto request) throws BadRequestException {
+            categoryService.updateCategory(request);
+            return ResponseEntity.ok(Message.UPDATE_SUCCESS);
      }
 
-     @PostMapping("/update-category")
-     @PreAuthorize("hasRole('PRODUCT_OWNER') and hasRole('STOCK')")
-     public ResponseEntity<Object> updateCategory(@RequestBody CategoryDto request) {
-         categoryService.updateCategory(request);
-         return ResponseEntity.ok(new MessageResponse(Message.UPDATE_SUCCESS, HttpStatus.OK.value()));
-     }
+     //get category by id
+    @GetMapping("/get-category-by-id")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') and hasRole('STOCK')")
+    public ResponseEntity<CategoryDto> getCategoryById(@RequestParam Long id) {
+        return ResponseEntity.ok(categoryService.getCategoryById(id));
+    }
 
      @GetMapping("/get-all-category")
      @PreAuthorize("hasRole('PRODUCT_OWNER') and hasRole('STOCK')")
-        public ResponseEntity<Object> getAllCategoryPaging(@RequestParam int page,
+        public ResponseEntity<PageResponseModel<CategoryDto>> getAllCategoryPaging(@RequestParam int page,
                                                            @RequestParam(required = false) String name) {
             int size = 10;
             Page<CategoryDto> content = categoryService.getAllCategoryPaging(page, size, name);

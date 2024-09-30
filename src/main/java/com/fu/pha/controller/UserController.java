@@ -3,6 +3,7 @@ package com.fu.pha.controller;
 import com.fu.pha.dto.request.ChangePasswordDto;
 import com.fu.pha.dto.request.UserDto;
 import com.fu.pha.dto.response.PageResponseModel;
+import com.fu.pha.exception.Message;
 import com.fu.pha.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,19 +22,21 @@ public class UserController {
     UserService userService;
     @PutMapping("/active-user")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
-    public ResponseEntity<Object> activeUser(@RequestBody UserDto request) {
-        return userService.activeUser(request);
+    public ResponseEntity<String> activeUser(@RequestBody UserDto request) {
+        userService.activeUser(request);
+        return ResponseEntity.ok(Message.ACTIVE_SUCCESS);
     }
 
     @PutMapping("/in-active-user")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
-    public ResponseEntity<Object> deActiveUser(@RequestBody UserDto request) {
-        return userService.deActiveUser(request);
+    public ResponseEntity<String> deActiveUser(@RequestBody UserDto request) {
+         userService.deActiveUser(request);
+        return ResponseEntity.ok(Message.DEACTIVE_SUCCESS);
     }
 
     @GetMapping("/get-all-user-paging")
 //    @PreAuthorize("hasRole('PRODUCT_OWNER')")
-    public ResponseEntity<Object> getAllUserPaging(@RequestParam int page,
+    public ResponseEntity<PageResponseModel<UserDto>> getAllUserPaging(@RequestParam int page,
                                                    @RequestParam(required = false) String fullName,
                                                    @RequestParam(required = false) String role,
                                                    @RequestParam(required = false) String status) {
@@ -54,34 +57,38 @@ public class UserController {
 
     @GetMapping("/view-detail-user")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
-    public ResponseEntity<Object> viewDetailUser(@RequestParam Long id) {
-        return userService.viewDetailUser(id);
+    public ResponseEntity<UserDto> viewDetailUser(@RequestParam Long id) {
+        return ResponseEntity.ok(userService.viewDetailUser(id));
     }
 
 
     @PutMapping("/reset-password")
-    public ResponseEntity<Object> resetPassword(@RequestBody ChangePasswordDto request, @RequestParam String token) {
-        return userService.resetPassword(request, token);
+    public ResponseEntity<String> resetPassword(@RequestBody ChangePasswordDto request, @RequestParam String token) {
+        userService.resetPassword(request, token);
+        return ResponseEntity.ok(Message.CHANGE_PASS_SUCCESS);
     }
 
     //upload avatar
     @PostMapping("/upload-avatar")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
-    public ResponseEntity<Object> uploadImage(@RequestParam final Long id,@RequestParam("file") MultipartFile file) {
-        return userService.uploadImage(id ,file);
+    public ResponseEntity<String> uploadImage(@RequestParam final Long id,@RequestParam("file") MultipartFile file) {
+        userService.uploadImage(id, file);
+        return ResponseEntity.ok(Message.UPLOAD_SUCCESS);
     }
 
 
     @PostMapping("/create-user")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
-    public ResponseEntity<Object> createUser(@RequestBody UserDto request) {
-        return userService.createUser(request);
+    public ResponseEntity<String> createUser(@RequestBody UserDto request) {
+        userService.createUser(request);
+        return ResponseEntity.ok(Message.CREATE_SUCCESS);
     }
 
     @PutMapping("/update-user")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
-    public ResponseEntity<Object> updateUser(@RequestBody UserDto request) {
-        return userService.updateUser(request);
+    public ResponseEntity<String> updateUser(@RequestBody UserDto request) {
+        userService.updateUser(request);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
 

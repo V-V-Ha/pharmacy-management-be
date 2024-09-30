@@ -13,15 +13,15 @@ import org.springframework.web.multipart.MultipartFile;
 public interface UserService {
     User findByUsername(String username);
 
-    ResponseEntity<JwtResponse> login(LoginDtoRequest loginDtoRequest);
-    ResponseEntity<Object> createUser(UserDto request);
+    JwtResponse login(LoginDtoRequest loginDtoRequest);
+    void createUser(UserDto request);
 
-    ResponseEntity<Object> updateUser(UserDto request);
+    void updateUser(UserDto request);
 
-    ResponseEntity<Object> activeUser(UserDto userDto);
-    ResponseEntity<Object> deActiveUser(UserDto userDto);
+    void activeUser(UserDto userDto);
+    void deActiveUser(UserDto userDto);
 
-    ResponseEntity<Object> viewDetailUser(Long id);
+    UserDto viewDetailUser(Long id);
     // get all user and paging
     Page<UserDto> getAllUserPaging(int page, int size, String fullName, String role, String status);
 
@@ -29,9 +29,9 @@ public interface UserService {
     ResponseEntity<Object> forgotPassword(String email);
 
     //reset password
-    ResponseEntity<Object> resetPassword(ChangePasswordDto request, String token);
+    void resetPassword(ChangePasswordDto request, String token);
 
-    ResponseEntity<Object> uploadImage(final Long id, final MultipartFile file);
+    void uploadImage(final Long id, final MultipartFile file);
 
 
 

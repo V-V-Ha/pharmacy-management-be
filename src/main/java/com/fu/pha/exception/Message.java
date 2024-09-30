@@ -50,4 +50,6 @@ public class Message {
     public static final String MUST_FILL_USERNAME = "Tên đăng nhập không được trống";
     public static final String MUST_FILL_PASSWORD = "Mật khẩu không được trống";
     public static final String PRODUCT_UPDATE_SUCCESS = "Cập nhật sản phẩm thành công";
+    public static final String UNIT_NOT_FOUND = "Đơn vị không tồn tại";
+    public static final String UNIT_EXIST = "Đơn vị đã tồn tại";
 }

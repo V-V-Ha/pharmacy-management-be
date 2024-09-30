@@ -4,7 +4,7 @@ package com.fu.pha.repository;
 import com.fu.pha.dto.request.UserDto;
 import com.fu.pha.entity.User;
 import com.fu.pha.enums.ERole;
-import com.fu.pha.enums.UserStatus;
+import com.fu.pha.enums.Status;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,7 +12,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -41,7 +40,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
             "ORDER BY u.lastModifiedDate DESC")
     Page<UserDto> getAllUserPaging(@Param("fullName") String fullName,
                                    @Param("role") ERole role,
-                                   @Param("status") UserStatus status,
+                                   @Param("status") Status status,
                                    Pageable pageable);
 
 
