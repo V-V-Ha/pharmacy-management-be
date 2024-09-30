@@ -22,7 +22,7 @@ public class CategoryDto {
 
     public CategoryDto(Category category) {
         this.id = category.getId();
-        this.name = category.getName();
+        this.name = category.getCategoryName();
         this.description = category.getDescription();
         this.createDate=category.getCreateDate();
         this.createBy=category.getCreateBy();

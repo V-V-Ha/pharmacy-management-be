@@ -49,4 +49,5 @@ public class Message {
     public static final String CATEGORY_EXIST = "Nhóm sản phẩm đã tồn tại";
     public static final String MUST_FILL_USERNAME = "Tên đăng nhập không được trống";
     public static final String MUST_FILL_PASSWORD = "Mật khẩu không được trống";
+    public static final String PRODUCT_UPDATE_SUCCESS = "Cập nhật sản phẩm thành công";
 }

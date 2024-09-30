@@ -28,4 +28,10 @@ public class ProductController {
     public ResponseEntity<Object> createProduct(@RequestBody ProductDTORequest productDTORequest) {
         return productService.createProduct(productDTORequest);
     }
+
+    @PutMapping("/update-product")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<Object> updateProduct(@RequestBody ProductDTORequest productDTORequest) {
+        return productService.updateProduct(productDTORequest);
+    }
 }

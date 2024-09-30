@@ -33,6 +33,7 @@ public class ProductDTORequest {
     private String dosageForms;
     private String description;
     private String categoryId;
+    private String imageProduct;
 
     public ProductDTORequest(Product product){
         this.id = product.getId();
