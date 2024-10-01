@@ -24,10 +24,10 @@ public class AuthController {
         return ResponseEntity.ok(userService.login(request));
     }
 
-    @PutMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestBody ChangePasswordDto request, @RequestParam String token) {
-        userService.resetPassword(request, token);
-        return ResponseEntity.ok(Message.CHANGE_PASS_SUCCESS);
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+        userService.forgotPassword(email);
+        return ResponseEntity.ok(Message.FORGOT_PASS_SUCCESS);
     }
 
 

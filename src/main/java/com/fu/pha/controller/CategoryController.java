@@ -23,14 +23,14 @@ public class CategoryController {
     CategoryService categoryService;
 
      @PostMapping("/create-category")
-     @PreAuthorize("hasRole('PRODUCT_OWNER') and hasRole('STOCK')")
+     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
         public ResponseEntity<String> createCategory(@RequestBody CategoryDto request) throws BadRequestException {
             categoryService.createCategory(request);
             return ResponseEntity.ok(Message.CREATE_SUCCESS);
         }
 
      @PutMapping("/update-category")
-     @PreAuthorize("hasRole('PRODUCT_OWNER') and hasRole('STOCK')")
+     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
      public ResponseEntity<String> updateCategory(@RequestBody CategoryDto request) throws BadRequestException {
             categoryService.updateCategory(request);
             return ResponseEntity.ok(Message.UPDATE_SUCCESS);
@@ -38,13 +38,13 @@ public class CategoryController {
 
      //get category by id
     @GetMapping("/get-category-by-id")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') and hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<CategoryDto> getCategoryById(@RequestParam Long id) {
         return ResponseEntity.ok(categoryService.getCategoryById(id));
     }
 
      @GetMapping("/get-all-category")
-     @PreAuthorize("hasRole('PRODUCT_OWNER') and hasRole('STOCK')")
+     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
         public ResponseEntity<PageResponseModel<CategoryDto>> getAllCategoryPaging(@RequestParam int page,
                                                            @RequestParam(required = false) String name) {
             int size = 10;
@@ -56,7 +56,6 @@ public class CategoryController {
                  .total(content.getTotalElements())
                  .listData(content.getContent())
                  .build();
-
             return ResponseEntity.ok(response);
         }
 

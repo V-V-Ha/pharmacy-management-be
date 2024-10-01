@@ -121,6 +121,8 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
             throw new BadRequestException(Message.EXIST_PHONE);
         }
 
+        //can not choose role product_owner with role sale and stock
+
 
         User user = new User();
         user.setUsername(userDto.getUsername());
@@ -159,6 +161,8 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
             throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
         }
 
+        
+
         // Check for existing users with the same email, phone, CIC, and username
         User emailUser = userRepository.getUserByEmail(userDto.getEmail());
         User phoneUser = userRepository.getUserByPhone(userDto.getPhone());
@@ -185,7 +189,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         user.setDob(userDto.getDob());
         user.setGender(userDto.getGender());
         user.setFullName(userDto.getFullName());
-        user.setAvatar(userDto.getAvatar());
         user.setPhone(userDto.getPhone());
         user.setCic(userDto.getCic());
         user.setStatus(userDto.getStatus());
