@@ -18,6 +18,7 @@ import com.fu.pha.repository.UserRepository;
 import com.fu.pha.security.impl.UserDetailsImpl;
 import com.fu.pha.security.jwt.JwtUtils;
 import com.fu.pha.service.CloudinaryService;
+import com.fu.pha.service.EmailService;
 import com.fu.pha.util.FileUploadUtil;
 import com.fu.pha.validate.Constants;
 import com.fu.pha.validate.Validate;
@@ -41,6 +42,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,6 +65,9 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     @Autowired
     Validate validate;
+
+    @Autowired
+    EmailService emailService;
 
     @Autowired
     JwtUtils jwtUtils;
@@ -161,7 +166,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
             throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
         }
 
-        
+
 
         // Check for existing users with the same email, phone, CIC, and username
         User emailUser = userRepository.getUserByEmail(userDto.getEmail());
@@ -314,8 +319,27 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
     }
 
     @Override
-    public ResponseEntity<Object> forgotPassword(String email) {
-        return null;
+    public void forgotPassword(String email) {
+        // Find the user by email
+        User user = userRepository.getUserByEmail(email);
+        if (user == null) {
+            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
+        }
+        String tempPassword = UUID.randomUUID().toString().substring(0, 7) + "A";
+        user.setPassword(encoder.encode(tempPassword));
+        userRepository.save(user);
+
+        String emailSubject = "[PHA] Yêu Cầu Đặt Lại Mật Khẩu";
+        String emailContent = "Xin chào, " + user.getFullName() + "\n\n" +
+                "Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn trên hệ thống Pharmacy Management System.\n" +
+                "Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.\n" +
+                "Đây là thông báo phản hồi cho yêu cầu đặt lại mật khẩu tài khoản của bạn.\n\n" +
+                "Mật khẩu của bạn là: " + tempPassword + "\n\n" +
+                "Trân trọng,\n\n" +
+                "Pharmacy Management System";
+
+
+        emailService.sendSimpleEmail(user.getEmail(), emailSubject, emailContent);
     }
 
     @Override

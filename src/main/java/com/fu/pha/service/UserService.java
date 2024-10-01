@@ -26,7 +26,7 @@ public interface UserService {
     Page<UserDto> getAllUserPaging(int page, int size, String fullName, String role, String status);
 
     //forgot password and send email
-    ResponseEntity<Object> forgotPassword(String email);
+    void forgotPassword(String email);
 
     //reset password
     void resetPassword(ChangePasswordDto request, String token);

@@ -61,8 +61,8 @@ public class ProductServiceTest {
     void setUp() {
         securityContextHolderMockedStatic = mockStatic(SecurityContextHolder.class);
         when(SecurityContextHolder.getContext()).thenReturn(securityContext);
-//        when(securityContext.getAuthentication()).thenReturn(authentication);
-//        when(authentication.getName()).thenReturn("minhhieu");
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("minhhieu");
 
         category = new Category();
         category.setCategoryName("Thuốc ho");
