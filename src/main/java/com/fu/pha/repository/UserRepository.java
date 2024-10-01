@@ -44,6 +44,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
                                    Pageable pageable);
 
 
+    //check condition delete user if user does not exist in other table
 
 
 

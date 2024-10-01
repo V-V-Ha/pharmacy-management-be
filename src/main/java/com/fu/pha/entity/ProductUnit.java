@@ -29,4 +29,9 @@ public class ProductUnit extends BaseEntity{
     @JsonBackReference
     private Unit unitId;
 
+    @Column(name = "conversion_factor",nullable = false)
+    private Integer conversionFactor;
+
+
+
 }
