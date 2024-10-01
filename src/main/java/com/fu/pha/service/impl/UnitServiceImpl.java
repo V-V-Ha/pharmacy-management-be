@@ -45,7 +45,7 @@ public class UnitServiceImpl implements UnitService {
             throw new BadRequestException(Message.NULL_FILED);
         }
         // Existing unit
-        Unit unitExist = unitRepository.findByName(unitDto.getUnitName());
+        Unit unitExist = unitRepository.findByUnitName(unitDto.getUnitName());
         if (unitExist != null) {
             throw new BadRequestException(Message.UNIT_EXIST);
         }
@@ -77,7 +77,7 @@ public class UnitServiceImpl implements UnitService {
         }
 
         // Check if the unit name is already taken
-        Unit unit = unitRepository.findByName(unitDto.getUnitName());
+        Unit unit = unitRepository.findByUnitName(unitDto.getUnitName());
         if (unit != null && !unit.getId().equals(unitDto.getId())) {
             throw new BadRequestException(Message.UNIT_EXIST);
         }
