@@ -124,6 +124,17 @@ public class Validate {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.EXIST_PRODUCT_CODE, HttpStatus.BAD_REQUEST.value()));
             if (productRepository.existsByRegistrationNumber(productDTORequest.getRegistrationNumber()))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.EXIST_REGISTRATION_NUMBER, HttpStatus.BAD_REQUEST.value()));
+        } else if (option.equals("update")) {
+            Product product = productRepository.getProductById(productDTORequest.getId());
+            if (product == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.PRODUCT_NOT_FOUND, HttpStatus.BAD_REQUEST.value()));
+            }
+            Product productCode = productRepository.getProductByProductCode(productDTORequest.getProductCode());
+            Product registrationNumber = productRepository.getProductByRegistrationNumber(productDTORequest.getRegistrationNumber());
+            if (productCode != null && !productCode.equals(product))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.EXIST_PRODUCT_CODE, HttpStatus.BAD_REQUEST.value()));
+            if (registrationNumber != null && !registrationNumber.equals(product))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(Message.EXIST_REGISTRATION_NUMBER, HttpStatus.BAD_REQUEST.value()));
         }
         return ResponseEntity.status(HttpStatus.OK).body(Message.VALID_INFORMATION);
     }

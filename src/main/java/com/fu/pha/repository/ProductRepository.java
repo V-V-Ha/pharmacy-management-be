@@ -14,6 +14,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Boolean existsByProductCode(String productCode);
     Boolean existsByRegistrationNumber(String registrationNumber);
+    Product getProductByProductCode(String productCode);
+    Product getProductByRegistrationNumber(String registrationNumber);
+    Product getProductById(Long id);
 
 
     @Query("SELECT new com.fu.pha.dto.response.ProductDTOResponse(p) FROM Product p WHERE " +

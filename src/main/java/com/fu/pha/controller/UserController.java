@@ -90,10 +90,5 @@ public class UserController {
         userService.updateUser(request);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
-
-
-
-
-
 }
 
