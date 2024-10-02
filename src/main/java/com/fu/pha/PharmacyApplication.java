@@ -1,13 +1,13 @@
-package com.example.project;
+package com.fu.pha;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class DemoApplication {
+public class PharmacyApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(DemoApplication.class, args);
+		SpringApplication.run(PharmacyApplication.class, args);
 	}
 
 }
