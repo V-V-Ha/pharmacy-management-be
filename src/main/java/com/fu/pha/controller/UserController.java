@@ -7,6 +7,7 @@ import com.fu.pha.exception.Message;
 import com.fu.pha.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -77,12 +78,26 @@ public class UserController {
     }
 
 
+//    @PostMapping("/create-user")
+//    @PreAuthorize("hasRole('PRODUCT_OWNER')")
+//    public ResponseEntity<String> createUser(@RequestBody UserDto request) {
+//        userService.createUser(request);
+//        return ResponseEntity.ok(Message.CREATE_SUCCESS);
+//    }
+
     @PostMapping("/create-user")
-    @PreAuthorize("hasRole('PRODUCT_OWNER')")
-    public ResponseEntity<String> createUser(@RequestBody UserDto request) {
-        userService.createUser(request);
-        return ResponseEntity.ok(Message.CREATE_SUCCESS);
+    public ResponseEntity<?> createUser(
+            @RequestPart("userDto") UserDto userDto,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        try {
+            // Gọi service để tạo user và upload avatar
+            userService.createUser(userDto, file);
+            return ResponseEntity.ok(Message.CREATE_SUCCESS);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Message.CREATE_FAILED);
+        }
     }
+
 
     @PutMapping("/update-user")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")

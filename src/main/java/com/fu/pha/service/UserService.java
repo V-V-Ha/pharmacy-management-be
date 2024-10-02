@@ -14,7 +14,8 @@ public interface UserService {
     User findByUsername(String username);
 
     JwtResponse login(LoginDtoRequest loginDtoRequest);
-    void createUser(UserDto request);
+//    void createUser(UserDto request);
+    void createUser(UserDto userDto,MultipartFile file);
 
     void updateUser(UserDto request);
 
@@ -31,7 +32,7 @@ public interface UserService {
     //reset password
     void resetPassword(ChangePasswordDto request, String token);
 
-    void uploadImage(final Long id, final MultipartFile file);
+    String uploadImage(final Long id, final MultipartFile file);
 
     //soft delete user
     void deleteUser(Long id);

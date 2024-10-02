@@ -2,6 +2,7 @@ package com.fu.pha.service.impl;
 
 import com.fu.pha.dto.request.ChangePasswordDto;
 import com.fu.pha.dto.request.LoginDtoRequest;
+import com.fu.pha.dto.request.RoleDto;
 import com.fu.pha.dto.request.UserDto;
 import com.fu.pha.dto.response.CloudinaryResponse;
 import com.fu.pha.dto.response.MessageResponse;
@@ -108,9 +109,65 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     }
 
+//    @Override
+//    public void createUser(UserDto userDto) {
+//
+//        checkValidate(userDto);
+//
+//        if (userRepository.existsByUsername(userDto.getUsername())) {
+//            throw new BadRequestException(Message.EXIST_USERNAME);
+//        }
+//        if (userRepository.existsByEmail(userDto.getEmail())) {
+//            throw new BadRequestException(Message.EXIST_EMAIL);
+//        }
+//        if (userRepository.getUserByCic(userDto.getCic()) != null) {
+//            throw new BadRequestException(Message.EXIST_CCCD);
+//        }
+//        if (userRepository.getUserByPhone(userDto.getPhone()) != null) {
+//            throw new BadRequestException(Message.EXIST_PHONE);
+//        }
+//
+//        validateRoles(userDto.getRolesDto());
+//
+//
+//        User user = new User();
+//        user.setUsername(userDto.getUsername());
+//        user.setEmail(userDto.getEmail());
+//        user.setAddress(userDto.getAddress());
+//        user.setDob(userDto.getDob());
+//        user.setGender(userDto.getGender());
+//        user.setFullName(userDto.getFullName());
+//        user.setPhone(userDto.getPhone());
+//        user.setCic(userDto.getCic());
+//        user.setStatus(userDto.getStatus());
+//        user.setNote(userDto.getNote());
+//        Set<Role> roles = userDto.getRolesDto().stream().map(roleDto -> {
+//            Role role = roleRepository.findByName(ERole.valueOf(roleDto.getName()))
+//                    .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND));
+//            return role;
+//        }).collect(Collectors.toSet());
+//        user.setRoles(roles);
+//
+//        String tempPassword = UUID.randomUUID().toString().substring(0, 7) + "A";
+//        user.setPassword(encoder.encode(tempPassword));
+//
+//
+//        String emailSubject = "[PHA] Tạo Tài khoản";
+//        String emailContent = "Xin chào, " + user.getFullName() + "\n\n" +
+//                "Chúng tôi chào mừng bạn đến với hệ thống Pharmacy Management System.\n" +
+//                "Đây là thông báo cấp tài khoản đến bạn.\n\n" +
+//                "Mật khẩu của bạn là: " + tempPassword + "\n\n" +
+//                "Trân trọng,\n\n" +
+//                "Pharmacy Management System";
+//
+//
+//        emailService.sendSimpleEmail(user.getEmail(), emailSubject, emailContent);
+//        userRepository.save(user);
+//    }
     @Override
-    public void createUser(UserDto userDto) {
+    public void createUser(UserDto userDto, MultipartFile file) {
 
+        // Kiểm tra các giá trị đầu vào từ DTO
         checkValidate(userDto);
 
         if (userRepository.existsByUsername(userDto.getUsername())) {
@@ -126,33 +183,62 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
             throw new BadRequestException(Message.EXIST_PHONE);
         }
 
-        //can not choose role product_owner with role sale and stock
+        validateRoles(userDto.getRolesDto());
 
-
+        // Tạo đối tượng User từ UserDto
         User user = new User();
         user.setUsername(userDto.getUsername());
         user.setEmail(userDto.getEmail());
-        user.setPassword(encoder.encode(userDto.getPassword()));
         user.setAddress(userDto.getAddress());
         user.setDob(userDto.getDob());
         user.setGender(userDto.getGender());
         user.setFullName(userDto.getFullName());
-        user.setAvatar(userDto.getAvatar());
         user.setPhone(userDto.getPhone());
         user.setCic(userDto.getCic());
         user.setStatus(userDto.getStatus());
         user.setNote(userDto.getNote());
-        user.setCreateDate(Instant.now());
-        user.setCreateBy(SecurityContextHolder.getContext().getAuthentication().getName());
-        user.setLastModifiedDate(Instant.now());
-        user.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        // Xử lý vai trò người dùng
         Set<Role> roles = userDto.getRolesDto().stream().map(roleDto -> {
             Role role = roleRepository.findByName(ERole.valueOf(roleDto.getName()))
                     .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND));
             return role;
         }).collect(Collectors.toSet());
         user.setRoles(roles);
+
+        // Kiểm tra và upload ảnh nếu có file avatar
+        if (file != null && !file.isEmpty()) {
+            String avatar  = uploadImage(userDto.getId(),file);
+            user.setAvatar(avatar);
+        }
+        //send Mail
+        String tempPassword = UUID.randomUUID().toString().substring(0, 7) + "A";
+        user.setPassword(encoder.encode(tempPassword));
+
+
+        String emailSubject = "[PHA] Tạo Tài khoản";
+        String emailContent = "Xin chào, " + user.getFullName() + "\n\n" +
+                "Chúng tôi chào mừng bạn đến với hệ thống Pharmacy Management System.\n" +
+                "Đây là thông báo cấp tài khoản đến bạn.\n\n" +
+                "Mật khẩu của bạn là: " + tempPassword + "\n\n" +
+                "Trân trọng,\n\n" +
+                "Pharmacy Management System";
+
+
+        emailService.sendSimpleEmail(user.getEmail(), emailSubject, emailContent);
+
+        // Lưu người dùng vào cơ sở dữ liệu
         userRepository.save(user);
+    }
+
+
+    private void validateRoles(Set<RoleDto> rolesDto) {
+        boolean hasProductOwner = rolesDto.stream().anyMatch(role -> role.getName().equals(ERole.ROLE_PRODUCT_OWNER.name()));
+        boolean hasSaleOrStock = rolesDto.stream().anyMatch(role -> role.getName().equals(ERole.ROLE_SALE.name()) || role.getName().equals(ERole.ROLE_STOCK.name()));
+
+        if (hasProductOwner && hasSaleOrStock) {
+            throw new BadRequestException(Message.INVALID_ROLE_COMBINATION);
+        }
     }
 
     @Override
@@ -166,7 +252,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
             throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
         }
 
-
+        validateRoles(userDto.getRolesDto());
 
         // Check for existing users with the same email, phone, CIC, and username
         User emailUser = userRepository.getUserByEmail(userDto.getEmail());
@@ -198,8 +284,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         user.setCic(userDto.getCic());
         user.setStatus(userDto.getStatus());
         user.setNote(userDto.getNote());
-        user.setLastModifiedDate(Instant.now());
-        user.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
 
         // Update user roles
         Set<Role> roles = userDto.getRolesDto().stream().map(roleDto -> {
@@ -217,7 +301,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         if (userDto.getFullName() == null || userDto.getEmail() == null || userDto.getPhone() == null ||
                 userDto.getDob() == null || userDto.getAddress() == null ||
                 userDto.getGender() == null || userDto.getCic() == null || userDto.getUsername() == null ||
-                userDto.getPassword() == null || userDto.getRolesDto() == null || userDto.getStatus() == null) {
+                userDto.getRolesDto() == null || userDto.getStatus() == null) {
             throw new BadRequestException(Message.NULL_FILED);
         }
         if (!checkUserAge(userDto)) {
@@ -241,9 +325,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         if (!userDto.getUsername().matches(Constants.REGEX_USER_NAME)) {
             throw new BadRequestException(Message.INVALID_USERNAME_C);
         }
-        if (!userDto.getPassword().matches(Constants.REGEX_PASSWORD)) {
-            throw new BadRequestException(Message.INVALID_PASSWORD);
-        }
     }
 
     @Override
@@ -257,8 +338,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
         // Activate the user
         user.setStatus(Status.ACTIVE);
-        user.setLastModifiedDate(Instant.now());
-        user.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
 
         // Save the user
         userRepository.save(user);
@@ -274,8 +353,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         }
         // deActivate the user
         user.setStatus(Status.INACTIVE);
-        user.setLastModifiedDate(Instant.now());
-        user.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
         // Save the user
         userRepository.save(user);
     }
@@ -379,12 +456,10 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
         // Update the user's password
         user.get().setPassword(encoder.encode(request.getNewPassword()));
-        user.get().setLastModifiedDate(Instant.now());
-        user.get().setLastModifiedBy(username);
         userRepository.save(user.get());
     }
-    @Override
-    public void uploadImage(final Long id ,final MultipartFile file) {
+
+    public String uploadImage(final Long id ,final MultipartFile file) {
         // Check if the file is empty
         if (file.isEmpty()) {
             throw new BadRequestException(Message.EMPTY_FILE);
@@ -408,11 +483,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         // Upload the image to Cloudinary
         CloudinaryResponse cloudinaryResponse = cloudinaryService.upLoadFile(file, FileUploadUtil.getFileName(customFileName));
 
-        // Save the image URL to the database
-        user.setAvatar(cloudinaryResponse.getUrl());
-        user.setLastModifiedBy(user.getFullName());
-        user.setLastModifiedDate(Instant.now());
-        userRepository.save(user);
+        return cloudinaryResponse.getUrl();
     }
 
     @Override

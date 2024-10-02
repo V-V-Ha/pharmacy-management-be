@@ -11,10 +11,16 @@ spring:
         enabled: false
 
   # DB Postgres SQL
+#  datasource:
+#    url: jdbc:postgresql://fug27.cvag40g8k9n5.ap-southeast-1.rds.amazonaws.com:5432/g27
+#    username: postgres
+#    password: 12345678
+#    driver-class-name: org.postgresql.Driver
+
   datasource:
-    url: jdbc:postgresql://fug27.cvag40g8k9n5.ap-southeast-1.rds.amazonaws.com:5432/g27
+    url: jdbc:postgresql://localhost:5432/pha
     username: postgres
-    password: 12345678
+    password: 23112002
     driver-class-name: org.postgresql.Driver
 
   # JPA Setting
