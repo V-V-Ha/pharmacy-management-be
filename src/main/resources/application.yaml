@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: PHA
+  main:
+    lazy-initialization: true
+    log-startup-info: true
+  devtools:
+    add-properties: false
+    remote:
+      restart:
+        enabled: false
+
+# DB Postgres SQL
+  datasource:
+    url: jdbc:postgresql://fug27.cvag40g8k9n5.ap-southeast-1.rds.amazonaws.com:5432/g27
+    username: postgres
+    password: 12345678
+    driver-class-name: org.postgresql.Driver
+
+# JPA Setting
+  jpa:
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        enable_lazy_load_no_trans: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+
+# Token
+app:
+  jwtSecret: ======================Pharmacy=Spring===========================
+  jwtExpirationMs: 86400000
+
+# S3 Bucket AWS
+aws:
+  bucket:
+    name: bucket-sample
+  region: ap-southeast-2
+  accessKey: sample-key
+  secretKey: sample-key
+
+
+

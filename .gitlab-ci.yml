@@ -1,0 +1,34 @@
+image: maven:latest
+
+stages:
+  - build
+  # - test
+  # - run
+
+variables:
+  MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+cache:
+  paths:
+    - .m2/repository/
+    - target/
+
+build:
+  stage: build
+  script:
+    - mvn install -DskipTests
+
+    # test:
+    #   stage: test
+    #   script:
+    # - mvn $MAVEN_CLI_OPTS test
+    # - mvn test
+    # - echo "Skip test~~"
+
+# run:
+#   stage: run
+#   script:
+#     - mvn package
+#     - mvn exec:java -Dexec.mainClass="com.project.oss.OssApplication" -DskipTests
+

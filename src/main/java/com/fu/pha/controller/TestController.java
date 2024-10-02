@@ -1,15 +1,20 @@
 package com.fu.pha.controller;
 
+import com.fu.pha.dto.response.SampleResponse;
+import com.fu.pha.service.impl.FileS3ServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/test")
 public class TestController {
+
+    @Autowired
+    private FileS3ServiceImpl fileS3Service;
+
     @GetMapping("/all")
     public String allAccess() {
         return "Public Content.";
@@ -37,5 +42,11 @@ public class TestController {
     @PreAuthorize("hasRole('STOCK')")
     public String stockAccess() {
         return "Stock Board.";
+    }
+
+    @GetMapping("/sample-api/{id}")
+    @ResponseBody
+    public ResponseEntity<SampleResponse> sampleApi(@PathVariable int id) {
+        return ResponseEntity.ok(fileS3Service.getSampleResponseById(id));
     }
 }
