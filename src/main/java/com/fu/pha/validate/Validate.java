@@ -41,75 +41,7 @@ public class Validate {
     }
 
 
-    public boolean validateUser(UserDto userDto, String option) throws BadRequestException, ResourceNotFoundException {
-        if (userDto.getFullName() == null || userDto.getEmail() == null || userDto.getPhone() == null ||
-                userDto.getDob() == null || userDto.getAddress() == null ||
-                userDto.getGender() == null || userDto.getCic() == null || userDto.getUsername() == null ||
-                userDto.getPassword() == null || userDto.getRolesDto() == null || userDto.getStatus() == null) {
-            throw new BadRequestException(Message.NULL_FILED);
-        }
-        if (!checkUserAge(userDto)) {
-            throw new BadRequestException(new MessageResponse(Message.INVALID_AGE, HttpStatus.BAD_REQUEST.value()).toString());
-        }
-        if (!userDto.getFullName().matches(Constants.REGEX_NAME)) {
-            throw new BadRequestException(new MessageResponse(Message.INVALID_NAME, HttpStatus.BAD_REQUEST.value()).toString());
-        }
-        if (!userDto.getEmail().matches(Constants.REGEX_GMAIL)) {
-            throw new BadRequestException(new MessageResponse(Message.INVALID_GMAIL, HttpStatus.BAD_REQUEST.value()).toString());
-        }
-        if (!userDto.getPhone().matches(Constants.REGEX_PHONE)) {
-            throw new BadRequestException(new MessageResponse(Message.INVALID_PHONE, HttpStatus.BAD_REQUEST.value()).toString());
-        }
-        if (!userDto.getAddress().matches(Constants.REGEX_ADDRESS)) {
-            throw new BadRequestException(new MessageResponse(Message.INVALID_ADDRESS, HttpStatus.BAD_REQUEST.value()).toString());
-        }
-        if (!userDto.getCic().matches(Constants.REGEX_CCCD)) {
-            throw new BadRequestException(new MessageResponse(Message.INVALID_CCCD, HttpStatus.BAD_REQUEST.value()).toString());
-        }
-        if (!userDto.getUsername().matches(Constants.REGEX_USER_NAME)) {
-            throw new BadRequestException(new MessageResponse(Message.INVALID_USERNAME_C, HttpStatus.BAD_REQUEST.value()).toString());
-        }
-        if (!userDto.getPassword().matches(Constants.REGEX_PASSWORD)) {
-            throw new BadRequestException(new MessageResponse(Message.INVALID_PASSWORD, HttpStatus.BAD_REQUEST.value()).toString());
-        }
-        if (option.equals("create")) {
-            if (userRepository.existsByUsername(userDto.getUsername())) {
-                throw new BadRequestException(new MessageResponse(Message.EXIST_USERNAME, HttpStatus.BAD_REQUEST.value()).toString());
-            }
-            if (userRepository.existsByEmail(userDto.getEmail())) {
-                throw new BadRequestException(new MessageResponse(Message.EXIST_EMAIL, HttpStatus.BAD_REQUEST.value()).toString());
-            }
-            if (userRepository.getUserByCic(userDto.getCic()) != null) {
-                throw new BadRequestException(new MessageResponse(Message.EXIST_CCCD, HttpStatus.BAD_REQUEST.value()).toString());
-            }
-            if (userRepository.getUserByPhone(userDto.getPhone()) != null) {
-                throw new BadRequestException(new MessageResponse(Message.EXIST_PHONE, HttpStatus.BAD_REQUEST.value()).toString());
-            }
-        } else if (option.equals("update")) {
-            User user = userRepository.getUserById(userDto.getId());
-            if (user == null) {
-                throw new ResourceNotFoundException(new MessageResponse(Message.USER_NOT_FOUND, HttpStatus.BAD_REQUEST.value()).toString());
-            }
-            User emailUser = userRepository.getUserByEmail(userDto.getEmail());
-            User phoneUser = userRepository.getUserByPhone(userDto.getPhone());
-            User cicUser = userRepository.getUserByCic(userDto.getCic());
-            Optional<User> usernameUser = userRepository.findByUsername(userDto.getUsername());
 
-            if (emailUser != null && !emailUser.equals(user)) {
-                throw new BadRequestException(new MessageResponse(Message.EXIST_EMAIL, HttpStatus.BAD_REQUEST.value()).toString());
-            }
-            if (phoneUser != null && !phoneUser.equals(user)) {
-                throw new BadRequestException(new MessageResponse(Message.EXIST_PHONE, HttpStatus.BAD_REQUEST.value()).toString());
-            }
-            if (cicUser != null && !cicUser.equals(user)) {
-                throw new BadRequestException(new MessageResponse(Message.EXIST_CCCD, HttpStatus.BAD_REQUEST.value()).toString());
-            }
-            if (usernameUser.isPresent() && !usernameUser.get().equals(user)) {
-                throw new BadRequestException(new MessageResponse(Message.EXIST_USERNAME, HttpStatus.BAD_REQUEST.value()).toString());
-            }
-        }
-        return true;
-    }
 
     public ResponseEntity<Object> validateProduct(ProductDTORequest productDTORequest, String option) {
         if (productDTORequest.getProductName() == null || productDTORequest.getCategoryId() == null ||

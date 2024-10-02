@@ -20,10 +20,10 @@ public class ProductController {
 
     @GetMapping("/get-all-product-paging")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<PageResponseModel<ProductDTOResponse>> getAllProductPaging(@RequestParam int page,
+    public ResponseEntity<PageResponseModel<ProductDTOResponse>> getAllProductPaging(@RequestParam(defaultValue = "0") int page,
+                                                                                     @RequestParam(defaultValue = "10") int size,
                                                                                      @RequestParam(defaultValue = "", name = "productName") String productName,
                                                                                      @RequestParam(defaultValue = "", name = "category") String category) {
-        int size = 10;
         Page<ProductDTOResponse> productDTOResponsePage = productService.getAllProductPaging(page, size, productName, category);
 
         PageResponseModel<ProductDTOResponse> responseModel = PageResponseModel.<ProductDTOResponse>builder()

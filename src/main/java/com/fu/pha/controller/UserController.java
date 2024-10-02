@@ -36,12 +36,13 @@ public class UserController {
     }
 
     @GetMapping("/get-all-user-paging")
-//    @PreAuthorize("hasRole('PRODUCT_OWNER')")
-    public ResponseEntity<PageResponseModel<UserDto>> getAllUserPaging(@RequestParam int page,
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
+    public ResponseEntity<PageResponseModel<UserDto>> getAllUserPaging(@RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "10") int size,
                                                    @RequestParam(required = false) String fullName,
                                                    @RequestParam(required = false) String role,
                                                    @RequestParam(required = false) String status) {
-        int size = 10;
+
         Page<UserDto> content = userService.getAllUserPaging(page, size, fullName, role, status);
 
         List<UserDto> listData = content.getContent();
@@ -89,13 +90,10 @@ public class UserController {
     public ResponseEntity<?> createUser(
             @RequestPart("userDto") UserDto userDto,
             @RequestPart(value = "file", required = false) MultipartFile file) {
-        try {
             // Gọi service để tạo user và upload avatar
             userService.createUser(userDto, file);
             return ResponseEntity.ok(Message.CREATE_SUCCESS);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Message.CREATE_FAILED);
-        }
+
     }
 
 

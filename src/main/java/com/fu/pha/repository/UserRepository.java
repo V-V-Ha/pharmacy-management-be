@@ -18,17 +18,14 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User,Long> {
     Optional<User> findByUsername(String username);
 
-    Boolean existsByUsername(String username);
 
-    Boolean existsByEmail(String email);
+    Optional<User> getUserById(Long id);
 
-    User getUserById(Long id);
+    Optional<User> getUserByCic(String cic);
 
-    User getUserByCic(String cic);
+    Optional<User> getUserByPhone(String phone);
 
-    User getUserByPhone(String phone);
-
-    User getUserByEmail(String email);
+    Optional<User> getUserByEmail(String email);
 
 
     // get user paging and search by full name , filter by role

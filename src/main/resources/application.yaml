@@ -61,5 +61,12 @@ aws:
   accessKey: sample-key
   secretKey: sample-key
 
+# Cloudinary
+cloudinary:
+  cloud_name: dmz6hapvj
+  api_key: 359211291938856
+  api_secret: D9fANGl5fK9Q1QGrwBv88fMtIY4
+
+
 
 

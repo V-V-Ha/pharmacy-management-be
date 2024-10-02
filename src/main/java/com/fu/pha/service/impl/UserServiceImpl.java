@@ -109,80 +109,27 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     }
 
-//    @Override
-//    public void createUser(UserDto userDto) {
-//
-//        checkValidate(userDto);
-//
-//        if (userRepository.existsByUsername(userDto.getUsername())) {
-//            throw new BadRequestException(Message.EXIST_USERNAME);
-//        }
-//        if (userRepository.existsByEmail(userDto.getEmail())) {
-//            throw new BadRequestException(Message.EXIST_EMAIL);
-//        }
-//        if (userRepository.getUserByCic(userDto.getCic()) != null) {
-//            throw new BadRequestException(Message.EXIST_CCCD);
-//        }
-//        if (userRepository.getUserByPhone(userDto.getPhone()) != null) {
-//            throw new BadRequestException(Message.EXIST_PHONE);
-//        }
-//
-//        validateRoles(userDto.getRolesDto());
-//
-//
-//        User user = new User();
-//        user.setUsername(userDto.getUsername());
-//        user.setEmail(userDto.getEmail());
-//        user.setAddress(userDto.getAddress());
-//        user.setDob(userDto.getDob());
-//        user.setGender(userDto.getGender());
-//        user.setFullName(userDto.getFullName());
-//        user.setPhone(userDto.getPhone());
-//        user.setCic(userDto.getCic());
-//        user.setStatus(userDto.getStatus());
-//        user.setNote(userDto.getNote());
-//        Set<Role> roles = userDto.getRolesDto().stream().map(roleDto -> {
-//            Role role = roleRepository.findByName(ERole.valueOf(roleDto.getName()))
-//                    .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND));
-//            return role;
-//        }).collect(Collectors.toSet());
-//        user.setRoles(roles);
-//
-//        String tempPassword = UUID.randomUUID().toString().substring(0, 7) + "A";
-//        user.setPassword(encoder.encode(tempPassword));
-//
-//
-//        String emailSubject = "[PHA] Tạo Tài khoản";
-//        String emailContent = "Xin chào, " + user.getFullName() + "\n\n" +
-//                "Chúng tôi chào mừng bạn đến với hệ thống Pharmacy Management System.\n" +
-//                "Đây là thông báo cấp tài khoản đến bạn.\n\n" +
-//                "Mật khẩu của bạn là: " + tempPassword + "\n\n" +
-//                "Trân trọng,\n\n" +
-//                "Pharmacy Management System";
-//
-//
-//        emailService.sendSimpleEmail(user.getEmail(), emailSubject, emailContent);
-//        userRepository.save(user);
-//    }
+
     @Override
     public void createUser(UserDto userDto, MultipartFile file) {
 
         // Kiểm tra các giá trị đầu vào từ DTO
         checkValidate(userDto);
 
-        if (userRepository.existsByUsername(userDto.getUsername())) {
-            throw new BadRequestException(Message.EXIST_USERNAME);
-        }
-        if (userRepository.existsByEmail(userDto.getEmail())) {
-            throw new BadRequestException(Message.EXIST_EMAIL);
-        }
-        if (userRepository.getUserByCic(userDto.getCic()) != null) {
-            throw new BadRequestException(Message.EXIST_CCCD);
-        }
-        if (userRepository.getUserByPhone(userDto.getPhone()) != null) {
-            throw new BadRequestException(Message.EXIST_PHONE);
-        }
+        // Kiểm tra sự tồn tại của username, email, cic và phone
+        userRepository.findByUsername(userDto.getUsername())
+                .ifPresent(user -> { throw new BadRequestException(Message.EXIST_USERNAME); });
 
+        userRepository.getUserByEmail(userDto.getEmail())
+                .ifPresent(user -> { throw new BadRequestException(Message.EXIST_EMAIL); });
+
+        userRepository.getUserByCic(userDto.getCic())
+                .ifPresent(user -> { throw new BadRequestException(Message.EXIST_CCCD); });
+
+        userRepository.getUserByPhone(userDto.getPhone())
+                .ifPresent(user -> { throw new BadRequestException(Message.EXIST_PHONE); });
+
+        // Xử lý các vai trò người dùng
         validateRoles(userDto.getRolesDto());
 
         // Tạo đối tượng User từ UserDto
@@ -199,23 +146,27 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         user.setNote(userDto.getNote());
 
         // Xử lý vai trò người dùng
-        Set<Role> roles = userDto.getRolesDto().stream().map(roleDto -> {
-            Role role = roleRepository.findByName(ERole.valueOf(roleDto.getName()))
-                    .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND));
-            return role;
-        }).collect(Collectors.toSet());
+        Set<Role> roles = userDto.getRolesDto().stream()
+                .map(roleDto -> roleRepository.findByName(ERole.valueOf(roleDto.getName()))
+                        .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND)))
+                .collect(Collectors.toSet());
         user.setRoles(roles);
 
-        // Kiểm tra và upload ảnh nếu có file avatar
+
+
+        // Lưu người dùng vào cơ sở dữ liệu
+        userRepository.save(user);
+
         if (file != null && !file.isEmpty()) {
-            String avatar  = uploadImage(userDto.getId(),file);
+            String avatar = uploadImage(user.getId(), file);
             user.setAvatar(avatar);
         }
-        //send Mail
+
+        // Tạo mật khẩu tạm thời
         String tempPassword = UUID.randomUUID().toString().substring(0, 7) + "A";
         user.setPassword(encoder.encode(tempPassword));
 
-
+        // Gửi email thông báo tạo tài khoản
         String emailSubject = "[PHA] Tạo Tài khoản";
         String emailContent = "Xin chào, " + user.getFullName() + "\n\n" +
                 "Chúng tôi chào mừng bạn đến với hệ thống Pharmacy Management System.\n" +
@@ -224,12 +175,10 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
                 "Trân trọng,\n\n" +
                 "Pharmacy Management System";
 
-
         emailService.sendSimpleEmail(user.getEmail(), emailSubject, emailContent);
-
-        // Lưu người dùng vào cơ sở dữ liệu
         userRepository.save(user);
     }
+
 
 
     private void validateRoles(Set<RoleDto> rolesDto) {
@@ -247,31 +196,36 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         checkValidate(userDto);
 
         // Retrieve the user by ID
-        User user = userRepository.getUserById(userDto.getId());
-        if (user == null) {
-            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
-        }
+        User user = userRepository.getUserById(userDto.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
 
+        // Validate roles
         validateRoles(userDto.getRolesDto());
 
         // Check for existing users with the same email, phone, CIC, and username
-        User emailUser = userRepository.getUserByEmail(userDto.getEmail());
-        User phoneUser = userRepository.getUserByPhone(userDto.getPhone());
-        User cicUser = userRepository.getUserByCic(userDto.getCic());
-        Optional<User> usernameUser = userRepository.findByUsername(userDto.getUsername());
+        userRepository.getUserByEmail(userDto.getEmail())
+                .filter(existingUser -> !existingUser.getId().equals(user.getId()))
+                .ifPresent(existingUser -> {
+                    throw new BadRequestException(Message.EXIST_EMAIL);
+                });
 
-        if (emailUser != null && !emailUser.getId().equals(user.getId())) {
-            throw new BadRequestException(Message.EXIST_EMAIL);
-        }
-        if (phoneUser != null && !phoneUser.getId().equals(user.getId())) {
-            throw new BadRequestException(Message.EXIST_PHONE);
-        }
-        if (cicUser != null && !cicUser.getId().equals(user.getId())) {
-            throw new BadRequestException(Message.EXIST_CCCD);
-        }
-        if (usernameUser.isPresent() && !usernameUser.get().getId().equals(user.getId())) {
-            throw new BadRequestException(Message.EXIST_USERNAME);
-        }
+        userRepository.getUserByPhone(userDto.getPhone())
+                .filter(existingUser -> !existingUser.getId().equals(user.getId()))
+                .ifPresent(existingUser -> {
+                    throw new BadRequestException(Message.EXIST_PHONE);
+                });
+
+        userRepository.getUserByCic(userDto.getCic())
+                .filter(existingUser -> !existingUser.getId().equals(user.getId()))
+                .ifPresent(existingUser -> {
+                    throw new BadRequestException(Message.EXIST_CCCD);
+                });
+
+        userRepository.findByUsername(userDto.getUsername())
+                .filter(existingUser -> !existingUser.getId().equals(user.getId()))
+                .ifPresent(existingUser -> {
+                    throw new BadRequestException(Message.EXIST_USERNAME);
+                });
 
         // Update user details
         user.setUsername(userDto.getUsername());
@@ -286,16 +240,16 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         user.setNote(userDto.getNote());
 
         // Update user roles
-        Set<Role> roles = userDto.getRolesDto().stream().map(roleDto -> {
-            Role role = roleRepository.findByName(ERole.valueOf(roleDto.getName()))
-                    .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND));
-            return role;
-        }).collect(Collectors.toSet());
+        Set<Role> roles = userDto.getRolesDto().stream()
+                .map(roleDto -> roleRepository.findByName(ERole.valueOf(roleDto.getName()))
+                        .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND)))
+                .collect(Collectors.toSet());
         user.setRoles(roles);
 
         // Save the updated user
         userRepository.save(user);
     }
+
 
     private void checkValidate(UserDto userDto) {
         if (userDto.getFullName() == null || userDto.getEmail() == null || userDto.getPhone() == null ||
@@ -329,12 +283,9 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     @Override
     public void activeUser(UserDto userDto) {
-
-        // Find the user by ID
-        User user = userRepository.getUserById(userDto.getId());
-        if (user == null) {
-            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
-        }
+        // Retrieve the user by ID and throw exception if not found
+        User user = userRepository.getUserById(userDto.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
 
         // Activate the user
         user.setStatus(Status.ACTIVE);
@@ -345,17 +296,17 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     @Override
     public void deActiveUser(UserDto userDto) {
+        // Retrieve the user by ID and throw exception if not found
+        User user = userRepository.getUserById(userDto.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
 
-        // Find the user by ID
-        User user = userRepository.getUserById(userDto.getId());
-        if (user == null) {
-            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
-        }
-        // deActivate the user
+        // Deactivate the user
         user.setStatus(Status.INACTIVE);
+
         // Save the user
         userRepository.save(user);
     }
+
 
 
     //view detail user
@@ -397,12 +348,11 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     @Override
     public void forgotPassword(String email) {
-        // Find the user by email
-        User user = userRepository.getUserByEmail(email);
-        if (user == null) {
-            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
-        }
+        User user = userRepository.getUserByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
+
         String tempPassword = UUID.randomUUID().toString().substring(0, 7) + "A";
+
         user.setPassword(encoder.encode(tempPassword));
         userRepository.save(user);
 
@@ -415,7 +365,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
                 "Trân trọng,\n\n" +
                 "Pharmacy Management System";
 
-
         emailService.sendSimpleEmail(user.getEmail(), emailSubject, emailContent);
     }
 
@@ -426,70 +375,63 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
             throw new BadRequestException(Message.INVALID_TOKEN);
         }
 
-        // Get the username from the token
         String username = jwtUtils.getUserNameFromJwtToken(token);
 
-        // Find the user by username
-        Optional<User> user = userRepository.findByUsername(username);
-        if (user.isEmpty()) {
-            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
-        }
-        //check null field
-        if (request.getNewPassword() == null || request.getConfirmPassword() == null || request.getOldPassword() == null) {
-            throw new BadRequestException(Message.NULL_FILED);
-        }
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
 
-        //check Old password
-        if (!encoder.matches(request.getOldPassword(), user.get().getPassword())) {
+        Optional.ofNullable(request.getNewPassword())
+                .orElseThrow(() -> new BadRequestException(Message.NULL_FILED));
+        Optional.ofNullable(request.getConfirmPassword())
+                .orElseThrow(() -> new BadRequestException(Message.NULL_FILED));
+        Optional.ofNullable(request.getOldPassword())
+                .orElseThrow(() -> new BadRequestException(Message.NULL_FILED));
+
+        if (!encoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new BadRequestException(Message.INVALID_OLD_PASSWORD);
         }
 
-        // check new password match Regex
         if (!request.getNewPassword().matches(Constants.REGEX_PASSWORD)) {
             throw new BadRequestException(Message.INVALID_PASSWORD);
         }
 
-        // Validate the new password and confirm password
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new BadRequestException(Message.NOT_MATCH_PASSWORD);
         }
 
-        // Update the user's password
-        user.get().setPassword(encoder.encode(request.getNewPassword()));
-        userRepository.save(user.get());
+        user.setPassword(encoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 
-    public String uploadImage(final Long id ,final MultipartFile file) {
-        // Check if the file is empty
+
+    public String uploadImage(final Long id, final MultipartFile file) {
         if (file.isEmpty()) {
             throw new BadRequestException(Message.EMPTY_FILE);
         }
 
-        // Check if the file is an image
         if (!FileUploadUtil.isAllowedExtension(file.getOriginalFilename(), FileUploadUtil.IMAGE_PATTERN)) {
             throw new BadRequestException(Message.INVALID_FILE);
         }
 
-        // Check if the file size is greater than 2MB
         if (file.getSize() > FileUploadUtil.MAX_FILE_SIZE) {
             throw new BadRequestException(Message.INVALID_FILE_SIZE);
         }
-        User user = userRepository.getUserById(id);
-        if (user == null) {
-            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
-        }
-        String customFileName = user.getFullName() + "avatar";
 
-        // Upload the image to Cloudinary
+        User user = userRepository.getUserById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
+
+        String customFileName = user.getUsername() + "avatar";
+
         CloudinaryResponse cloudinaryResponse = cloudinaryService.upLoadFile(file, FileUploadUtil.getFileName(customFileName));
 
         return cloudinaryResponse.getUrl();
     }
 
+
     @Override
     public void deleteUser(Long id) {
         //check condition delete user if user does not exist in other table
-        if (userRepository.getUserById(id) == null) {
+        if (userRepository.getUserById(id).isEmpty()) {
             throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
         }
         userRepository.deleteById(id);
