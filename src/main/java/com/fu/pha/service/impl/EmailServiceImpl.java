@@ -2,7 +2,6 @@ package com.fu.pha.service.impl;
 
 
 import com.fu.pha.service.EmailService;
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +19,13 @@ public class EmailServiceImpl implements EmailService {
     private JavaMailSender emailSender;
 
     @Override
-    public ResponseEntity<Object> sendSimpleEmail(String to, String subject, String text) {
+    public void sendSimpleEmail(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject(subject);
         message.setText(text);
         emailSender.send(message);
-        return ResponseEntity.ok("Email sent successfully");
+        ResponseEntity.ok("Email sent successfully");
     }
 
 }

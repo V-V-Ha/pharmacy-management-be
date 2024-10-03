@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
+
 @Service
 public class UnitServiceImpl implements UnitService {
 
@@ -54,10 +56,6 @@ public class UnitServiceImpl implements UnitService {
         Unit unit = new Unit();
         unit.setUnitName(unitDto.getUnitName());
         unit.setDescription(unitDto.getDescription());
-        unit.setCreateDate(Instant.now());
-        unit.setCreateBy(SecurityContextHolder.getContext().getAuthentication().getName());
-        unit.setLastModifiedDate(Instant.now());
-        unit.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
 
         // Save the unit to the database
         unitRepository.save(unit);
@@ -85,8 +83,6 @@ public class UnitServiceImpl implements UnitService {
         // Update the unit fields
         existingUnit.setUnitName(unitDto.getUnitName());
         existingUnit.setDescription(unitDto.getDescription());
-        existingUnit.setLastModifiedDate(Instant.now());
-        existingUnit.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
 
         // Save the updated unit to the database
         unitRepository.save(existingUnit);
@@ -94,6 +90,12 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public void deleteUnit(Long id) {
+        // Find the existing unit by ID
+        Unit unit = unitRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
+        unit.setDeleted(true);
+        unitRepository.save(unit);
+
 
     }
 

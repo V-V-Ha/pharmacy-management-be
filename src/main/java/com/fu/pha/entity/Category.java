@@ -3,6 +3,8 @@ package com.fu.pha.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Where;
+
 
 import java.util.List;
 
@@ -13,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Table(name = "category")
+@Where(clause = "deleted = false")
 public class Category extends BaseEntity{
 
     @Id
@@ -26,10 +29,10 @@ public class Category extends BaseEntity{
     @Column(name = "description")
     private String description;
 
-    @Column(name = "status")
-    private Boolean status;
-
     @OneToMany(mappedBy = "categoryId")
     @JsonManagedReference
     private List<Product> productList;
+
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted = false;
 }

@@ -97,11 +97,23 @@ public class UserController {
     }
 
 
+//    @PutMapping("/update-user")
+//    @PreAuthorize("hasRole('PRODUCT_OWNER')")
+//    public ResponseEntity<String> updateUser(@RequestBody UserDto request) {
+//        userService.updateUser(request);
+//        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+//    }
+
     @PutMapping("/update-user")
-    @PreAuthorize("hasRole('PRODUCT_OWNER')")
-    public ResponseEntity<String> updateUser(@RequestBody UserDto request) {
-        userService.updateUser(request);
-        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    public ResponseEntity<?> updateUser(
+            @RequestPart("userDto") UserDto userDto,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+
+            // Gọi service để cập nhật user và upload avatar
+            userService.updateUser(userDto, file);
+            return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+
     }
+
 }
 

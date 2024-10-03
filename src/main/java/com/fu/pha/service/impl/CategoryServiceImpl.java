@@ -19,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Optional;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -34,8 +35,8 @@ public class CategoryServiceImpl implements CategoryService {
             throw new BadRequestException(Message.NULL_FILED);
         }
         //existing category
-        Category categoryExist = categoryRepository.findByCategoryName(request.getName());
-        if (categoryExist != null) {
+        Optional<Category> categoryExist = categoryRepository.findByCategoryName(request.getName());
+        if (categoryExist.isPresent()) {
             throw new BadRequestException(Message.CATEGORY_EXIST);
         }
 
@@ -56,37 +57,30 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void updateCategory(CategoryDto request) throws BadRequestException {
         // Validate the request
-        if (request == null || request.getId() == null || request.getName() == null || request.getName().isEmpty()) {
+        if (request == null || request.getName() == null || request.getName().isEmpty()) {
             throw new BadRequestException(Message.NULL_FILED);
         }
 
-        // Find the existing category by ID
-        Category existingCategory = categoryRepository.findById(request.getId()).orElse(null);
-        if (existingCategory == null) {
-            throw new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND);
-        }
-        // Check if the category name is already taken
-        Category category = categoryRepository.findByCategoryName(request.getName());
-        if (category != null && !category.getId().equals(request.getId())) {
+        // Find the existing category
+        Optional<Category> categoryOptional = categoryRepository.findById(request.getId());
+        Category category = categoryOptional.orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
+
+        // Check for existing category with the same name
+        Optional<Category> categoryExist = categoryRepository.findByCategoryName(request.getName());
+        if (categoryExist.isPresent() && !categoryExist.get().getId().equals(request.getId())) {
             throw new BadRequestException(Message.CATEGORY_EXIST);
         }
 
-        // Update the category fields
-        existingCategory.setCategoryName(request.getName());
-        existingCategory.setDescription(request.getDescription());
-        existingCategory.setLastModifiedDate(Instant.now());
-        existingCategory.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
+        // Update the category entity
+        category.setCategoryName(request.getName());
+        category.setDescription(request.getDescription());
+        category.setLastModifiedDate(Instant.now());
+        category.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
 
         // Save the updated category to the database
-        categoryRepository.save(existingCategory);
+        categoryRepository.save(category);
     }
 
-    @Override
-    public ResponseEntity<Object> deleteCategory(Long id) {
-        //condition delete if
-        //if
-        return null;
-    }
 
     @Override
     public Page<CategoryDto> getAllCategoryPaging(int page, int size, String name) {
@@ -102,6 +96,15 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDto getCategoryById(Long id) {
         Category category = categoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
         return new CategoryDto(category);
+    }
+
+    @Override
+    public void deleteCategory(Long id) {
+        Category category = categoryRepository.findById(id).orElseThrow(()
+                -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
+        //soft delete
+        category.setDeleted(true);
+        categoryRepository.save(category);
     }
 
 }

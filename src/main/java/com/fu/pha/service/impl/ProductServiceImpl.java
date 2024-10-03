@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.time.Instant;
+import java.util.Optional;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -43,7 +44,8 @@ public class ProductServiceImpl implements ProductService {
             throw new BadRequestException(Message.EXIST_REGISTRATION_NUMBER);
         }
 
-        Category category = categoryRepository.getCategoryByCategoryName(productDTORequest.getCategoryId());
+        Optional<Category> categoryOptional = categoryRepository.getCategoryByCategoryName(productDTORequest.getCategoryId());
+        Category category = categoryOptional.orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
 
         Product product = new Product();
         product.setProductName(productDTORequest.getProductName());
@@ -87,7 +89,8 @@ public class ProductServiceImpl implements ProductService {
         if (registrationNumber != null && !registrationNumber.equals(product))
             throw new BadRequestException(Message.EXIST_REGISTRATION_NUMBER);
 
-        Category category = categoryRepository.getCategoryByCategoryName(request.getCategoryId());
+        Optional<Category> categoryOptional = categoryRepository.getCategoryByCategoryName(request.getCategoryId());
+        Category category = categoryOptional.orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
 
         product.setProductName(request.getProductName());
         product.setCategoryId(category);

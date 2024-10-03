@@ -17,7 +17,7 @@ public interface UserService {
 //    void createUser(UserDto request);
     void createUser(UserDto userDto,MultipartFile file);
 
-    void updateUser(UserDto request);
+    void updateUser(UserDto request , MultipartFile file);
 
     void activeUser(UserDto userDto);
     void deActiveUser(UserDto userDto);
@@ -34,8 +34,6 @@ public interface UserService {
 
     String uploadImage(final Long id, final MultipartFile file);
 
-    //soft delete user
-    void deleteUser(Long id);
 
 
 

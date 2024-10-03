@@ -191,7 +191,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
     }
 
     @Override
-    public void updateUser(UserDto userDto) {
+    public void updateUser(UserDto userDto , MultipartFile file) {
         // Validate user information
         checkValidate(userDto);
 
@@ -245,6 +245,12 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
                         .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND)))
                 .collect(Collectors.toSet());
         user.setRoles(roles);
+
+        // Upload the avatar if there is a file
+        if (file != null && !file.isEmpty()) {
+            String avatar = uploadImage(userDto.getId(), file);
+            user.setAvatar(avatar);
+        }
 
         // Save the updated user
         userRepository.save(user);
@@ -428,14 +434,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
     }
 
 
-    @Override
-    public void deleteUser(Long id) {
-        //check condition delete user if user does not exist in other table
-        if (userRepository.getUserById(id).isEmpty()) {
-            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
-        }
-        userRepository.deleteById(id);
-    }
+
 
     public boolean checkUserAge(UserDto userDto) {
         LocalDate birthDate = userDto.getDob().atZone(ZoneId.systemDefault()).toLocalDate();

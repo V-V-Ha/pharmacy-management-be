@@ -28,6 +28,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -63,6 +64,7 @@ public class ProductServiceTest {
         when(SecurityContextHolder.getContext()).thenReturn(securityContext);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getName()).thenReturn("minhhieu");
+
 
         category = new Category();
         category.setCategoryName("Thuốc ho");
@@ -105,7 +107,7 @@ public class ProductServiceTest {
     void testCreateProduct() {
         when(productRepository.existsByProductCode(anyString())).thenReturn(false);
         when(productRepository.existsByRegistrationNumber(anyString())).thenReturn(false);
-        when(categoryRepository.getCategoryByCategoryName(anyString())).thenReturn(category);
+        when(categoryRepository.getCategoryByCategoryName(anyString())).thenReturn(Optional.ofNullable(category));
 
         productService.createProduct(productDTORequest);
 
@@ -117,7 +119,7 @@ public class ProductServiceTest {
         when(productRepository.getProductById(anyLong())).thenReturn(product);
         when(productRepository.getProductByProductCode(anyString())).thenReturn(null);
         when(productRepository.getProductByRegistrationNumber(anyString())).thenReturn(null);
-        when(categoryRepository.getCategoryByCategoryName(anyString())).thenReturn(category);
+        when(categoryRepository.getCategoryByCategoryName(anyString())).thenReturn(Optional.ofNullable(category));
 
         productService.updateProduct(productDTORequest);
 

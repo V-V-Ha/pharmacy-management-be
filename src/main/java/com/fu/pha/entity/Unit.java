@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Where;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "unit")
-
+@Where(clause = "deleted = false")
 public class Unit extends BaseEntity{
 
     @Id
@@ -32,4 +33,7 @@ public class Unit extends BaseEntity{
     @OneToMany(mappedBy = "unitId",cascade = CascadeType.ALL ,orphanRemoval = true)
     @JsonManagedReference
     private List<ProductUnit> productUnitList;
+
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted = false;
 }

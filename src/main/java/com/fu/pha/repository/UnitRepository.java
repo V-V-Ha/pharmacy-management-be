@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Optional;
+
 public interface UnitRepository extends JpaRepository<Unit, Long> {
     @Query("SELECT u FROM Unit u WHERE " +
             "(LOWER(u.unitName) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL OR :name = '') " +
@@ -14,4 +16,10 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
     Page<UnitDto> findAllByNameContaining(String name, Pageable pageable);
 
     Unit findByUnitName(String name);
+
+    @Override
+    Optional<Unit> findById(Long id);
+
+//    @Query()
+//    boolean isUnitAssociatedWithOtherEntities(Long id);
 }

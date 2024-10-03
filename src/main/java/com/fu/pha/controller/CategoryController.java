@@ -46,8 +46,9 @@ public class CategoryController {
      @GetMapping("/get-all-category")
      @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
         public ResponseEntity<PageResponseModel<CategoryDto>> getAllCategoryPaging(@RequestParam int page,
+                                                                                    @RequestParam int size,
                                                            @RequestParam(required = false) String name) {
-            int size = 10;
+
             Page<CategoryDto> content = categoryService.getAllCategoryPaging(page, size, name);
 
          PageResponseModel<CategoryDto> response = PageResponseModel.<CategoryDto>builder()
@@ -58,4 +59,11 @@ public class CategoryController {
                  .build();
             return ResponseEntity.ok(response);
         }
+
+    @DeleteMapping("/delete-category")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> deleteCategory(@RequestParam Long id) {
+        categoryService.deleteCategory(id);
+        return ResponseEntity.ok(Message.DELETE_SUCCESS);
+    }
 }

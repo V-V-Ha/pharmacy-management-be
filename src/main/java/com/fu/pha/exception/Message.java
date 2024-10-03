@@ -54,4 +54,6 @@ public class Message {
     public static final String UNIT_EXIST = "Đơn vị đã tồn tại";
     public static final String FORGOT_PASS_SUCCESS = "Vui lòng kiểm tra email để lấy lại mật khẩu";
     public static final String INVALID_ROLE_COMBINATION = "Không thể chọn cùng lúc 2 quyền truy cập này";
+    public static final String UNIT_IN_USE = "Đơn vị đang được sử dụng";
+    public static final String DELETE_SUCCESS = "Xóa thành công";
 }

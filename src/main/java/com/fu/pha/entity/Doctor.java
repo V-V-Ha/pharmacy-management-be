@@ -1,10 +1,12 @@
 package com.fu.pha.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Where;
 
 import java.util.List;
 
@@ -13,6 +15,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Where(clause = "deleted = false")
 public class Doctor extends BaseEntity{
 
     @Id
@@ -33,5 +36,9 @@ public class Doctor extends BaseEntity{
     private String note;
 
     @OneToMany(mappedBy = "doctorId")
+    @JsonManagedReference
     private List<Prescription> prescriptionList;
+
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted = false;
 }

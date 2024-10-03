@@ -19,8 +19,8 @@ public class UnitController {
     @GetMapping("/get-all-unit")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<PageResponseModel<UnitDto>> getAllUnitPaging(@RequestParam int page,
+                                                                          @RequestParam int size,
                                                                        @RequestParam(required = false) String name) {
-        int size = 10;
         Page<UnitDto> content = unitService.getAllUnitPaging(page, size, name);
 
         PageResponseModel<UnitDto> response = PageResponseModel.<UnitDto>builder()
@@ -50,5 +50,12 @@ public class UnitController {
     public ResponseEntity<String> updateUnit(@RequestBody UnitDto request) {
         unitService.updateUnit(request);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    }
+
+    @DeleteMapping("/delete-unit")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> deleteUnit(@RequestParam Long id) {
+        unitService.deleteUnit(id);
+        return ResponseEntity.ok(Message.DELETE_SUCCESS);
     }
 }

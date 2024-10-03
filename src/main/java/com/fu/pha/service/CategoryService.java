@@ -14,12 +14,13 @@ public interface CategoryService {
     //update category
     void updateCategory(CategoryDto request) throws BadRequestException;
 
-    //delete category
-    ResponseEntity<Object> deleteCategory(Long id);
 
     //get all category and paging
     Page<CategoryDto> getAllCategoryPaging(int page, int size, String name);
 
     CategoryDto getCategoryById(Long id);
+
+    //delete category
+    void deleteCategory(Long id);
 
 }

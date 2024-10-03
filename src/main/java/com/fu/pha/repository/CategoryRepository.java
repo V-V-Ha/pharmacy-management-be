@@ -7,9 +7,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Optional;
+
 public interface CategoryRepository extends JpaRepository<Category,Long> {
-    Category getCategoryByCategoryName(String categoryName);
-    Category findByCategoryName(String name);
+    @Override
+    Optional<Category> findById(Long id);
+
+    Optional<Category> getCategoryByCategoryName(String categoryName);
+    Optional<Category> findByCategoryName(String name);
 
    // get all category and paging with search name
     @Query("SELECT c FROM Category c WHERE " +
