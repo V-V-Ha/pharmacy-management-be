@@ -22,5 +22,4 @@ public interface CategoryRepository extends JpaRepository<Category,Long> {
             "ORDER BY c.lastModifiedDate DESC")
     Page<CategoryDto> findAllByNameContaining(String name, Pageable pageable);
 
-
 }

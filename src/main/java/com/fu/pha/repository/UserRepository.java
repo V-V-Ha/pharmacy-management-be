@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -30,6 +31,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
 
     // get user paging and search by full name , filter by role
 
+    @Transactional
     @Query("SELECT DISTINCT new com.fu.pha.dto.request.UserDto(u) FROM User u JOIN u.roles r WHERE " +
             "((LOWER(u.fullName) LIKE LOWER(CONCAT('%', :fullName, '%')) OR :fullName IS NULL OR :fullName = '') AND " +
             "(r.name = :role OR :role IS NULL OR :role = '') AND " +

@@ -34,6 +34,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
@@ -47,6 +48,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     @Autowired
@@ -109,7 +111,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     }
 
-
+    @Transactional
     @Override
     public void createUser(UserDto userDto, MultipartFile file) {
 
@@ -190,6 +192,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         }
     }
 
+    @Transactional
     @Override
     public void updateUser(UserDto userDto , MultipartFile file) {
         // Validate user information
