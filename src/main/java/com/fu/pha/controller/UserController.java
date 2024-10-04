@@ -70,21 +70,7 @@ public class UserController {
         return ResponseEntity.ok(Message.CHANGE_PASS_SUCCESS);
     }
 
-    //upload avatar
-    @PostMapping("/upload-avatar")
-    @PreAuthorize("hasRole('PRODUCT_OWNER')")
-    public ResponseEntity<String> uploadImage(@RequestParam final Long id,@RequestParam("file") MultipartFile file) {
-        userService.uploadImage(id, file);
-        return ResponseEntity.ok(Message.UPLOAD_SUCCESS);
-    }
 
-
-//    @PostMapping("/create-user")
-//    @PreAuthorize("hasRole('PRODUCT_OWNER')")
-//    public ResponseEntity<String> createUser(@RequestBody UserDto request) {
-//        userService.createUser(request);
-//        return ResponseEntity.ok(Message.CREATE_SUCCESS);
-//    }
 
     @PostMapping("/create-user")
     public ResponseEntity<?> createUser(
@@ -97,12 +83,6 @@ public class UserController {
     }
 
 
-//    @PutMapping("/update-user")
-//    @PreAuthorize("hasRole('PRODUCT_OWNER')")
-//    public ResponseEntity<String> updateUser(@RequestBody UserDto request) {
-//        userService.updateUser(request);
-//        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
-//    }
 
     @PutMapping("/update-user")
     public ResponseEntity<?> updateUser(

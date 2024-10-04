@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@Transactional
 public class UnitServiceImpl implements UnitService {
 
     @Autowired
@@ -64,6 +63,7 @@ public class UnitServiceImpl implements UnitService {
     }
 
     @Override
+    @Transactional
     public void updateUnit(UnitDto unitDto) {
         // Validate the request
         if (unitDto == null || unitDto.getId() == null || unitDto.getUnitName() == null || unitDto.getUnitName().isEmpty()) {
