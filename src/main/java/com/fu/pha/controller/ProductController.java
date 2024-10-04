@@ -55,6 +55,7 @@ public class ProductController {
     public ResponseEntity<ProductDTOResponse> getProductById(@RequestParam Long id) {
         return ResponseEntity.ok(productService.getProductById(id));
     }
+
     
     @DeleteMapping("/delete-product")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
