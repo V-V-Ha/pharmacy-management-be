@@ -35,11 +35,11 @@ public class Prescription extends BaseEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id", nullable = false)
-    private Doctor doctorId;
+    private Doctor doctor;
 
-    @OneToMany(mappedBy = "prescriptionId")
+    @OneToMany(mappedBy = "prescription")
     private List<PrescriptionItem> prescriptionItemList;
 
-    @OneToOne(mappedBy = "prescriptionId")
+    @OneToOne(mappedBy = "prescription")
     private SaleOrder saleOrder;
 }

@@ -26,13 +26,13 @@ public class ProductController {
                                                                                      @RequestParam(defaultValue = "", name = "category") String category) {
         Page<ProductDTOResponse> productDTOResponsePage = productService.getAllProductPaging(page, size, productName, category);
 
-        PageResponseModel<ProductDTOResponse> responseModel = PageResponseModel.<ProductDTOResponse>builder()
+        PageResponseModel<ProductDTOResponse> response = PageResponseModel.<ProductDTOResponse>builder()
                 .page(page)
                 .size(size)
                 .total(productDTOResponsePage.getTotalElements())
                 .listData(productDTOResponsePage.getContent())
                 .build();
-        return ResponseEntity.ok(responseModel);
+        return ResponseEntity.ok(response);
     }
 
 
@@ -54,5 +54,12 @@ public class ProductController {
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<ProductDTOResponse> getProductById(@RequestParam Long id) {
         return ResponseEntity.ok(productService.getProductById(id));
+    }
+    
+    @DeleteMapping("/delete-product")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> deleteProduct(@RequestParam Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.ok(Message.PRODUCT_DELETE_SUCCESS);
     }
 }

@@ -36,20 +36,20 @@ public class SaleOrder extends BaseEntity{
     private double discount;
 
     @Column(name = "total_amount")
-    private BigDecimal totalAmount;
+    private Double totalAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
-    private Customer customerId;
+    private Customer customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User userId;
+    private User user;
 
-    @OneToMany(mappedBy = "saleOrderId")
+    @OneToMany(mappedBy = "saleOrder")
     private List<SaleOrderItem> saleOrderItemList;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "prescription_id", nullable = false)
-    private Prescription prescriptionId;
+    private Prescription prescription;
 }

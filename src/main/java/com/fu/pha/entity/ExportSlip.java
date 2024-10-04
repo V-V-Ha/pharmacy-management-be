@@ -33,18 +33,18 @@ public class ExportSlip extends BaseEntity{
     private String typeDeliveryNote;
 
     @Column(name = "discount")
-    private double discount;
+    private Double discount;
 
-    @Column(name = "total_amount", precision = 10, scale = 2)
-    private BigDecimal totalAmount;
+    @Column(name = "total_amount")
+    private Double totalAmount;
 
     @Column(name = "note")
     private String note;
 
-    @OneToMany(mappedBy = "exportSlipId")
+    @OneToMany(mappedBy = "exportSlip")
     private List<ExportSlipItem> exportSlipItemList;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User userId;
+    private User user;
 }

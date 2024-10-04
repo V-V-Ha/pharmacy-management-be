@@ -10,5 +10,5 @@ public interface ProductService {
     void updateProduct(ProductDTORequest request);
     Page<ProductDTOResponse> getAllProductPaging(int size, int index, String productName, String category);
     ProductDTOResponse getProductById(Long id);
-
+    void deleteProduct(Long id);
 }

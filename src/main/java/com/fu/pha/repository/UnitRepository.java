@@ -20,6 +20,8 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
     @Override
     Optional<Unit> findById(Long id);
 
+
+
 //    @Query()
 //    boolean isUnitAssociatedWithOtherEntities(Long id);
 }

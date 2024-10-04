@@ -1,5 +1,6 @@
 package com.fu.pha.dto.response;
 
+import com.fu.pha.dto.request.ProductUnitDTORequest;
 import com.fu.pha.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -23,14 +26,15 @@ public class ProductDTOResponse {
     private String manufacturer;
     private String countryOfOrigin;
     private String unit;
-    private BigDecimal importPrice;
+    private Double importPrice;
     private String productCode;
     private String indication;
     private String contraindication;
     private String sideEffect;
     private String dosageForms;
     private String description;
-    private String categoryId;
+    private String category;
+    private List<ProductUnitDTOReponse> productUnitList;
 
     public ProductDTOResponse(Product product){
         this.id = product.getId();
@@ -41,7 +45,6 @@ public class ProductDTOResponse {
         this.packingMethod = product.getPackingMethod();
         this.manufacturer = product.getManufacturer();
         this.countryOfOrigin = product.getCountryOfOrigin();
-        this.unit = product.getUnit();
         this.importPrice = product.getImportPrice();
         this.productCode = product.getProductCode();
         this.indication = product.getIndication();
@@ -49,6 +52,13 @@ public class ProductDTOResponse {
         this.sideEffect = product.getSideEffect();
         this.dosageForms = product.getDosageForms();
         this.description = product.getDescription();
-        this.categoryId = product.getCategoryId().getCategoryName();
+        this.category = product.getCategoryId().getCategoryName();
+        this.productUnitList = product.getProductUnitList().stream()
+                .map(productUnit -> new ProductUnitDTOReponse(
+                        productUnit.getUnitId().getUnitName(),
+                        productUnit.getConversionFactor(),
+                        productUnit.getRetailPrice()
+                ))
+                .collect(Collectors.toList());
     }
 }

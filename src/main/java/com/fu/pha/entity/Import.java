@@ -33,13 +33,13 @@ public class Import extends BaseEntity{
     private String typeReceipt;
 
     @Column(name = "tax_dentification_number")
-    private double taxiDentificationNumber;
+    private Double taxiDentificationNumber;
 
     @Column(name = "discount")
-    private double discount;
+    private Double discount;
 
-    @Column(name = "total_amount", precision = 10, scale = 2)
-    private BigDecimal totalAmount;
+    @Column(name = "total_amount")
+    private Double totalAmount;
 
     @Column(name = "note")
     private String note;
@@ -49,10 +49,10 @@ public class Import extends BaseEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User userId;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supplier_id", nullable = false)
-    private Supplier supplierId;
+    private Supplier supplier;
 }
 

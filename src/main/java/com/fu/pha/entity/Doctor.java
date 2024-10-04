@@ -35,7 +35,7 @@ public class Doctor extends BaseEntity{
     @Column(name = "note")
     private String note;
 
-    @OneToMany(mappedBy = "doctorId")
+    @OneToMany(mappedBy = "doctor")
     @JsonManagedReference
     private List<Prescription> prescriptionList;
 

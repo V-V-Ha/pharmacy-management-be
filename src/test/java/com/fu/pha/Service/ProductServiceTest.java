@@ -79,8 +79,7 @@ public class ProductServiceTest {
         product.setPackingMethod("Hộp 10 vỉ");
         product.setManufacturer("Bayer AG");
         product.setCountryOfOrigin("Việt Nam");
-        product.setUnit("Hộp");
-        product.setImportPrice(BigDecimal.valueOf(100));
+        product.setImportPrice(Double.valueOf(100));
         product.setProductCode("PCT12345");
         product.setIndication("Giảm đau");
         product.setContraindication("Bệnh gan");
@@ -105,8 +104,8 @@ public class ProductServiceTest {
 
     @Test
     void testCreateProduct() {
-        when(productRepository.existsByProductCode(anyString())).thenReturn(false);
-        when(productRepository.existsByRegistrationNumber(anyString())).thenReturn(false);
+        when(productRepository.findByProductCode(anyString())).thenReturn(Optional.empty());
+        when(productRepository.findByRegistrationNumber(anyString())).thenReturn(Optional.empty());
         when(categoryRepository.getCategoryByCategoryName(anyString())).thenReturn(Optional.ofNullable(category));
 
         productService.createProduct(productDTORequest);
@@ -116,9 +115,9 @@ public class ProductServiceTest {
 
     @Test
     void testUpdateProduct() {
-        when(productRepository.getProductById(anyLong())).thenReturn(product);
-        when(productRepository.getProductByProductCode(anyString())).thenReturn(null);
-        when(productRepository.getProductByRegistrationNumber(anyString())).thenReturn(null);
+        when(productRepository.getProductById(anyLong())).thenReturn(Optional.ofNullable(product));
+        when(productRepository.findByProductCode(anyString())).thenReturn(null);
+        when(productRepository.findByRegistrationNumber(anyString())).thenReturn(null);
         when(categoryRepository.getCategoryByCategoryName(anyString())).thenReturn(Optional.ofNullable(category));
 
         productService.updateProduct(productDTORequest);
@@ -140,7 +139,7 @@ public class ProductServiceTest {
 
     @Test
     void testGetProductById() {
-        when(productRepository.getProductById(anyLong())).thenReturn(product);
+        when(productRepository.getProductById(anyLong())).thenReturn(Optional.ofNullable(product));
 
         ProductDTOResponse result = productService.getProductById(1L);
 
@@ -150,14 +149,14 @@ public class ProductServiceTest {
 
     @Test
     void testCreateProductWithExistingProductCode() {
-        when(productRepository.existsByProductCode(anyString())).thenReturn(true);
+        when(productRepository.findByProductCode(anyString())).thenReturn(Optional.of(new Product()));
 
         assertThrows(BadRequestException.class, () -> productService.createProduct(productDTORequest));
     }
 
     @Test
     void testCreateProductWithExistingRegistrationNumber() {
-        when(productRepository.existsByRegistrationNumber(anyString())).thenReturn(true);
+        when(productRepository.findByRegistrationNumber(anyString())).thenReturn(Optional.of(new Product()));
 
         assertThrows(BadRequestException.class, () -> productService.createProduct(productDTORequest));
     }

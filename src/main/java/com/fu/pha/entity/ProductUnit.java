@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Entity
 @Getter
 @Setter
@@ -32,6 +34,6 @@ public class ProductUnit extends BaseEntity{
     @Column(name = "conversion_factor",nullable = false)
     private Integer conversionFactor;
 
-
-
+    @Column(name = "retail_price", nullable = false)
+    private Double retailPrice;
 }

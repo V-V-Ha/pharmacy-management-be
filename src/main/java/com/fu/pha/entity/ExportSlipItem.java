@@ -22,16 +22,16 @@ public class ExportSlipItem extends BaseEntity{
     private Long id;
 
     @Column(name = "quantity")
-    private int quantity;
+    private Integer quantity;
 
     @Column(name = "unit_price")
-    private BigDecimal unitPrice;
+    private Double unitPrice;
 
     @Column(name = "unit")
     private String unit;
 
     @Column(name = "discount")
-    private double discount;
+    private Double discount;
 
     @Column(name = "batch_number")
     private String batchNumber;
@@ -44,9 +44,9 @@ public class ExportSlipItem extends BaseEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private Product productId;
+    private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "export_slip_id", nullable = false)
-    private ExportSlip exportSlipId;
+    private ExportSlip exportSlip;
 }

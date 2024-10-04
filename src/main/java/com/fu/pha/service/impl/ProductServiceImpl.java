@@ -1,14 +1,16 @@
 package com.fu.pha.service.impl;
 
 import com.fu.pha.dto.request.ProductDTORequest;
+import com.fu.pha.dto.request.ProductUnitDTORequest;
 import com.fu.pha.dto.response.ProductDTOResponse;
-import com.fu.pha.entity.Category;
-import com.fu.pha.entity.Product;
+import com.fu.pha.entity.*;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.CategoryRepository;
 import com.fu.pha.repository.ProductRepository;
+import com.fu.pha.repository.ProductUnitRepository;
+import com.fu.pha.repository.UnitRepository;
 import com.fu.pha.service.ProductService;
 import com.fu.pha.validate.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -33,22 +37,31 @@ public class ProductServiceImpl implements ProductService {
     private CategoryRepository categoryRepository;
 
     @Autowired
+    private UnitRepository unitRepository;
+
+    @Autowired
+    private ProductUnitRepository productUnitRepository;
+
+    @Autowired
     Validate validate;
 
     @Override
     public void createProduct(ProductDTORequest productDTORequest) {
 
+        //validate the request
         checkValidateProduct(productDTORequest);
 
-        if (productRepository.existsByProductCode(productDTORequest.getProductCode())){
-            throw new BadRequestException(Message.EXIST_PRODUCT_CODE);
-        }
-        if (productRepository.existsByRegistrationNumber(productDTORequest.getRegistrationNumber())){
-            throw new BadRequestException(Message.EXIST_REGISTRATION_NUMBER);
+        //check product code and registration number exist
+        Optional<Product> productCode = productRepository.findByProductCode(productDTORequest.getProductCode());
+        Optional<Product> registrationNumber = productRepository.findByRegistrationNumber(productDTORequest.getRegistrationNumber());
+        if (productCode.isPresent() || registrationNumber.isPresent()) {
+            String errorMessage = productCode.isPresent() ? Message.EXIST_PRODUCT_CODE :
+                    Message.EXIST_REGISTRATION_NUMBER;
+            throw new BadRequestException(errorMessage);
         }
 
-        Optional<Category> categoryOptional = categoryRepository.getCategoryByCategoryName(productDTORequest.getCategoryId());
-        Category category = categoryOptional.orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
+        Category category = categoryRepository.getCategoryByCategoryName(productDTORequest.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
 
         Product product = new Product();
         product.setProductName(productDTORequest.getProductName());
@@ -59,7 +72,6 @@ public class ProductServiceImpl implements ProductService {
         product.setPackingMethod(productDTORequest.getPackingMethod());
         product.setManufacturer(productDTORequest.getManufacturer());
         product.setCountryOfOrigin(productDTORequest.getCountryOfOrigin());
-        product.setUnit(productDTORequest.getUnit());
         product.setImportPrice(productDTORequest.getImportPrice());
         product.setProductCode(productDTORequest.getProductCode());
         product.setIndication(productDTORequest.getIndication());
@@ -68,32 +80,42 @@ public class ProductServiceImpl implements ProductService {
         product.setDosageForms(productDTORequest.getDosageForms());
         product.setDescription(productDTORequest.getDescription());
         product.setImageProduct(productDTORequest.getImageProduct());
-        product.setCreateDate(Instant.now());
-        product.setCreateBy(SecurityContextHolder.getContext().getAuthentication().getName());
-        product.setLastModifiedDate(Instant.now());
-        product.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
         productRepository.save(product);
+        List<ProductUnit> productUnitList = new ArrayList<>();
+        for (ProductUnitDTORequest productUnitDTORequest : productDTORequest.getProductUnitList()) {
+            Unit unit = unitRepository.findByUnitName(productUnitDTORequest.getUnitName());
+            ProductUnit productUnit = new ProductUnit();
+            productUnit.setProductId(product);
+            productUnit.setUnitId(unit);
+            productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
+
+            productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice() * productUnitDTORequest.getConversionFactor());
+            productUnitList.add(productUnit);
+        }
+        productUnitRepository.saveAll(productUnitList);
     }
 
 
     @Override
     public void updateProduct(ProductDTORequest request) {
-
+        //validate the request
         checkValidateProduct(request);
 
-        Product product = productRepository.getProductById(request.getId());
-        if (product == null) {
-            throw new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND);
-        }
-        Product productCode = productRepository.getProductByProductCode(request.getProductCode());
-        Product registrationNumber = productRepository.getProductByRegistrationNumber(request.getRegistrationNumber());
-        if (productCode != null && !productCode.equals(product))
-            throw new BadRequestException(Message.EXIST_PRODUCT_CODE);
-        if (registrationNumber != null && !registrationNumber.equals(product))
-            throw new BadRequestException(Message.EXIST_REGISTRATION_NUMBER);
+        //check product exist
+        Optional<Product> productOptional = productRepository.getProductById(request.getId());
+        Product product = productOptional.orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
-        Optional<Category> categoryOptional = categoryRepository.getCategoryByCategoryName(request.getCategoryId());
-        Category category = categoryOptional.orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
+        //check product code and registration number exist
+        Optional<Product> productCodeExist = productRepository.findByProductCode(request.getProductCode());
+        Optional<Product> registrationNumberExist = productRepository.findByRegistrationNumber(request.getRegistrationNumber());
+        if ((productCodeExist.isPresent() && !productCodeExist.get().getId().equals(request.getId())) ||
+                (registrationNumberExist.isPresent() && !registrationNumberExist.get().getId().equals(request.getId()))) {
+            String errorMessage = productCodeExist.isPresent() ? Message.EXIST_PRODUCT_CODE : Message.EXIST_REGISTRATION_NUMBER;
+            throw new BadRequestException(errorMessage);
+        }
+
+        Category category = categoryRepository.getCategoryByCategoryName(request.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
 
         product.setProductName(request.getProductName());
         product.setCategoryId(category);
@@ -103,7 +125,6 @@ public class ProductServiceImpl implements ProductService {
         product.setPackingMethod(request.getPackingMethod());
         product.setManufacturer(request.getManufacturer());
         product.setCountryOfOrigin(request.getCountryOfOrigin());
-        product.setUnit(request.getUnit());
         product.setImportPrice(request.getImportPrice());
         product.setProductCode(request.getProductCode());
         product.setIndication(request.getIndication());
@@ -112,9 +133,19 @@ public class ProductServiceImpl implements ProductService {
         product.setDosageForms(request.getDosageForms());
         product.setDescription(request.getDescription());
         product.setImageProduct(request.getImageProduct());
-        product.setLastModifiedDate(Instant.now());
-        product.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
         productRepository.save(product);
+        List<ProductUnit> productUnitList = new ArrayList<>();
+        for (ProductUnitDTORequest productUnitDTORequest : request.getProductUnitList()) {
+            Unit unit = unitRepository.findByUnitName(productUnitDTORequest.getUnitName());
+            ProductUnit productUnit = new ProductUnit();
+            productUnit.setProductId(product);
+            productUnit.setUnitId(unit);
+            productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
+
+            productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice() * productUnitDTORequest.getConversionFactor());
+            productUnitList.add(productUnit);
+        }
+        productUnitRepository.saveAll(productUnitList);
     }
 
     private void checkValidateProduct(ProductDTORequest productDTORequest){
@@ -122,7 +153,7 @@ public class ProductServiceImpl implements ProductService {
                 productDTORequest.getRegistrationNumber() == null || productDTORequest.getActiveIngredient() == null ||
                 productDTORequest.getDosageConcentration() == null || productDTORequest.getPackingMethod() == null ||
                 productDTORequest.getManufacturer() == null || productDTORequest.getCountryOfOrigin() == null ||
-                productDTORequest.getUnit() == null || productDTORequest.getImportPrice() == null ||
+                productDTORequest.getImportPrice() == null ||
                 productDTORequest.getProductCode() == null || productDTORequest.getDosageForms() == null){
             throw new BadRequestException(Message.NULL_FILED);
         }
@@ -141,10 +172,19 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDTOResponse getProductById(Long id) {
-        Product product = productRepository.getProductById(id);
-        if (product == null) {
-            throw new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND);
-        }
+        Product product = productRepository.getProductById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
         return new ProductDTOResponse(product);
     }
+
+    @Override
+    public void deleteProduct(Long id) {
+        Product product = productRepository.getProductById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
+
+        product.setDeleted(true);
+        productRepository.save(product);
+    }
+
+
 }

@@ -2,6 +2,7 @@ package com.fu.pha.dto.request;
 
 import com.fu.pha.entity.Category;
 import com.fu.pha.entity.Product;
+import com.fu.pha.entity.ProductUnit;
 import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Setter
@@ -24,8 +26,7 @@ public class ProductDTORequest {
     private String packingMethod;
     private String manufacturer;
     private String countryOfOrigin;
-    private String unit;
-    private BigDecimal importPrice;
+    private Double importPrice;
     private String productCode;
     private String indication;
     private String contraindication;
@@ -34,6 +35,7 @@ public class ProductDTORequest {
     private String description;
     private String categoryId;
     private String imageProduct;
+    private List<ProductUnitDTORequest> productUnitList;
 
     public ProductDTORequest(Product product){
         this.id = product.getId();
@@ -44,7 +46,6 @@ public class ProductDTORequest {
         this.packingMethod = product.getPackingMethod();
         this.manufacturer = product.getManufacturer();
         this.countryOfOrigin = product.getCountryOfOrigin();
-        this.unit = product.getUnit();
         this.importPrice = product.getImportPrice();
         this.productCode = product.getProductCode();
         this.indication = product.getIndication();
@@ -53,5 +54,6 @@ public class ProductDTORequest {
         this.dosageForms = product.getDosageForms();
         this.description = product.getDescription();
         this.categoryId = product.getCategoryId().getCategoryName();
+        this.imageProduct = product.getImageProduct();
     }
 }

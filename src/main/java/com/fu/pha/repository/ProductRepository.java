@@ -9,15 +9,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    Boolean existsByProductCode(String productCode);
-    Boolean existsByRegistrationNumber(String registrationNumber);
-    Product getProductByProductCode(String productCode);
-    Product getProductByRegistrationNumber(String registrationNumber);
-    Product getProductById(Long id);
+    Optional<Product> getProductById(Long id);
 
+    Optional<Product> findByProductCode(String productCode);
+    Optional<Product> findByRegistrationNumber(String registrationNumber);
 
     @Query("SELECT new com.fu.pha.dto.response.ProductDTOResponse(p) FROM Product p WHERE " +
             "((LOWER(p.productName) LIKE LOWER(CONCAT('%', :productName, '%')) OR :productName IS NULL OR :productName = '') AND " +

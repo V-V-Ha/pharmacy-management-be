@@ -22,32 +22,32 @@ public class SaleOrderItem extends BaseEntity{
     private Long id;
 
     @Column(name = "quantity")
-    private int quantity;
+    private Integer quantity;
 
     @Column(name = "unit_price")
-    private BigDecimal unitPrice;
+    private Double unitPrice;
 
     @Column(name = "unit")
     private String unit;
 
     @Column(name = "discount")
-    private double discount;
+    private Double discount;
 
     @Column(name = "total_amount")
-    private BigDecimal totalAmount;
+    private Double totalAmount;
 
     @Column(name = "batch_number")
     private String batchNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_order_id", nullable = false)
-    private SaleOrder saleOrderId;
+    private SaleOrder saleOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private Product productId;
+    private Product product;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "prescription_item_id", nullable = false)
-    private PrescriptionItem prescriptionItemId;
+    private PrescriptionItem prescriptionItem;
 }

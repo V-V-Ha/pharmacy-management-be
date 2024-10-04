@@ -1,12 +1,10 @@
 package com.fu.pha.entity;
 
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.math.BigDecimal;
+import org.hibernate.annotations.Where;
 import java.util.List;
 
 @Entity
@@ -16,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Table(name = "product")
+@Where(clause = "deleted = false")
 public class Product extends BaseEntity{
 
     @Id
@@ -44,11 +43,8 @@ public class Product extends BaseEntity{
     @Column(name = "country_of_origin")
     private String countryOfOrigin;
 
-    @Column(name = "unit")
-    private String unit;
-
-    @Column(name = "import_price", nullable = false, precision = 10, scale = 2)
-    private BigDecimal importPrice;
+    @Column(name = "import_price", nullable = false)
+    private Double importPrice;
 
     @Column(name = "product_code")
     private String productCode;
@@ -80,16 +76,15 @@ public class Product extends BaseEntity{
     @JsonManagedReference
     private List<ProductUnit> productUnitList;
 
-    @OneToMany(mappedBy = "productId")
-    @JsonManagedReference
-    private List<RetailPrice> retailPrices;
-
-    @OneToMany(mappedBy = "productId")
+    @OneToMany(mappedBy = "product")
     private List<ExportSlipItem> exportSlipItems;
 
-    @OneToMany(mappedBy = "productId")
+    @OneToMany(mappedBy = "product")
     private List<ImportItem> importItems;
 
-    @OneToMany(mappedBy = "productId")
+    @OneToMany(mappedBy = "product")
     private List<SaleOrderItem> saleOrderItemList;
+
+    @Column(name = "deleted", nullable = false)
+    private Boolean deleted = false;
 }

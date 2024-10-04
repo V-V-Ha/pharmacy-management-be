@@ -19,15 +19,15 @@ public class PrescriptionItem extends BaseEntity{
     private Long id;
 
     @Column(name = "quantity")
-    private int quantity;
+    private Integer quantity;
 
     @Column(name = "dosage")
     private String dosage;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "prescription_id", nullable = false)
-    private Prescription prescriptionId;
+    private Prescription prescription;
 
-    @OneToOne(mappedBy = "prescriptionItemId")
+    @OneToOne(mappedBy = "prescriptionItem")
     private SaleOrderItem saleOrderItem;
 }

@@ -38,7 +38,7 @@ public class Supplier extends BaseEntity{
     @Column(name = "avatar")
     private String avatar;
 
-    @OneToMany(mappedBy = "supplierId")
+    @OneToMany(mappedBy = "supplier")
     private List<Import> importList;
 
 }

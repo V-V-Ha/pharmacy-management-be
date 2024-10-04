@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Where;
 
-import java.time.Instant;
 import java.util.List;
 
 @Entity
@@ -42,7 +41,7 @@ public class Customer extends BaseEntity{
     @Column(name = "year_old")
     private Integer yearOld;
 
-    @OneToMany(mappedBy = "customerId")
+    @OneToMany(mappedBy = "customer")
     @JsonManagedReference
     private List<SaleOrder> saleOrderList;
 

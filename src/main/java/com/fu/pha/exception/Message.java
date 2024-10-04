@@ -56,4 +56,6 @@ public class Message {
     public static final String INVALID_ROLE_COMBINATION = "Không thể chọn cùng lúc 2 quyền truy cập này";
     public static final String UNIT_IN_USE = "Đơn vị đang được sử dụng";
     public static final String DELETE_SUCCESS = "Xóa thành công";
+    public static final String EXIST_PRODUCT_NAME = "Tên sản phẩm đã tồn tại";
+    public static final String PRODUCT_DELETE_SUCCESS = "Xóa sản phẩm thành công";
 }

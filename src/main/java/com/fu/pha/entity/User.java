@@ -71,13 +71,13 @@ public class User extends BaseEntity {
     @Column(name ="note")
     private String note;
 
-    @OneToMany(mappedBy = "userId")
+    @OneToMany(mappedBy = "user")
     private List<ExportSlip> exportSlipList;
 
-    @OneToMany(mappedBy = "userId")
+    @OneToMany(mappedBy = "user")
     private List<Import> importList;
 
-    @OneToMany(mappedBy = "userId")
+    @OneToMany(mappedBy = "user")
     private List<SaleOrder> saleOrderList;
 
     public User(LoginDtoRequest request){
