@@ -8,11 +8,12 @@ import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.CategoryRepository;
 import com.fu.pha.service.CategoryService;
-import org.apache.coyote.BadRequestException;
+import com.fu.pha.exception.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,34 +31,38 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     @Override
-    public void createCategory(CategoryDto request) throws BadRequestException {
-    // Validate the request
+    public void createCategory(CategoryDto request) {
+        // Validate the request
         if (request == null || request.getName() == null || request.getName().isEmpty()) {
             throw new BadRequestException(Message.NULL_FILED);
         }
-        //existing category
+        // existing category
         Optional<Category> categoryExist = categoryRepository.findByCategoryName(request.getName());
         if (categoryExist.isPresent()) {
             throw new BadRequestException(Message.CATEGORY_EXIST);
         }
 
-        // Create a new category entity
-        Category category = new Category();
-        category.setCategoryName(request.getName());
-        category.setDescription(request.getDescription());
-        category.setCreateDate(Instant.now());
-        category.setCreateBy(SecurityContextHolder.getContext().getAuthentication().getName());
-        category.setLastModifiedDate(Instant.now());
-        category.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
+        try {
+            // Create a new category entity
+            Category category = new Category();
+            category.setCategoryName(request.getName());
+            category.setDescription(request.getDescription());
+            category.setCreateDate(Instant.now());
+            category.setCreateBy(SecurityContextHolder.getContext().getAuthentication().getName());
+            category.setLastModifiedDate(Instant.now());
+            category.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
 
-        // Save the category to the database
-         categoryRepository.save(category);
+            // Save the category to the database
+            categoryRepository.save(category);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create category", e);
+        }
     }
 
 
     @Override
     @Transactional
-    public void updateCategory(CategoryDto request) throws BadRequestException {
+    public void updateCategory(CategoryDto request) {
         // Validate the request
         if (request == null || request.getName() == null || request.getName().isEmpty()) {
             throw new BadRequestException(Message.NULL_FILED);
