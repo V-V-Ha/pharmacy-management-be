@@ -23,7 +23,6 @@ import java.time.Instant;
 import java.util.Optional;
 
 @Service
-@Transactional
 public class CategoryServiceImpl implements CategoryService {
 
     @Autowired
@@ -57,6 +56,7 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     @Override
+    @Transactional
     public void updateCategory(CategoryDto request) throws BadRequestException {
         // Validate the request
         if (request == null || request.getName() == null || request.getName().isEmpty()) {

@@ -5,13 +5,14 @@ import com.fu.pha.dto.request.LoginDtoRequest;
 import com.fu.pha.dto.request.RoleDto;
 import com.fu.pha.dto.request.UserDto;
 import com.fu.pha.dto.response.CloudinaryResponse;
-import com.fu.pha.dto.response.MessageResponse;
+
 import com.fu.pha.dto.response.JwtResponse;
 import com.fu.pha.entity.Role;
 import com.fu.pha.entity.User;
 import com.fu.pha.enums.ERole;
 import com.fu.pha.enums.Status;
 import com.fu.pha.exception.BadRequestException;
+import com.fu.pha.exception.MaxUploadSizeExceededException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.RoleRepository;
@@ -48,7 +49,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
 public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     @Autowired
@@ -265,7 +265,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
                 userDto.getDob() == null || userDto.getAddress() == null ||
                 userDto.getGender() == null || userDto.getCic() == null || userDto.getUsername() == null ||
                 userDto.getRolesDto() == null || userDto.getStatus() == null) {
-            throw new BadRequestException(Message.NULL_FILED);
+            throw new ResourceNotFoundException(Message.NULL_FILED);
         }
         if (!checkUserAge(userDto)) {
             throw new BadRequestException(Message.INVALID_AGE);
@@ -423,7 +423,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         }
 
         if (file.getSize() > FileUploadUtil.MAX_FILE_SIZE) {
-            throw new BadRequestException(Message.INVALID_FILE_SIZE);
+            throw new MaxUploadSizeExceededException(Message.INVALID_FILE_SIZE);
         }
 
         User user = userRepository.getUserById(id)

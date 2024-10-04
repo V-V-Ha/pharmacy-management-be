@@ -8,6 +8,7 @@ import org.springframework.security.authentication.LockedException;
 import com.fu.pha.dto.response.MessageResponse;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -30,6 +31,14 @@ public class GlobalExceptionHandler {
                 toExactlyPath(request.getDescription(false)));
     }
 
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorMessage handleMaxSizeException(MaxUploadSizeExceededException ex,WebRequest request) {
+        return new ErrorMessage(
+                HttpStatus.BAD_REQUEST.value(),
+                Message.INVALID_FILE_SIZE,
+                toExactlyPath(request.getDescription(false)));
+    }
 
     @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
@@ -60,6 +69,8 @@ public class GlobalExceptionHandler {
         MessageResponse errorResponse = new MessageResponse(Message.ACCESS_DENIED, HttpStatus.FORBIDDEN.value());
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
+
+
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
