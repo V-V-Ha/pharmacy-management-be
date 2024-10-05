@@ -1,5 +1,6 @@
 package com.fu.pha.service.impl;
 
+import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.ProductDTORequest;
 import com.fu.pha.dto.request.ProductUnitDTORequest;
 import com.fu.pha.dto.response.ProductDTOResponse;
@@ -42,7 +43,7 @@ public class ProductServiceImpl implements ProductService {
     private ProductUnitRepository productUnitRepository;
 
     @Autowired
-    Validate validate;
+    GenerateCode generateCode;
 
     @Override
     public void createProduct(ProductDTORequest productDTORequest) {
@@ -72,7 +73,13 @@ public class ProductServiceImpl implements ProductService {
         product.setManufacturer(productDTORequest.getManufacturer());
         product.setCountryOfOrigin(productDTORequest.getCountryOfOrigin());
         product.setImportPrice(productDTORequest.getImportPrice());
-        product.setProductCode(productDTORequest.getProductCode());
+
+        if (productRepository.getLastProductCode() == null) {
+            product.setProductCode("SP00001");
+        } else {
+            product.setProductCode(generateCode.generateNewProductCode(productRepository.getLastProductCode()));
+        }
+//        product.setProductCode(productDTORequest.getProductCode());
         product.setIndication(productDTORequest.getIndication());
         product.setContraindication(productDTORequest.getContraindication());
         product.setSideEffect(productDTORequest.getSideEffect());
@@ -152,8 +159,7 @@ public class ProductServiceImpl implements ProductService {
                 productDTORequest.getRegistrationNumber() == null || productDTORequest.getActiveIngredient() == null ||
                 productDTORequest.getDosageConcentration() == null || productDTORequest.getPackingMethod() == null ||
                 productDTORequest.getManufacturer() == null || productDTORequest.getCountryOfOrigin() == null ||
-                productDTORequest.getImportPrice() == null ||
-                productDTORequest.getProductCode() == null || productDTORequest.getDosageForms() == null){
+                productDTORequest.getImportPrice() == null || productDTORequest.getDosageForms() == null){
             throw new BadRequestException(Message.NULL_FILED);
         }
 
