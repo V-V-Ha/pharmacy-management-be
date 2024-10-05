@@ -26,7 +26,6 @@ public class ProductDTORequest {
     private String packingMethod;
     private String manufacturer;
     private String countryOfOrigin;
-    private Double importPrice;
     private String productCode;
     private String indication;
     private String contraindication;
@@ -35,6 +34,7 @@ public class ProductDTORequest {
     private String description;
     private String categoryId;
     private String imageProduct;
+    private Boolean prescriptionDrug;
     private List<ProductUnitDTORequest> productUnitList;
 
     public ProductDTORequest(Product product){
@@ -46,7 +46,6 @@ public class ProductDTORequest {
         this.packingMethod = product.getPackingMethod();
         this.manufacturer = product.getManufacturer();
         this.countryOfOrigin = product.getCountryOfOrigin();
-        this.importPrice = product.getImportPrice();
         this.productCode = product.getProductCode();
         this.indication = product.getIndication();
         this.contraindication = product.getContraindication();
@@ -54,6 +53,7 @@ public class ProductDTORequest {
         this.dosageForms = product.getDosageForms();
         this.description = product.getDescription();
         this.categoryId = product.getCategoryId().getCategoryName();
-        this.imageProduct = product.getImageProduct();
+        this.imageProduct =product.getImageProduct() != null ? product.getImageProduct() : "";
+        this.prescriptionDrug = product.getPrescriptionDrug();
     }
 }

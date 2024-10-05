@@ -43,9 +43,6 @@ public class Product extends BaseEntity{
     @Column(name = "country_of_origin")
     private String countryOfOrigin;
 
-    @Column(name = "import_price", nullable = false)
-    private Double importPrice;
-
     @Column(name = "product_code")
     private String productCode;
 
@@ -63,6 +60,9 @@ public class Product extends BaseEntity{
 
     @Column(name = "description")
     private String description;
+
+    @Column(name = "prescription_drug")
+    private Boolean prescriptionDrug;
 
     @Column(name = "image_product", columnDefinition = "TEXT")
     private String imageProduct;

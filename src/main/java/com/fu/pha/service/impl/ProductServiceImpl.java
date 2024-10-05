@@ -53,6 +53,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     CloudinaryService cloudinaryService;
+
     @Transactional
     @Override
     public void createProduct(ProductDTORequest productDTORequest, MultipartFile file) {
@@ -81,7 +82,6 @@ public class ProductServiceImpl implements ProductService {
         product.setPackingMethod(productDTORequest.getPackingMethod());
         product.setManufacturer(productDTORequest.getManufacturer());
         product.setCountryOfOrigin(productDTORequest.getCountryOfOrigin());
-        product.setImportPrice(productDTORequest.getImportPrice());
 
         if (productRepository.getLastProductCode() == null) {
             product.setProductCode("SP00001");
@@ -94,6 +94,7 @@ public class ProductServiceImpl implements ProductService {
         product.setSideEffect(productDTORequest.getSideEffect());
         product.setDosageForms(productDTORequest.getDosageForms());
         product.setDescription(productDTORequest.getDescription());
+        product.setPrescriptionDrug(productDTORequest.getPrescriptionDrug());
         // Upload the image product if there is a file
         if (file != null && !file.isEmpty()) {
             String imageProduct = uploadImage(file);
@@ -147,13 +148,13 @@ public class ProductServiceImpl implements ProductService {
         product.setPackingMethod(request.getPackingMethod());
         product.setManufacturer(request.getManufacturer());
         product.setCountryOfOrigin(request.getCountryOfOrigin());
-        product.setImportPrice(request.getImportPrice());
         product.setProductCode(request.getProductCode());
         product.setIndication(request.getIndication());
         product.setContraindication(request.getContraindication());
         product.setSideEffect(request.getSideEffect());
         product.setDosageForms(request.getDosageForms());
         product.setDescription(request.getDescription());
+        product.setPrescriptionDrug(request.getPrescriptionDrug());
 
         // Upload the image product if there is a file
         if (file != null && !file.isEmpty()) {
@@ -180,7 +181,7 @@ public class ProductServiceImpl implements ProductService {
                 productDTORequest.getRegistrationNumber() == null || productDTORequest.getActiveIngredient() == null ||
                 productDTORequest.getDosageConcentration() == null || productDTORequest.getPackingMethod() == null ||
                 productDTORequest.getManufacturer() == null || productDTORequest.getCountryOfOrigin() == null ||
-                productDTORequest.getImportPrice() == null || productDTORequest.getDosageForms() == null){
+                productDTORequest.getDosageForms() == null){
             throw new BadRequestException(Message.NULL_FILED);
         }
 

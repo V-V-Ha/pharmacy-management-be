@@ -26,7 +26,6 @@ public class ProductDTOResponse {
     private String manufacturer;
     private String countryOfOrigin;
     private String unit;
-    private Double importPrice;
     private String productCode;
     private String indication;
     private String contraindication;
@@ -34,6 +33,8 @@ public class ProductDTOResponse {
     private String dosageForms;
     private String description;
     private String category;
+    private String imageProduct;
+    private Boolean prescriptionDrug;
     private List<ProductUnitDTOReponse> productUnitList;
 
     public ProductDTOResponse(Product product){
@@ -45,7 +46,6 @@ public class ProductDTOResponse {
         this.packingMethod = product.getPackingMethod();
         this.manufacturer = product.getManufacturer();
         this.countryOfOrigin = product.getCountryOfOrigin();
-        this.importPrice = product.getImportPrice();
         this.productCode = product.getProductCode();
         this.indication = product.getIndication();
         this.contraindication = product.getContraindication();
@@ -53,6 +53,8 @@ public class ProductDTOResponse {
         this.dosageForms = product.getDosageForms();
         this.description = product.getDescription();
         this.category = product.getCategoryId().getCategoryName();
+        this.imageProduct =product.getImageProduct() != null ? product.getImageProduct() : "";
+        this.prescriptionDrug = product.getPrescriptionDrug();
         this.productUnitList = product.getProductUnitList().stream()
                 .map(productUnit -> new ProductUnitDTOReponse(
                         productUnit.getUnitId().getUnitName(),

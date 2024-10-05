@@ -79,7 +79,6 @@ public class ProductServiceTest {
         product.setPackingMethod("Hộp 10 vỉ");
         product.setManufacturer("Bayer AG");
         product.setCountryOfOrigin("Việt Nam");
-        product.setImportPrice(Double.valueOf(100));
         product.setProductCode("PCT12345");
         product.setIndication("Giảm đau");
         product.setContraindication("Bệnh gan");
