@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/product")
@@ -35,18 +36,21 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-
     @PostMapping("/create-product")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> createProduct(@RequestBody ProductDTORequest productDTORequest) {
-        productService.createProduct(productDTORequest);
+    public ResponseEntity<?> createProduct(
+            @RequestPart("productDTORequest") ProductDTORequest productDTORequest,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        productService.createProduct(productDTORequest, file);
         return ResponseEntity.ok(Message.PRODUCT_SUCCESS);
     }
 
     @PutMapping("/update-product")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> updateProduct(@RequestBody ProductDTORequest productDTORequest) {
-        productService.updateProduct(productDTORequest);
+    public ResponseEntity<?> updateProduct(
+            @RequestPart("productDTORequest") ProductDTORequest productDTORequest,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        productService.updateProduct(productDTORequest, file);
         return ResponseEntity.ok(Message.PRODUCT_UPDATE_SUCCESS);
     }
 
@@ -56,7 +60,6 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
-    
     @DeleteMapping("/delete-product")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<String> deleteProduct(@RequestParam Long id) {

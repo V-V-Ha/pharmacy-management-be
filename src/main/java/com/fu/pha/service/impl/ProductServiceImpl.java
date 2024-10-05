@@ -3,16 +3,20 @@ package com.fu.pha.service.impl;
 import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.ProductDTORequest;
 import com.fu.pha.dto.request.ProductUnitDTORequest;
+import com.fu.pha.dto.response.CloudinaryResponse;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.*;
 import com.fu.pha.exception.BadRequestException;
+import com.fu.pha.exception.MaxUploadSizeExceededException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.CategoryRepository;
 import com.fu.pha.repository.ProductRepository;
 import com.fu.pha.repository.ProductUnitRepository;
 import com.fu.pha.repository.UnitRepository;
+import com.fu.pha.service.CloudinaryService;
 import com.fu.pha.service.ProductService;
+import com.fu.pha.util.FileUploadUtil;
 import com.fu.pha.validate.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,11 +25,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -45,8 +51,11 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     GenerateCode generateCode;
 
+    @Autowired
+    CloudinaryService cloudinaryService;
+    @Transactional
     @Override
-    public void createProduct(ProductDTORequest productDTORequest) {
+    public void createProduct(ProductDTORequest productDTORequest, MultipartFile file) {
 
         //validate the request
         checkValidateProduct(productDTORequest);
@@ -85,8 +94,14 @@ public class ProductServiceImpl implements ProductService {
         product.setSideEffect(productDTORequest.getSideEffect());
         product.setDosageForms(productDTORequest.getDosageForms());
         product.setDescription(productDTORequest.getDescription());
-        product.setImageProduct(productDTORequest.getImageProduct());
+        // Upload the image product if there is a file
+        if (file != null && !file.isEmpty()) {
+            String imageProduct = uploadImage(file);
+            product.setImageProduct(imageProduct);
+        }
+
         productRepository.save(product);
+
         List<ProductUnit> productUnitList = new ArrayList<>();
         for (ProductUnitDTORequest productUnitDTORequest : productDTORequest.getProductUnitList()) {
             Unit unit = unitRepository.findByUnitName(productUnitDTORequest.getUnitName());
@@ -103,7 +118,8 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
-    public void updateProduct(ProductDTORequest request) {
+    @Transactional
+    public void updateProduct(ProductDTORequest request, MultipartFile file) {
         //validate the request
         checkValidateProduct(request);
 
@@ -138,7 +154,12 @@ public class ProductServiceImpl implements ProductService {
         product.setSideEffect(request.getSideEffect());
         product.setDosageForms(request.getDosageForms());
         product.setDescription(request.getDescription());
-        product.setImageProduct(request.getImageProduct());
+
+        // Upload the image product if there is a file
+        if (file != null && !file.isEmpty()) {
+            String imageProduct = uploadImage(file);
+            product.setImageProduct(imageProduct);
+        }
         productRepository.save(product);
         List<ProductUnit> productUnitList = new ArrayList<>();
         for (ProductUnitDTORequest productUnitDTORequest : request.getProductUnitList()) {
@@ -163,6 +184,28 @@ public class ProductServiceImpl implements ProductService {
             throw new BadRequestException(Message.NULL_FILED);
         }
 
+    }
+
+    public String uploadImage( final MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new BadRequestException(Message.EMPTY_FILE);
+        }
+
+        if (!FileUploadUtil.isAllowedExtension(file.getOriginalFilename(), FileUploadUtil.IMAGE_PATTERN)) {
+            throw new BadRequestException(Message.INVALID_FILE);
+        }
+
+        if (file.getSize() > FileUploadUtil.MAX_FILE_SIZE) {
+            throw new MaxUploadSizeExceededException(Message.INVALID_FILE_SIZE);
+        }
+
+
+
+        String customFileName = UUID.randomUUID() + "image";
+
+        CloudinaryResponse cloudinaryResponse = cloudinaryService.upLoadFile(file, FileUploadUtil.getFileName(customFileName));
+
+        return cloudinaryResponse.getUrl();
     }
 
     @Override

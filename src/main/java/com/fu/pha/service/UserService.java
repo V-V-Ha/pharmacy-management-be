@@ -32,7 +32,7 @@ public interface UserService {
     //reset password
     void resetPassword(ChangePasswordDto request, String token);
 
-    String uploadImage(final Long id, final MultipartFile file);
+    String uploadImage(final MultipartFile file);
 
 
 

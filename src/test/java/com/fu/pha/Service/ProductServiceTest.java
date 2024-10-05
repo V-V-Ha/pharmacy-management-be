@@ -108,7 +108,7 @@ public class ProductServiceTest {
         when(productRepository.findByRegistrationNumber(anyString())).thenReturn(Optional.empty());
         when(categoryRepository.getCategoryByCategoryName(anyString())).thenReturn(Optional.ofNullable(category));
 
-        productService.createProduct(productDTORequest);
+        productService.createProduct(productDTORequest, null);
 
         verify(productRepository, times(1)).save(any(Product.class));
     }
@@ -120,7 +120,7 @@ public class ProductServiceTest {
         when(productRepository.findByRegistrationNumber(anyString())).thenReturn(null);
         when(categoryRepository.getCategoryByCategoryName(anyString())).thenReturn(Optional.ofNullable(category));
 
-        productService.updateProduct(productDTORequest);
+        productService.createProduct(productDTORequest, null);
 
         verify(productRepository, times(1)).save(any(Product.class));
     }
@@ -151,20 +151,20 @@ public class ProductServiceTest {
     void testCreateProductWithExistingProductCode() {
         when(productRepository.findByProductCode(anyString())).thenReturn(Optional.of(new Product()));
 
-        assertThrows(BadRequestException.class, () -> productService.createProduct(productDTORequest));
+        assertThrows(BadRequestException.class, () -> productService.createProduct(productDTORequest, null));
     }
 
     @Test
     void testCreateProductWithExistingRegistrationNumber() {
         when(productRepository.findByRegistrationNumber(anyString())).thenReturn(Optional.of(new Product()));
 
-        assertThrows(BadRequestException.class, () -> productService.createProduct(productDTORequest));
+        assertThrows(BadRequestException.class, () -> productService.createProduct(productDTORequest, null));
     }
 
     @Test
     void testUpdateProductNotFound() {
         when(productRepository.getProductById(anyLong())).thenReturn(null);
 
-        assertThrows(ResourceNotFoundException.class, () -> productService.updateProduct(productDTORequest));
+        assertThrows(ResourceNotFoundException.class, () -> productService.updateProduct(productDTORequest, null));
     }
 }

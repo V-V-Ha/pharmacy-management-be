@@ -156,11 +156,9 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
 
 
-        // Lưu người dùng vào cơ sở dữ liệu
-        userRepository.save(user);
 
         if (file != null && !file.isEmpty()) {
-            String avatar = uploadImage(user.getId(), file);
+            String avatar = uploadImage(file);
             user.setAvatar(avatar);
         }
 
@@ -251,7 +249,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
         // Upload the avatar if there is a file
         if (file != null && !file.isEmpty()) {
-            String avatar = uploadImage(userDto.getId(), file);
+            String avatar = uploadImage(file);
             user.setAvatar(avatar);
         }
 
@@ -413,7 +411,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
     }
 
 
-    public String uploadImage(final Long id, final MultipartFile file) {
+    public String uploadImage(final MultipartFile file) {
         if (file.isEmpty()) {
             throw new BadRequestException(Message.EMPTY_FILE);
         }
@@ -426,10 +424,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
             throw new MaxUploadSizeExceededException(Message.INVALID_FILE_SIZE);
         }
 
-        User user = userRepository.getUserById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
-
-        String customFileName = user.getUsername() + "avatar";
+        String customFileName = UUID.randomUUID() + "avatar";
 
         CloudinaryResponse cloudinaryResponse = cloudinaryService.upLoadFile(file, FileUploadUtil.getFileName(customFileName));
 
