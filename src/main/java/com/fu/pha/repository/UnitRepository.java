@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UnitRepository extends JpaRepository<Unit, Long> {
@@ -19,6 +20,10 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
 
     @Override
     Optional<Unit> findById(Long id);
+
+    //get all unit
+    @Query("SELECT u FROM Unit u WHERE u.deleted = false ORDER BY u.lastModifiedDate DESC")
+    List<UnitDto> getAllUnit();
 
 
 

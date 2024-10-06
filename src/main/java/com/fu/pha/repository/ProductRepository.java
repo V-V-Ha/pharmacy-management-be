@@ -28,4 +28,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "(p.categoryId.categoryName = :category OR :category IS NULL OR :category = '')) " +
             "ORDER BY p.lastModifiedDate DESC")
     Page<ProductDTOResponse> getListProductPaging(String productName, String category, Pageable pageable);
+
 }

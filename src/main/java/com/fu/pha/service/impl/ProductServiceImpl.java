@@ -3,6 +3,7 @@ package com.fu.pha.service.impl;
 import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.ProductDTORequest;
 import com.fu.pha.dto.request.ProductUnitDTORequest;
+import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.dto.response.CloudinaryResponse;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.*;
@@ -235,5 +236,16 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
     }
 
-
+    @Override
+    public List<UnitDto> getAllUnit() {
+        List<Unit> units = unitRepository.findAll();
+        List<UnitDto> unitDtos = new ArrayList<>();
+        for (Unit unit : units) {
+            UnitDto unitDto = new UnitDto();
+            unitDto.setId(unit.getId());
+            unitDto.setUnitName(unit.getUnitName());
+            unitDtos.add(unitDto);
+        }
+        return unitDtos;
+    }
 }

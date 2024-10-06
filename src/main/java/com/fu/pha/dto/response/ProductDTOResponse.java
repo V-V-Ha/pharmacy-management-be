@@ -1,13 +1,11 @@
 package com.fu.pha.dto.response;
 
-import com.fu.pha.dto.request.ProductUnitDTORequest;
 import com.fu.pha.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,7 +33,7 @@ public class ProductDTOResponse {
     private String category;
     private String imageProduct;
     private Boolean prescriptionDrug;
-    private List<ProductUnitDTOReponse> productUnitList;
+    private List<ProductUnitDTOResponse> productUnitList;
 
     public ProductDTOResponse(Product product){
         this.id = product.getId();
@@ -56,7 +54,7 @@ public class ProductDTOResponse {
         this.imageProduct =product.getImageProduct() != null ? product.getImageProduct() : "";
         this.prescriptionDrug = product.getPrescriptionDrug();
         this.productUnitList = product.getProductUnitList().stream()
-                .map(productUnit -> new ProductUnitDTOReponse(
+                .map(productUnit -> new ProductUnitDTOResponse(
                         productUnit.getUnitId().getUnitName(),
                         productUnit.getConversionFactor(),
                         productUnit.getRetailPrice()

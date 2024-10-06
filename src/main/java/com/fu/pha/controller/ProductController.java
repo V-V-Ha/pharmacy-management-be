@@ -66,4 +66,10 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseEntity.ok(Message.PRODUCT_DELETE_SUCCESS);
     }
+
+    @GetMapping("/get-all-unit")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<?> getAllUnit() {
+        return ResponseEntity.ok(productService.getAllUnit());
+    }
 }
