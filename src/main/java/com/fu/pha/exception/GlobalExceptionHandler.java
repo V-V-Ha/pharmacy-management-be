@@ -6,6 +6,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import com.fu.pha.dto.response.MessageResponse;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -30,6 +31,16 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 toExactlyPath(request.getDescription(false)));
     }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorMessage handleValidException(MethodArgumentNotValidException ex,WebRequest request) {
+        return new ErrorMessage(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getFieldError().getDefaultMessage(),
+                toExactlyPath(request.getDescription(false)));
+    }
+
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -72,12 +83,14 @@ public class GlobalExceptionHandler {
 
 
 
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<MessageResponse> handleGenericException(Exception ex) {
-        MessageResponse errorResponse = new MessageResponse(Message.OTHER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.value());
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+
+
+//    @ExceptionHandler(Exception.class)
+//    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+//    public ResponseEntity<MessageResponse> handleGenericException(Exception ex) {
+//        MessageResponse errorResponse = new MessageResponse(Message.OTHER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.value());
+//        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
 
     private String toExactlyPath(String input) {
         return input.replace("uri=", "");

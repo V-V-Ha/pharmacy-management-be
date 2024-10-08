@@ -58,4 +58,7 @@ public class Message {
     public static final String DELETE_SUCCESS = "Xóa thành công";
     public static final String EXIST_PRODUCT_NAME = "Tên sản phẩm đã tồn tại";
     public static final String PRODUCT_DELETE_SUCCESS = "Xóa sản phẩm thành công";
+    public static final String SUPPLIER_EXIST = "Nhà cung cấp đã tồn tại";
+    public static final String INVALID_TAX = "Mã số thuế không hợp lệ";
+    public static final String SUPPLIER_NOT_FOUND = "Nhà cung cấp không tồn tại";
 }
