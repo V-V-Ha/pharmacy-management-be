@@ -15,6 +15,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/category")
 public class CategoryController {
@@ -65,5 +67,11 @@ public class CategoryController {
     public ResponseEntity<String> deleteCategory(@RequestParam Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.ok(Message.DELETE_SUCCESS);
+    }
+
+    @GetMapping("/get-all-category-list")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<List<CategoryDto>> getAllCategory() {
+        return ResponseEntity.ok(categoryService.getAllCategory());
     }
 }

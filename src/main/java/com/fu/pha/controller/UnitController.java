@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/unit")
 public class UnitController {
@@ -57,5 +59,11 @@ public class UnitController {
     public ResponseEntity<String> deleteUnit(@RequestParam Long id) {
         unitService.deleteUnit(id);
         return ResponseEntity.ok(Message.DELETE_SUCCESS);
+    }
+
+    @GetMapping("/get-all-unit-list")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<List<UnitDto>> getAllUnit() {
+        return ResponseEntity.ok(unitService.getAllUnit());
     }
 }

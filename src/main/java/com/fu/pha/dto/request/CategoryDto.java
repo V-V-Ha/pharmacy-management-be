@@ -30,4 +30,9 @@ public class CategoryDto {
         this.lastModifiedBy=category.getLastModifiedBy();
     }
 
+    public CategoryDto(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
 }

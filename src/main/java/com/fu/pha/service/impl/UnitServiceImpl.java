@@ -35,6 +35,10 @@ public class UnitServiceImpl implements UnitService {
         return unitPage;
     }
 
+    public List<UnitDto> getAllUnit() {
+        return unitRepository.getAllUnit();
+    }
+
     @Override
     public UnitDto getUnitById(Long id) {
         Unit unit = unitRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(Message.UNIT_NOT_FOUND));

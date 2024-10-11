@@ -1,5 +1,6 @@
 package com.fu.pha.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,6 +37,7 @@ public class Supplier extends BaseEntity{
     private String tax;
 
     @OneToMany(mappedBy = "supplier")
+    @JsonManagedReference
     private List<Import> importList;
 
 }

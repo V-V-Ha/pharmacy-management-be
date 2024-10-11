@@ -1,5 +1,8 @@
 package com.fu.pha.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fu.pha.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,8 +32,8 @@ public class Import extends BaseEntity{
     @Column(name = "import_date")
     private Instant importDate;
 
-    @Column(name = "type_receipt")
-    private String typeReceipt;
+    @Column(name = "payment_method")
+    private PaymentMethod paymentMethod;
 
     @Column(name = "tax_dentification_number")
     private Double taxiDentificationNumber;
@@ -45,13 +48,16 @@ public class Import extends BaseEntity{
     private String note;
 
     @OneToMany(mappedBy = "importId")
+    @JsonManagedReference
     private List<ImportItem> importItemList;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
     @JoinColumn(name = "supplier_id", nullable = false)
     private Supplier supplier;
 }

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UnitRepository extends JpaRepository<Unit, Long> {
@@ -19,6 +20,9 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
 
     @Override
     Optional<Unit> findById(Long id);
+
+    @Query("SELECT new com.fu.pha.dto.request.UnitDto(u.id, u.unitName) FROM Unit u")
+    List<UnitDto> getAllUnit();
 
 
 

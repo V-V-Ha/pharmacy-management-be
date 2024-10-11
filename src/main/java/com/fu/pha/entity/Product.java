@@ -46,6 +46,9 @@ public class Product extends BaseEntity{
     @Column(name = "product_code")
     private String productCode;
 
+    @Column(name = "retail_price")
+    private Double retailPrice;
+
     @Column(name = "indication")
     private String indication;
 
@@ -80,6 +83,7 @@ public class Product extends BaseEntity{
     private List<ExportSlipItem> exportSlipItems;
 
     @OneToMany(mappedBy = "product")
+    @JsonManagedReference
     private List<ImportItem> importItems;
 
     @OneToMany(mappedBy = "product")
