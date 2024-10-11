@@ -32,7 +32,7 @@ public class ProductDTORequest {
     private String sideEffect;
     private String dosageForms;
     private String description;
-    private String categoryId;
+    private Long categoryId;
     private String imageProduct;
     private Boolean prescriptionDrug;
     private List<ProductUnitDTORequest> productUnitList;
@@ -52,7 +52,7 @@ public class ProductDTORequest {
         this.sideEffect = product.getSideEffect();
         this.dosageForms = product.getDosageForms();
         this.description = product.getDescription();
-        this.categoryId = product.getCategoryId().getCategoryName();
+        this.categoryId = product.getCategoryId().getId();
         this.imageProduct =product.getImageProduct() != null ? product.getImageProduct() : "";
         this.prescriptionDrug = product.getPrescriptionDrug();
     }

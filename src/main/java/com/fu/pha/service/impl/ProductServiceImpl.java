@@ -70,7 +70,7 @@ public class ProductServiceImpl implements ProductService {
             throw new BadRequestException(errorMessage);
         }
 
-        Category category = categoryRepository.getCategoryByCategoryName(productDTORequest.getCategoryId())
+        Category category = categoryRepository.findById(productDTORequest.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
 
         Product product = new Product();
@@ -111,7 +111,7 @@ public class ProductServiceImpl implements ProductService {
             productUnit.setUnitId(unit);
             productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
 
-            productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice() * productUnitDTORequest.getConversionFactor());
+            productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
             productUnitList.add(productUnit);
         }
         productUnitRepository.saveAll(productUnitList);
@@ -137,7 +137,7 @@ public class ProductServiceImpl implements ProductService {
             throw new BadRequestException(errorMessage);
         }
 
-        Category category = categoryRepository.getCategoryByCategoryName(request.getCategoryId())
+        Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
 
         product.setProductName(request.getProductName());
@@ -170,18 +170,18 @@ public class ProductServiceImpl implements ProductService {
             productUnit.setUnitId(unit);
             productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
 
-            productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice() * productUnitDTORequest.getConversionFactor());
+            productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
             productUnitList.add(productUnit);
         }
         productUnitRepository.saveAll(productUnitList);
     }
 
     private void checkValidateProduct(ProductDTORequest productDTORequest){
-        if(productDTORequest.getProductName() == null || productDTORequest.getCategoryId() == null ||
-                productDTORequest.getRegistrationNumber() == null || productDTORequest.getActiveIngredient() == null ||
-                productDTORequest.getDosageConcentration() == null || productDTORequest.getPackingMethod() == null ||
-                productDTORequest.getManufacturer() == null || productDTORequest.getCountryOfOrigin() == null ||
-                productDTORequest.getDosageForms() == null){
+        if(productDTORequest.getProductName().isEmpty() || productDTORequest.getCategoryId() == null ||
+                productDTORequest.getRegistrationNumber().isEmpty() || productDTORequest.getActiveIngredient().isEmpty() ||
+                productDTORequest.getDosageConcentration().isEmpty() || productDTORequest.getPackingMethod().isEmpty() ||
+                productDTORequest.getManufacturer().isEmpty() || productDTORequest.getCountryOfOrigin().isEmpty() ||
+                productDTORequest.getDosageForms().isEmpty()){
             throw new BadRequestException(Message.NULL_FILED);
         }
 
