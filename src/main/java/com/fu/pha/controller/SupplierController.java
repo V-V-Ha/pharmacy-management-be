@@ -46,7 +46,7 @@ public class SupplierController {
     // get all supplier by paging
     @GetMapping("/get-all-supplier-by-paging")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<PageResponseModel<SupplierDto>> getAllSupplierPaging(@RequestBody int page, @RequestBody int size, @RequestBody String name) {
+    public ResponseEntity<PageResponseModel<SupplierDto>> getAllSupplierPaging(@RequestParam int page, @RequestParam int size, @RequestParam(required = false) String name) {
         Page<SupplierDto> content = supplierService.getAllSupplierAndPaging(page, size, name);
         PageResponseModel<SupplierDto> response = PageResponseModel.<SupplierDto>builder()
                 .page(page)
