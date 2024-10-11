@@ -1,5 +1,6 @@
 package com.fu.pha.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fu.pha.dto.request.LoginDtoRequest;
 import com.fu.pha.enums.Gender;
 import com.fu.pha.enums.Status;
@@ -72,12 +73,15 @@ public class User extends BaseEntity {
     private String note;
 
     @OneToMany(mappedBy = "user")
+    @JsonManagedReference
     private List<ExportSlip> exportSlipList;
 
     @OneToMany(mappedBy = "user")
+    @JsonManagedReference
     private List<Import> importList;
 
     @OneToMany(mappedBy = "user")
+    @JsonManagedReference
     private List<SaleOrder> saleOrderList;
 
     public User(LoginDtoRequest request){

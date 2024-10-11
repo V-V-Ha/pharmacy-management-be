@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<Category,Long> {
@@ -22,4 +23,6 @@ public interface CategoryRepository extends JpaRepository<Category,Long> {
             "ORDER BY c.lastModifiedDate DESC")
     Page<CategoryDto> findAllByNameContaining(String name, Pageable pageable);
 
+    @Query("SELECT new com.fu.pha.dto.request.CategoryDto(c.id, c.categoryName) FROM Category c")
+    List<CategoryDto> findAllCategory();
 }

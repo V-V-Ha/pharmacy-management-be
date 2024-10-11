@@ -25,6 +25,9 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
 //    @Query("SELECT u FROM Unit u WHERE u.deleted = false ORDER BY u.lastModifiedDate DESC")
 //    List<UnitDto> getAllUnit();
 
+    @Query("SELECT new com.fu.pha.dto.request.UnitDto(u.id, u.unitName) FROM Unit u")
+    List<UnitDto> getAllUnit();
+
 
 
 //    @Query()

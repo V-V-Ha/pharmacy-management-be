@@ -11,4 +11,6 @@ public interface UnitService {
     void createUnit(UnitDto unitDto);
     void updateUnit(UnitDto unitDto);
     void deleteUnit(Long id);
+
+    List<UnitDto> getAllUnit();
 }

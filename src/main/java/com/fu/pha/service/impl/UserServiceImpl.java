@@ -145,7 +145,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         user.setPhone(userDto.getPhone());
         user.setCic(userDto.getCic());
         user.setStatus(userDto.getStatus());
-        user.setNote(userDto.getNote());
+        user.setNote(userDto.getNote());;
 
         // Xử lý vai trò người dùng
         Set<Role> roles = userDto.getRolesDto().stream()

@@ -11,4 +11,6 @@ public class Constants {
     public static final String REGEX_ADDRESS = "^[a-zA-Z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđĐ\\s\\-]+$";
     public static final String REGEX_CCCD = "^\\d{12}$";
 
+    public static final String REGEX_TAX = "^\\d{10}(-\\d{3})?$\n";
+
 }

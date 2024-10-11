@@ -29,4 +29,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "ORDER BY p.lastModifiedDate DESC")
     Page<ProductDTOResponse> getListProductPaging(String productName, String category, Pageable pageable);
 
+    @Query("SELECT new com.fu.pha.dto.response.ProductDTOResponse(p) FROM Product p WHERE p.productName = :productName")
+    Optional<ProductDTOResponse> findProductByProductName(String productName);
 }

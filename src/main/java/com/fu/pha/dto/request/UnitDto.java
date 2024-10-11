@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Data;
 
 import java.time.Instant;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -28,6 +29,12 @@ public class UnitDto {
         this.lastModifiedDate=unit.getLastModifiedDate();
         this.lastModifiedBy=unit.getLastModifiedBy();
     }
+
+    public UnitDto(Long id, String unitName) {
+        this.id = id;
+        this.unitName = unitName;
+    }
+
 
 
 }

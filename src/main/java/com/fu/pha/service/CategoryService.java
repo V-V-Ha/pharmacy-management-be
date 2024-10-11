@@ -7,6 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
+
 public interface CategoryService {
     //create category
     void createCategory(CategoryDto request) throws BadRequestException;
@@ -22,5 +24,7 @@ public interface CategoryService {
 
     //delete category
     void deleteCategory(Long id);
+
+    List<CategoryDto> getAllCategory();
 
 }
