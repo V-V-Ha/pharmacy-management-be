@@ -23,6 +23,7 @@ public class SupplierDto {
     @Pattern(regexp = Constants.REGEX_PHONE, message = Message.INVALID_PHONE)
     private String phoneNumber;
 
+    @Pattern(regexp = Constants.REGEX_GMAIL, message = Message.INVALID_GMAIL)
     private String email;
 
     @NotBlank(message = Message.NULL_FILED)
