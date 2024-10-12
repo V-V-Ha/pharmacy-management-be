@@ -39,7 +39,7 @@ public class SupplierController {
     //get supplier by id
     @GetMapping("/get-supplier-by-id")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<SupplierDto> getSupplierById(@RequestBody Long id) {
+    public ResponseEntity<SupplierDto> getSupplierById(@RequestParam Long id) {
         return ResponseEntity.ok(supplierService.getSupplierById(id));
     }
 
