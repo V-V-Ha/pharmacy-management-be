@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -31,4 +32,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT new com.fu.pha.dto.response.ProductDTOResponse(p) FROM Product p WHERE p.productName = :productName")
     Optional<ProductDTOResponse> findProductByProductName(String productName);
+
+    @Query("SELECT new com.fu.pha.dto.response.ProductDTOResponse(p) " +
+            "FROM Product p " +
+            "JOIN p.categoryId c " +
+            " join p.productUnitList pu ")
+    List<ProductDTOResponse> getListProduct();
 }

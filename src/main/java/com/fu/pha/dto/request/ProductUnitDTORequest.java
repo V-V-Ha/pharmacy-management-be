@@ -12,6 +12,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductUnitDTORequest {
+
+    private Long id;
     private String unitName;
     private Integer conversionFactor;
     private Double retailPrice;

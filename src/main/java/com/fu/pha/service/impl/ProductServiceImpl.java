@@ -71,7 +71,7 @@ public class ProductServiceImpl implements ProductService {
             throw new BadRequestException(errorMessage);
         }
 
-        Category category = categoryRepository.getCategoryByCategoryName(productDTORequest.getCategoryId())
+        Category category = categoryRepository.findById(productDTORequest.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
 
         Product product = new Product();
@@ -111,8 +111,7 @@ public class ProductServiceImpl implements ProductService {
             productUnit.setProductId(product);
             productUnit.setUnitId(unit);
             productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
-
-            productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice() * productUnitDTORequest.getConversionFactor());
+            productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
             productUnitList.add(productUnit);
         }
         productUnitRepository.saveAll(productUnitList);
@@ -138,7 +137,7 @@ public class ProductServiceImpl implements ProductService {
             throw new BadRequestException(errorMessage);
         }
 
-        Category category = categoryRepository.getCategoryByCategoryName(request.getCategoryId())
+        Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
 
         product.setProductName(request.getProductName());
@@ -163,7 +162,7 @@ public class ProductServiceImpl implements ProductService {
             product.setImageProduct(imageProduct);
         }
         productRepository.save(product);
-        List<ProductUnit> productUnitList = new ArrayList<>();
+        List<ProductUnit> productUnitList = product.getProductUnitList();
         for (ProductUnitDTORequest productUnitDTORequest : request.getProductUnitList()) {
             Unit unit = unitRepository.findByUnitName(productUnitDTORequest.getUnitName());
             ProductUnit productUnit = new ProductUnit();
@@ -171,7 +170,7 @@ public class ProductServiceImpl implements ProductService {
             productUnit.setUnitId(unit);
             productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
 
-            productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice() * productUnitDTORequest.getConversionFactor());
+            productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
             productUnitList.add(productUnit);
         }
         productUnitRepository.saveAll(productUnitList);
