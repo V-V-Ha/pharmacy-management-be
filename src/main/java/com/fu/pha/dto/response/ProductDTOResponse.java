@@ -31,6 +31,7 @@ public class ProductDTOResponse {
     private String dosageForms;
     private String description;
     private String category;
+    private Long categoryId;
     private String imageProduct;
     private Boolean prescriptionDrug;
     private List<ProductUnitDTOResponse> productUnitList;
@@ -51,6 +52,7 @@ public class ProductDTOResponse {
         this.dosageForms = product.getDosageForms();
         this.description = product.getDescription();
         this.category = product.getCategoryId().getCategoryName();
+        this.categoryId = product.getCategoryId().getId();
         this.imageProduct =product.getImageProduct() != null ? product.getImageProduct() : "";
         this.prescriptionDrug = product.getPrescriptionDrug();
         this.productUnitList = product.getProductUnitList().stream()

@@ -259,10 +259,10 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
 
     private void checkValidate(UserDto userDto) {
-        if (userDto.getFullName() == null || userDto.getEmail() == null || userDto.getPhone() == null ||
-                userDto.getDob() == null || userDto.getAddress() == null ||
-                userDto.getGender() == null || userDto.getCic() == null || userDto.getUsername() == null ||
-                userDto.getRolesDto() == null || userDto.getStatus() == null) {
+        if (userDto.getFullName().isEmpty() || userDto.getEmail().isEmpty() || userDto.getPhone().isEmpty() ||
+                userDto.getDob() == null || userDto.getAddress().isEmpty() ||
+                userDto.getGender() == null || userDto.getCic().isEmpty() || userDto.getUsername().isEmpty() ||
+                userDto.getRolesDto().isEmpty() || userDto.getStatus() == null) {
             throw new ResourceNotFoundException(Message.NULL_FILED);
         }
         if (!checkUserAge(userDto)) {

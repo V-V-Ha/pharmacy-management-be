@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<Category,Long> {
-    @Override
+
     Optional<Category> findById(Long id);
 
     Optional<Category> getCategoryByCategoryName(String categoryName);
@@ -25,4 +25,7 @@ public interface CategoryRepository extends JpaRepository<Category,Long> {
 
     @Query("SELECT new com.fu.pha.dto.request.CategoryDto(c.id, c.categoryName) FROM Category c")
     List<CategoryDto> findAllCategory();
+
+    @Query("SELECT c FROM Category c WHERE c.id = :id")
+    Optional<Category> getCategoryById(String id);
 }

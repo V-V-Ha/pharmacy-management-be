@@ -177,11 +177,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private void checkValidateProduct(ProductDTORequest productDTORequest){
-        if(productDTORequest.getProductName() == null || productDTORequest.getCategoryId() == null ||
-                productDTORequest.getRegistrationNumber() == null || productDTORequest.getActiveIngredient() == null ||
-                productDTORequest.getDosageConcentration() == null || productDTORequest.getPackingMethod() == null ||
-                productDTORequest.getManufacturer() == null || productDTORequest.getCountryOfOrigin() == null ||
-                productDTORequest.getDosageForms() == null){
+        if(productDTORequest.getProductName().isEmpty() || productDTORequest.getCategoryId() == null ||
+                productDTORequest.getRegistrationNumber().isEmpty() || productDTORequest.getActiveIngredient().isEmpty() ||
+                productDTORequest.getDosageConcentration().isEmpty() || productDTORequest.getPackingMethod().isEmpty() ||
+                productDTORequest.getManufacturer().isEmpty() || productDTORequest.getCountryOfOrigin().isEmpty() ||
+                productDTORequest.getDosageForms().isEmpty()){
             throw new BadRequestException(Message.NULL_FILED);
         }
 
