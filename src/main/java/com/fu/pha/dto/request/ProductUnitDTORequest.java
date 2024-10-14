@@ -14,7 +14,8 @@ import java.math.BigDecimal;
 public class ProductUnitDTORequest {
 
     private Long id;
-    private String unitName;
+    private Long unitId;
+    private Long productId;
     private Integer conversionFactor;
     private Double retailPrice;
 }

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,6 +36,10 @@ public class ProductDTOResponse {
     private String imageProduct;
     private Boolean prescriptionDrug;
     private List<ProductUnitDTOResponse> productUnitList;
+    private Instant createDate;
+    private Instant lastModifiedDate;
+    private String createBy;
+    private String lastModifiedBy;
 
     public ProductDTOResponse(Product product){
         this.id = product.getId();
@@ -62,5 +67,9 @@ public class ProductDTOResponse {
                         productUnit.getRetailPrice()
                 ))
                 .collect(Collectors.toList());
+        this.createBy = product.getCreateBy();
+        this.lastModifiedBy = product.getLastModifiedBy();
+        this.createDate = product.getCreateDate();
+        this.lastModifiedDate = product.getLastModifiedDate();
     }
 }

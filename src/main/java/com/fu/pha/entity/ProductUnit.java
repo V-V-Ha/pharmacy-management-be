@@ -37,4 +37,5 @@ public class ProductUnit extends BaseEntity{
 
     @Column(name = "retail_price", nullable = false)
     private Double retailPrice;
+
 }

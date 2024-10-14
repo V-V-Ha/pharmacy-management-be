@@ -20,6 +20,9 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
 
     @Override
     Optional<Unit> findById(Long id);
+
+    Unit findUnitById(Long id);
+
 //
 //    //get all unit
 //    @Query("SELECT u FROM Unit u WHERE u.deleted = false ORDER BY u.lastModifiedDate DESC")
