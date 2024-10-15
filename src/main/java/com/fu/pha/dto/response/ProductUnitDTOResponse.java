@@ -11,12 +11,16 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductUnitDTOResponse {
-    private String unitName;
+    private Long id;
+    private Long unitId;
+    private Long productId;
     private Integer conversionFactor;
     private Double retailPrice;
 
     public ProductUnitDTOResponse(ProductUnit productUnit) {
-        this.unitName = productUnit.getUnitId().getUnitName();
+        this.unitId = productUnit.getUnitId().getId();
+        this.productId = productUnit.getProductId().getId();
         this.conversionFactor = productUnit.getConversionFactor();
+        this.retailPrice = productUnit.getRetailPrice();
     }
 }

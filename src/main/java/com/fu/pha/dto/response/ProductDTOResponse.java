@@ -62,7 +62,9 @@ public class ProductDTOResponse {
         this.prescriptionDrug = product.getPrescriptionDrug();
         this.productUnitList = product.getProductUnitList().stream()
                 .map(productUnit -> new ProductUnitDTOResponse(
-                        productUnit.getUnitId().getUnitName(),
+                        productUnit.getId(),
+                        productUnit.getUnitId().getId(),
+                        productUnit.getProductId().getId(),
                         productUnit.getConversionFactor(),
                         productUnit.getRetailPrice()
                 ))
