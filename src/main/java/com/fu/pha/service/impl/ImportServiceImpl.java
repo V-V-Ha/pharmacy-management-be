@@ -95,11 +95,20 @@ public class ImportServiceImpl implements ImportService {
         importReceipt.setUser(user.get());
         importReceipt.setSupplier(supplier.get());
 
-
+        importRepository.save(importReceipt);
+        if (importDto.getImportItemList() != null) {
+            for (ImportItemDto importItemDto : importDto.getImportItemList()) {
+                ImportItem importItem = new ImportItem();
+                importItem.setImportReceipt(importReceipt);
+                importItem.setProduct(productRepository.findById(importItemDto.getProductId()).get());
+                importItem.setQuantity(importItemDto.getQuantity());
+                importItem.setUnitPrice(importItemDto.getUnitPrice());
+                importItem.setTotalAmount(importItemDto.getTotalAmount());
+                importItemRepository.save(importItem);
+            }
+        }
         //create import item
         //code here
-
-
     }
 
     public void convertUnit(Long productId){

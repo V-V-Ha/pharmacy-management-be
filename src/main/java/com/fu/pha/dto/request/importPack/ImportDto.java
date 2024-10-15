@@ -12,7 +12,7 @@ public class ImportDto {
     private String invoiceNumber;
     private Instant importDate;
     private String paymentMethod;
-    private Double taxiDentificationNumber;
+    private Double taxIdentificationNumber;
     private Double discount;
     private Double totalAmount;
     private String note;
@@ -29,7 +29,7 @@ public class ImportDto {
         this.invoiceNumber = importRequest.getInvoiceNumber();
         this.importDate = importRequest.getImportDate();
         this.paymentMethod = importRequest.getPaymentMethod().name();
-        this.taxiDentificationNumber = importRequest.getTaxiDentificationNumber();
+        this.taxIdentificationNumber = importRequest.getTaxiDentificationNumber();
         this.discount = importRequest.getDiscount();
         this.totalAmount = importRequest.getTotalAmount();
         this.note = importRequest.getNote();
