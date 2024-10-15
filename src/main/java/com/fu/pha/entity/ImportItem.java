@@ -55,7 +55,7 @@ public class ImportItem extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonBackReference
     @JoinColumn(name = "import_id", nullable = false)
-    private Import importId;
+    private Import importR;
 
 
 }

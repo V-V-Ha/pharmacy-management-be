@@ -6,20 +6,16 @@ import lombok.Data;
 
 import java.time.Instant;
 @Data
-public class ImportItemDto {
+public class ImportItemRequestDto {
     private Long id;
     @NotNull(message = Message.NULL_FILED)
-    private Integer quantity;
-    private Double unitPrice;
-    @NotNull(message = Message.NULL_FILED)
     private Long unitId;
-    private Double discount;
-    private Double tax;
-    @NotNull(message = Message.NULL_FILED)
-    private Double totalAmount;
+    private Double unitPrice;
     @NotNull(message = Message.NULL_FILED)
     private String batchNumber;
     private Instant expiryDate;
     private Long productId;
     private Long importId;
+
+
 }
