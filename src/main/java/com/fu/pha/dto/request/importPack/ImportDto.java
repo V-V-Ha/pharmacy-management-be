@@ -16,7 +16,7 @@ public class ImportDto {
     private Double discount;
     private Double totalAmount;
     private String note;
-    private List<ImportItemDto> importItemList;
+    private List<ImportItemRequestDto> importItemList;
     private Long userId;
     private Long supplierId;
     private Instant createDate;

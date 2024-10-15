@@ -46,8 +46,8 @@ public class Product extends BaseEntity{
     @Column(name = "product_code")
     private String productCode;
 
-    @Column(name = "retail_price")
-    private Double retailPrice;
+    @Column(name = "import_price")
+    private Double importPrice;
 
     @Column(name = "indication")
     private String indication;
