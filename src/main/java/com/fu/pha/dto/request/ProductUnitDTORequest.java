@@ -12,7 +12,10 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductUnitDTORequest {
-    private String unitName;
+
+    private Long id;
+    private Long unitId;
+    private Long productId;
     private Integer conversionFactor;
     private Double retailPrice;
 }

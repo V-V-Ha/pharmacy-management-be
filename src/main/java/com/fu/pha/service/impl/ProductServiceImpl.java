@@ -3,6 +3,7 @@ package com.fu.pha.service.impl;
 import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.ProductDTORequest;
 import com.fu.pha.dto.request.ProductUnitDTORequest;
+import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.dto.response.CloudinaryResponse;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.*;
@@ -62,12 +63,9 @@ public class ProductServiceImpl implements ProductService {
         checkValidateProduct(productDTORequest);
 
         //check product code and registration number exist
-        Optional<Product> productCode = productRepository.findByProductCode(productDTORequest.getProductCode());
         Optional<Product> registrationNumber = productRepository.findByRegistrationNumber(productDTORequest.getRegistrationNumber());
-        if (productCode.isPresent() || registrationNumber.isPresent()) {
-            String errorMessage = productCode.isPresent() ? Message.EXIST_PRODUCT_CODE :
-                    Message.EXIST_REGISTRATION_NUMBER;
-            throw new BadRequestException(errorMessage);
+        if (registrationNumber.isPresent()) {
+            throw new BadRequestException(Message.EXIST_REGISTRATION_NUMBER);
         }
 
         Category category = categoryRepository.findById(productDTORequest.getCategoryId())
@@ -102,15 +100,13 @@ public class ProductServiceImpl implements ProductService {
         }
 
         productRepository.save(product);
-
         List<ProductUnit> productUnitList = new ArrayList<>();
-        for (ProductUnitDTORequest productUnitDTORequest : productDTORequest.getProductUnitList()) {
-            Unit unit = unitRepository.findByUnitName(productUnitDTORequest.getUnitName());
+        for (ProductUnitDTORequest productUnitDTORequest : productDTORequest.getProductUnitListDTO()) {
+            Unit unit = unitRepository.findUnitById(productUnitDTORequest.getUnitId());
             ProductUnit productUnit = new ProductUnit();
             productUnit.setProductId(product);
             productUnit.setUnitId(unit);
             productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
-
             productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
             productUnitList.add(productUnit);
         }
@@ -120,41 +116,37 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public void updateProduct(ProductDTORequest request, MultipartFile file) {
+    public void updateProduct(ProductDTORequest productDTORequest, MultipartFile file) {
         //validate the request
-        checkValidateProduct(request);
+        checkValidateProduct(productDTORequest);
 
         //check product exist
-        Optional<Product> productOptional = productRepository.getProductById(request.getId());
+        Optional<Product> productOptional = productRepository.getProductById(productDTORequest.getId());
         Product product = productOptional.orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
         //check product code and registration number exist
-        Optional<Product> productCodeExist = productRepository.findByProductCode(request.getProductCode());
-        Optional<Product> registrationNumberExist = productRepository.findByRegistrationNumber(request.getRegistrationNumber());
-        if ((productCodeExist.isPresent() && !productCodeExist.get().getId().equals(request.getId())) ||
-                (registrationNumberExist.isPresent() && !registrationNumberExist.get().getId().equals(request.getId()))) {
-            String errorMessage = productCodeExist.isPresent() ? Message.EXIST_PRODUCT_CODE : Message.EXIST_REGISTRATION_NUMBER;
-            throw new BadRequestException(errorMessage);
+        Optional<Product> registrationNumberExist = productRepository.findByRegistrationNumber(productDTORequest.getRegistrationNumber());
+        if (registrationNumberExist.isPresent() && !registrationNumberExist.get().getId().equals(productDTORequest.getId())) {
+            throw new BadRequestException(Message.EXIST_REGISTRATION_NUMBER);
         }
 
-        Category category = categoryRepository.findById(request.getCategoryId())
+        Category category = categoryRepository.findById(productDTORequest.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
 
-        product.setProductName(request.getProductName());
+        product.setProductName(productDTORequest.getProductName());
         product.setCategoryId(category);
-        product.setRegistrationNumber(request.getRegistrationNumber());
-        product.setActiveIngredient(request.getActiveIngredient());
-        product.setDosageConcentration(request.getDosageConcentration());
-        product.setPackingMethod(request.getPackingMethod());
-        product.setManufacturer(request.getManufacturer());
-        product.setCountryOfOrigin(request.getCountryOfOrigin());
-        product.setProductCode(request.getProductCode());
-        product.setIndication(request.getIndication());
-        product.setContraindication(request.getContraindication());
-        product.setSideEffect(request.getSideEffect());
-        product.setDosageForms(request.getDosageForms());
-        product.setDescription(request.getDescription());
-        product.setPrescriptionDrug(request.getPrescriptionDrug());
+        product.setRegistrationNumber(productDTORequest.getRegistrationNumber());
+        product.setActiveIngredient(productDTORequest.getActiveIngredient());
+        product.setDosageConcentration(productDTORequest.getDosageConcentration());
+        product.setPackingMethod(productDTORequest.getPackingMethod());
+        product.setManufacturer(productDTORequest.getManufacturer());
+        product.setCountryOfOrigin(productDTORequest.getCountryOfOrigin());
+        product.setIndication(productDTORequest.getIndication());
+        product.setContraindication(productDTORequest.getContraindication());
+        product.setSideEffect(productDTORequest.getSideEffect());
+        product.setDosageForms(productDTORequest.getDosageForms());
+        product.setDescription(productDTORequest.getDescription());
+        product.setPrescriptionDrug(productDTORequest.getPrescriptionDrug());
 
         // Upload the image product if there is a file
         if (file != null && !file.isEmpty()) {
@@ -162,18 +154,35 @@ public class ProductServiceImpl implements ProductService {
             product.setImageProduct(imageProduct);
         }
         productRepository.save(product);
-        List<ProductUnit> productUnitList = new ArrayList<>();
-        for (ProductUnitDTORequest productUnitDTORequest : request.getProductUnitList()) {
-            Unit unit = unitRepository.findByUnitName(productUnitDTORequest.getUnitName());
-            ProductUnit productUnit = new ProductUnit();
-            productUnit.setProductId(product);
-            productUnit.setUnitId(unit);
-            productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
+        if (productDTORequest.getProductUnitListDTO() != null) {
+        List<ProductUnit> productUnitList = product.getProductUnitList();
+        for (ProductUnitDTORequest productUnitDTORequest : productDTORequest.getProductUnitListDTO()) {
+            //check product unit exist
+            ProductUnit productUnit = productUnitRepository.findProductUnitsByProductIdAndUnitId(productDTORequest.getId(),
+                    productUnitDTORequest.getUnitId());
 
-            productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
-            productUnitList.add(productUnit);
+            if (productUnit != null){
+                //update product unit
+                productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
+                productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
+                productUnitRepository.save(productUnit);
+                productUnitList.add(productUnit);
+            } else {
+                //create new product unit
+                productUnit = new ProductUnit();
+                Unit unit = unitRepository.findUnitById(productUnitDTORequest.getUnitId());
+                product = productRepository.findProductById(productDTORequest.getId());
+                productUnit.setUnitId(unit);
+                productUnit.setProductId(product);
+                productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
+                productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
+                productUnitRepository.save(productUnit);
+                productUnitList.add(productUnit);
+            }
         }
-        productUnitRepository.saveAll(productUnitList);
+        product.setProductUnitList(productUnitList);
+        productRepository.save(product);
+        }
     }
 
     private void checkValidateProduct(ProductDTORequest productDTORequest){
@@ -235,5 +244,16 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
     }
 
-
+    @Override
+    public List<UnitDto> getAllUnit() {
+        List<Unit> units = unitRepository.findAll();
+        List<UnitDto> unitDtos = new ArrayList<>();
+        for (Unit unit : units) {
+            UnitDto unitDto = new UnitDto();
+            unitDto.setId(unit.getId());
+            unitDto.setUnitName(unit.getUnitName());
+            unitDtos.add(unitDto);
+        }
+        return unitDtos;
+    }
 }

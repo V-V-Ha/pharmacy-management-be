@@ -1,13 +1,12 @@
 package com.fu.pha.dto.response;
 
-import com.fu.pha.dto.request.ProductUnitDTORequest;
 import com.fu.pha.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,7 +35,11 @@ public class ProductDTOResponse {
     private Long categoryId;
     private String imageProduct;
     private Boolean prescriptionDrug;
-    private List<ProductUnitDTOReponse> productUnitList;
+    private List<ProductUnitDTOResponse> productUnitList;
+    private Instant createDate;
+    private Instant lastModifiedDate;
+    private String createBy;
+    private String lastModifiedBy;
 
     public ProductDTOResponse(Product product){
         this.id = product.getId();
@@ -58,11 +61,17 @@ public class ProductDTOResponse {
         this.imageProduct =product.getImageProduct() != null ? product.getImageProduct() : "";
         this.prescriptionDrug = product.getPrescriptionDrug();
         this.productUnitList = product.getProductUnitList().stream()
-                .map(productUnit -> new ProductUnitDTOReponse(
-                        productUnit.getUnitId().getUnitName(),
+                .map(productUnit -> new ProductUnitDTOResponse(
+                        productUnit.getId(),
+                        productUnit.getUnitId().getId(),
+                        productUnit.getProductId().getId(),
                         productUnit.getConversionFactor(),
                         productUnit.getRetailPrice()
                 ))
                 .collect(Collectors.toList());
+        this.createBy = product.getCreateBy();
+        this.lastModifiedBy = product.getLastModifiedBy();
+        this.createDate = product.getCreateDate();
+        this.lastModifiedDate = product.getLastModifiedDate();
     }
 }

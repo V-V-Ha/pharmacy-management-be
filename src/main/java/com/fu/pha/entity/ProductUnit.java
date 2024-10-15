@@ -24,6 +24,7 @@ public class ProductUnit extends BaseEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
+    @JsonBackReference
     private Product productId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -36,4 +37,5 @@ public class ProductUnit extends BaseEntity{
 
     @Column(name = "retail_price", nullable = false)
     private Double retailPrice;
+
 }

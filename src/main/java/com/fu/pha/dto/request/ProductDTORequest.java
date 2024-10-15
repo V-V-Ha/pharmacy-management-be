@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
 @Getter
@@ -26,7 +27,6 @@ public class ProductDTORequest {
     private String packingMethod;
     private String manufacturer;
     private String countryOfOrigin;
-    private String productCode;
     private String indication;
     private String contraindication;
     private String sideEffect;
@@ -35,7 +35,11 @@ public class ProductDTORequest {
     private Long categoryId;
     private String imageProduct;
     private Boolean prescriptionDrug;
-    private List<ProductUnitDTORequest> productUnitList;
+    private List<ProductUnitDTORequest> productUnitListDTO;
+    private Instant createDate;
+    private Instant lastModifiedDate;
+    private String createBy;
+    private String lastModifiedBy;
 
     public ProductDTORequest(Product product){
         this.id = product.getId();
@@ -46,7 +50,6 @@ public class ProductDTORequest {
         this.packingMethod = product.getPackingMethod();
         this.manufacturer = product.getManufacturer();
         this.countryOfOrigin = product.getCountryOfOrigin();
-        this.productCode = product.getProductCode();
         this.indication = product.getIndication();
         this.contraindication = product.getContraindication();
         this.sideEffect = product.getSideEffect();
@@ -55,5 +58,10 @@ public class ProductDTORequest {
         this.categoryId = product.getCategoryId().getId();
         this.imageProduct =product.getImageProduct() != null ? product.getImageProduct() : "";
         this.prescriptionDrug = product.getPrescriptionDrug();
+        this.createBy = product.getCreateBy();
+        this.lastModifiedBy = product.getLastModifiedBy();
+        this.createDate = product.getCreateDate();
+        this.lastModifiedDate = product.getLastModifiedDate();
+
     }
 }
