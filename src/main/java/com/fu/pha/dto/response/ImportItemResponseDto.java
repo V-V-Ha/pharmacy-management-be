@@ -11,7 +11,7 @@ public class ImportItemResponseDto {
     private Double unitPrice;
     private Long unitId;
     private Double discount;
-    private Double tax;
+    private String tax;
     private Double totalAmount;
     private String batchNumber;
     private Long productId;

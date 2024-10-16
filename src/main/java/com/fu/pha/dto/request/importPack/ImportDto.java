@@ -1,6 +1,8 @@
 package com.fu.pha.dto.request.importPack;
 
+import com.fu.pha.dto.request.ProductUnitDTORequest;
 import com.fu.pha.entity.Import;
+import com.fu.pha.entity.ProductUnit;
 import lombok.Data;
 
 import java.time.Instant;
@@ -12,11 +14,11 @@ public class ImportDto {
     private String invoiceNumber;
     private Instant importDate;
     private String paymentMethod;
-    private Double taxIdentificationNumber;
+    private String tax;
     private Double discount;
     private Double totalAmount;
     private String note;
-    private List<ImportItemRequestDto> importItemList;
+    private List<ImportItemRequestDto> importItemListDTO;
     private Long userId;
     private Long supplierId;
     private Instant createDate;
@@ -29,7 +31,7 @@ public class ImportDto {
         this.invoiceNumber = importRequest.getInvoiceNumber();
         this.importDate = importRequest.getImportDate();
         this.paymentMethod = importRequest.getPaymentMethod().name();
-        this.taxIdentificationNumber = importRequest.getTaxiDentificationNumber();
+        this.tax = importRequest.getTax();
         this.discount = importRequest.getDiscount();
         this.totalAmount = importRequest.getTotalAmount();
         this.note = importRequest.getNote();

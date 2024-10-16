@@ -1,5 +1,7 @@
 package com.fu.pha.service.impl;
 
+import com.fu.pha.dto.request.ProductDTORequest;
+import com.fu.pha.dto.request.ProductUnitDTORequest;
 import com.fu.pha.dto.request.importPack.ImportDto;
 import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.UnitDto;
@@ -17,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -75,8 +78,8 @@ public class ImportServiceImpl implements ImportService {
         return null;
     }
 
-
-    public void createImport(ImportDto importDto) {
+    @Override
+    public void createImport(ProductUnitDTORequest productUnitDTORequest ,ImportDto importDto) {
 
         Optional<User> user = userRepository.findById(importDto.getUserId());
         if (user.isEmpty()) {
@@ -100,21 +103,46 @@ public class ImportServiceImpl implements ImportService {
         importReceipt.setNote(importDto.getNote());
         importReceipt.setUser(user.get());
         importReceipt.setSupplier(supplier.get());
+//
+//        importRepository.save(importReceipt);
+//
+//        if (importDto.getImportItemListDTO() != null) {
+//            List<ImportItem> importItemList = new ArrayList<>();
+//
+//            for (ImportItemRequestDto importItemRequestDto : importDto.getImportItemListDTO()) {
+//                Product product = productRepository.findById(importItemRequestDto.getProductId())
+//                        .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
+//                ImportItem importItem = new ImportItem();
+//                importItem.setProduct(product);
+//                importItem.setImportReceipt(importReceipt);
+//                importItem.setQuantity(importItemRequestDto.getQuantity());
+//                importItem.setUnitPrice(importItemRequestDto.getUnitPrice());
+//                importItem.setDiscount(importItemRequestDto.getDiscount());
+//                importItem.setTax(importItemRequestDto.getTax());
+//                importItem.setTotalAmount(importItemRequestDto.getTotalAmount());
+//                importItem.setBatchNumber(importItemRequestDto.getBatchNumber());
+//                importItem.setExpiryDate(importItemRequestDto.getExpiryDate());
+//                if (productUnitDTORequest.getProductId().equals(importItem.getProduct().getId())) {
+//                    List<ProductUnit> productUnitList = product.getProductUnitList();
+//                        //check product unit exist
+//                    ProductUnit productUnit = productUnitRepository.findProductUnitsByIdAndProductId(productUnitDTORequest.getProductId(), productUnitDTORequest.getUnitId());
+//                    if (productUnit != null){
+//                        //update product unit
+//                        productUnit.setRetailPrice(importItemRequestDto.getUnitPrice());
+//                        productUnitRepository.save(productUnit);
+//                        productUnitList.add(productUnit);
+//                    }
+//                    product.setProductUnitList(productUnitList);
+//                    productRepository.save(product);
+//                }
+//
+//            }
+//            importItemRepository.saveAll(importItemList);
+//        }
 
-        importRepository.save(importReceipt);
-        if (importDto.getImportItemList() != null) {
-            for (ImportItemDto importItemDto : importDto.getImportItemList()) {
-                ImportItem importItem = new ImportItem();
-                importItem.setImportReceipt(importReceipt);
-                importItem.setProduct(productRepository.findById(importItemDto.getProductId()).get());
-                importItem.setQuantity(importItemDto.getQuantity());
-                importItem.setUnitPrice(importItemDto.getUnitPrice());
-                importItem.setTotalAmount(importItemDto.getTotalAmount());
-                importItemRepository.save(importItem);
-            }
-        }
         //create import item
         //code here
+
     }
 
     public void convertUnit(Long productId){
@@ -152,7 +180,7 @@ public class ImportServiceImpl implements ImportService {
             // If importItem does not exist, create a new one
             ImportItem newImportItem = new ImportItem();
             newImportItem.setProduct(product.get());
-            newImportItem.setImportR(importReceipt);
+            newImportItem.setImportReceipt(importReceipt);
             newImportItem.setQuantity(importItem.getQuantity());
             newImportItem.setUnitPrice(importItem.getUnitPrice());
             newImportItem.setDiscount(importItem.getDiscount());
@@ -162,10 +190,6 @@ public class ImportServiceImpl implements ImportService {
             newImportItem.setExpiryDate(importItem.getExpiryDate());
             importItemRepository.save(newImportItem);
         }
-
-
     }
-
-
 
 }

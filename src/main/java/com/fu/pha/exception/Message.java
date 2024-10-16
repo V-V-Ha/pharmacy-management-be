@@ -63,4 +63,5 @@ public class Message {
     public static final String SUPPLIER_NOT_FOUND = "Nhà cung cấp không tồn tại";
     public static final String QUANTITY_NOT_FOUND = "Số lượng không được trống";
     public static final String IMPORT_NOT_FOUND = "Phiếu nhập không tồn tại";
+    public static final String IMPORT_SUCCESS = "Tạo phiếu nhập thành công";
 }

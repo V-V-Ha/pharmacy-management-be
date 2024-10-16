@@ -66,7 +66,8 @@ public class ProductDTOResponse {
                         productUnit.getUnitId().getId(),
                         productUnit.getProductId().getId(),
                         productUnit.getConversionFactor(),
-                        productUnit.getRetailPrice()
+                        productUnit.getRetailPrice(),
+                        productUnit.getUnitId().getUnitName()
                 ))
                 .collect(Collectors.toList());
         this.createBy = product.getCreateBy();

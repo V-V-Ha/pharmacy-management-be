@@ -29,14 +29,14 @@ public class ImportItem extends BaseEntity{
     @Column(name = "unit_price")
     private Double unitPrice;
 
-    @Column(name = "unit_id")
-    private Long unitId;
+    @Column(name = "unit")
+    private Long unit;
 
     @Column(name = "discount")
     private Double discount;
 
     @Column(name = "tax")
-    private Double tax;
+    private String tax;
 
     @Column(name = "batch_number")
     private String batchNumber;
@@ -55,7 +55,6 @@ public class ImportItem extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonBackReference
     @JoinColumn(name = "import_id", nullable = false)
-    private Import importR;
-
+    private Import importReceipt;
 
 }

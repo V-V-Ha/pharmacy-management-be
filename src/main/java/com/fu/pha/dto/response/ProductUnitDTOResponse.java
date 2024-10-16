@@ -16,11 +16,13 @@ public class ProductUnitDTOResponse {
     private Long productId;
     private Integer conversionFactor;
     private Double retailPrice;
+    private String unitName;
 
     public ProductUnitDTOResponse(ProductUnit productUnit) {
         this.unitId = productUnit.getUnitId().getId();
         this.productId = productUnit.getProductId().getId();
         this.conversionFactor = productUnit.getConversionFactor();
         this.retailPrice = productUnit.getRetailPrice();
+        this.unitName = productUnit.getUnitId().getUnitName();
     }
 }
