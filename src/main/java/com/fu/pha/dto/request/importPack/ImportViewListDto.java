@@ -21,7 +21,7 @@ public class ImportViewListDto {
        this.invoiceNumber = importRequest.getInvoiceNumber();
        this.createBy = importRequest.getCreateBy();
        this.paymentMethod = importRequest.getPaymentMethod().name();
-       this.numberOfProduct = importRequest.getImportItemList().size();
+       this.numberOfProduct = importRequest.getImportItems().size();
        this.supplierName = importRequest.getSupplier().getSupplierName();
        this.totalAmount = importRequest.getTotalAmount().toString();
     }

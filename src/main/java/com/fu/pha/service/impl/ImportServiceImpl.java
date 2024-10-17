@@ -191,17 +191,19 @@ public class ImportServiceImpl implements ImportService {
     @Override
     public void createImport(ImportDto importDto) {
 
-
+        // Tìm user
         Optional<User> user = userRepository.findById(importDto.getUserId());
         if (user.isEmpty()) {
             throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
         }
 
+        // Tìm supplier
         Optional<Supplier> supplier = supplierRepository.findById(importDto.getSupplierId());
         if (supplier.isEmpty()) {
             throw new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND);
         }
 
+        // Tạo Import entity và gán các giá trị
         Import importReceipt = new Import();
         if (importRepository.getLastInvoiceNumber() == null) {
             importReceipt.setInvoiceNumber("PN000001");
@@ -214,15 +216,41 @@ public class ImportServiceImpl implements ImportService {
         importReceipt.setNote(importDto.getNote());
         importReceipt.setUser(user.get());
         importReceipt.setSupplier(supplier.get());
+        importReceipt.setTax(importDto.getTax());
+        importReceipt.setDiscount(importDto.getDiscount());
+        importReceipt.setTotalAmount(importDto.getTotalAmount());
 
-        //create import item
-        //code here
+        // Lưu Import entity
+        importRepository.save(importReceipt);
 
+        // Tạo các ImportItem từ danh sách importItems trong importDto
+        List<ImportItem> importItems = importDto.getImportItems().stream().map(importItemDto -> {
+            ImportItem importItem = new ImportItem();
+            importItem.setQuantity(importItemDto.getQuantity());
+            importItem.setUnitPrice(importItemDto.getUnitPrice());
+            importItem.setDiscount(importItemDto.getDiscount());
+            importItem.setTax(importItemDto.getTax());
+            importItem.setBatchNumber(importItemDto.getBatchNumber());
+            importItem.setExpiryDate(importItemDto.getExpiryDate());
+            importItem.setTotalAmount(importItemDto.getTotalAmount());
 
+            // Tìm product dựa vào productId
+            Optional<Product> product = productRepository.findById(importItemDto.getProductId());
+            if (product.isEmpty()) {
+                throw new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND);
+            }
+            importItem.setProduct(product.get());
 
+            // Gán Import item vào Import Receipt
+            importItem.setImportReceipt(importReceipt);
 
+            return importItem;
+        }).collect(Collectors.toList());
 
+        // Lưu danh sách ImportItem
+        importItemRepository.saveAll(importItems);
     }
+
 
 
 
