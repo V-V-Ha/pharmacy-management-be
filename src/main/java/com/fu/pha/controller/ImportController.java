@@ -1,14 +1,16 @@
 package com.fu.pha.controller;
 
 import com.fu.pha.dto.request.UnitDto;
+import com.fu.pha.dto.request.importPack.ImportDto;
+import com.fu.pha.dto.response.ImportItemResponseDto;
 import com.fu.pha.dto.response.ProductDTOResponse;
+import com.fu.pha.entity.ImportItem;
+import com.fu.pha.exception.Message;
 import com.fu.pha.service.ImportService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,8 +29,35 @@ public class ImportController {
 
     //get product by product name
     @GetMapping("/get-product")
-    public ResponseEntity<ProductDTOResponse> getProductByProductName(@RequestParam String productName) {
+    public ResponseEntity<List<ProductDTOResponse>> getProductByProductName(@RequestParam String productName) {
         return ResponseEntity.ok(importService.getProductByProductName(productName));
+    }
+
+    @PostMapping("/create-import-receipt")
+    public ResponseEntity<String> createImportReceipt(@RequestBody ImportDto importReceiptDto) {
+        importService.createImport(importReceiptDto);
+        return ResponseEntity.ok(Message.CREATE_SUCCESS);
+    }
+
+    @PostMapping("/create-item")
+    public ResponseEntity<List<ImportItem>> addItemToImport(@Valid @RequestBody ImportItemResponseDto importItemDto) {
+        return ResponseEntity.ok(importService.addItemToImport(importItemDto));
+    }
+
+    @PutMapping("/update-item")
+    public ResponseEntity<List<ImportItem>> updateItemInImport(@Valid @RequestBody ImportItemResponseDto importItemDto) {
+        return ResponseEntity.ok(importService.updateItemInImport(importItemDto));
+    }
+
+    @DeleteMapping("/remove-item")
+    public ResponseEntity<String> removeItemFromImport(@RequestParam Long productId) {
+        importService.removeItemFromImport(productId);
+        return ResponseEntity.ok(Message.DELETE_SUCCESS);
+    }
+
+    @GetMapping("/get-import-items")
+    public ResponseEntity<List<ImportItem>> getTemporaryImportItems() {
+        return ResponseEntity.ok(importService.getTemporaryImportItems());
     }
 
 

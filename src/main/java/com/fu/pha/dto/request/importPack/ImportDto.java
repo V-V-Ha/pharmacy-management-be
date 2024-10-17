@@ -12,7 +12,7 @@ public class ImportDto {
     private String invoiceNumber;
     private Instant importDate;
     private String paymentMethod;
-    private Double taxiDentificationNumber;
+    private String taxiDentificationNumber;
     private Double discount;
     private Double totalAmount;
     private String note;

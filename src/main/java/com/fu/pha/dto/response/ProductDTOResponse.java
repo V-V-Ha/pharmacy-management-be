@@ -1,5 +1,6 @@
 package com.fu.pha.dto.response;
 
+import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -63,7 +64,7 @@ public class ProductDTOResponse {
         this.productUnitList = product.getProductUnitList().stream()
                 .map(productUnit -> new ProductUnitDTOResponse(
                         productUnit.getId(),
-                        productUnit.getUnitId().getId(),
+                        new UnitDto(productUnit.getUnitId().getId(), productUnit.getUnitId().getUnitName()),
                         productUnit.getProductId().getId(),
                         productUnit.getConversionFactor(),
                         productUnit.getRetailPrice()
