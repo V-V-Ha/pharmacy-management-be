@@ -51,7 +51,7 @@ public class Import extends BaseEntity{
 
     @OneToMany(mappedBy = "importReceipt")
     @JsonManagedReference
-    private List<ImportItem> importItemList;
+    private List<ImportItem> importItems;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonBackReference

@@ -36,7 +36,7 @@ public class ImportItem extends BaseEntity{
     private Double discount;
 
     @Column(name = "tax")
-    private String tax;
+    private Double tax;
 
     @Column(name = "batch_number")
     private String batchNumber;

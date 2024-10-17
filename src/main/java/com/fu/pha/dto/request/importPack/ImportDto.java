@@ -1,7 +1,10 @@
 package com.fu.pha.dto.request.importPack;
 
 import com.fu.pha.dto.request.ProductUnitDTORequest;
+import com.fu.pha.dto.response.ImportItemResponseDto;
 import com.fu.pha.entity.Import;
+import java.util.stream.Collectors;
+import com.fu.pha.entity.ImportItem;
 import com.fu.pha.entity.ProductUnit;
 import lombok.Data;
 
@@ -19,7 +22,7 @@ public class ImportDto {
     private Double discount;
     private Double totalAmount;
     private String note;
-    private List<ImportItemRequestDto> importItemListDTO;
+    private List<ImportItemResponseDto> importItems;
     private Long userId;
     private Long supplierId;
     private Instant createDate;
@@ -42,6 +45,9 @@ public class ImportDto {
         this.lastModifiedDate = importRequest.getLastModifiedDate();
         this.createBy = importRequest.getCreateBy();
         this.lastModifiedBy = importRequest.getLastModifiedBy();
+        this.importItems = importRequest.getImportItems().stream()
+                .map(ImportItemResponseDto::new)
+                .collect(Collectors.toList());
     }
 
 }

@@ -13,12 +13,12 @@ import java.util.List;
 
 public interface ImportService {
 
-    List<ImportItem> addItemToImport(ImportItemResponseDto importItemDto);
-    List<ImportItem> updateItemInImport(ImportItemResponseDto importItemDto);
+    List<ImportItemResponseDto> addItemToImport(ImportItemResponseDto importItemDto);
+    List<ImportItemResponseDto> updateItemInImport(ImportItemResponseDto importItemDto);
 
     void removeItemFromImport(Long productId);
 
-    List<ImportItem> getTemporaryImportItems();
+    List<ImportItemResponseDto> getTemporaryImportItems();
 
     List<UnitDto> getUnitByProductId(Long productId);
 

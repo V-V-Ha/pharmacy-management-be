@@ -77,7 +77,7 @@ public class ImportServiceImpl implements ImportService {
     public List<ImportViewListDto> getAllImportAndPaging() {
         return null;
     }
-    
+
 
 
     public void convertUnit(Long productId){
@@ -90,9 +90,10 @@ public class ImportServiceImpl implements ImportService {
     }
 
    // IMPORT ITEM
-    private final List<ImportItem> temporaryImportItems = new ArrayList<>();
+   private final List<ImportItemResponseDto> temporaryImportItems = new ArrayList<>();
+
     @Override
-    public List<ImportItem> addItemToImport(ImportItemResponseDto importItemDto) {
+    public List<ImportItemResponseDto> addItemToImport(ImportItemResponseDto importItemDto) {
 
         // Lấy sản phẩm từ repository
         Optional<Product> productOpt = productRepository.getProductById(importItemDto.getProductId());
@@ -103,19 +104,19 @@ public class ImportServiceImpl implements ImportService {
         Product product = productOpt.get();
 
         // Tìm kiếm sản phẩm trong danh sách tạm thời dựa trên productId
-        Optional<ImportItem> existingItemOpt = temporaryImportItems.stream()
-                .filter(item -> item.getProduct().getId().equals(importItemDto.getProductId()))
+        Optional<ImportItemResponseDto> existingItemOpt = temporaryImportItems.stream()
+                .filter(item -> item.getProductId().equals(importItemDto.getProductId()))
                 .findFirst();
 
         if (existingItemOpt.isPresent()) {
             // Nếu đã có sản phẩm trong danh sách tạm, cập nhật số lượng
-            ImportItem existingItem = existingItemOpt.get();
+            ImportItemResponseDto existingItem = existingItemOpt.get();
             existingItem.setQuantity(existingItem.getQuantity() + importItemDto.getQuantity());
             existingItem.setTotalAmount(calculateTotalAmount(existingItem));
         } else {
-            // Nếu chưa có, tạo mới ImportItem tạm thời
-            ImportItem newImportItem = new ImportItem();
-            newImportItem.setProduct(product);
+            // Nếu chưa có, tạo mới ImportItemResponseDto tạm thời
+            ImportItemResponseDto newImportItem = new ImportItemResponseDto();
+            newImportItem.setProductId(product.getId());
             newImportItem.setQuantity(importItemDto.getQuantity());
             newImportItem.setUnitPrice(importItemDto.getUnitPrice());
             newImportItem.setDiscount(importItemDto.getDiscount());
@@ -130,15 +131,16 @@ public class ImportServiceImpl implements ImportService {
         return temporaryImportItems;
     }
 
-    @Override
-    public List<ImportItem> updateItemInImport(ImportItemResponseDto importItemDto) {
 
-        Optional<ImportItem> existingItemOpt = temporaryImportItems.stream()
-                .filter(item -> item.getProduct().getId().equals(importItemDto.getProductId()))
+    @Override
+    public List<ImportItemResponseDto> updateItemInImport(ImportItemResponseDto importItemDto) {
+
+        Optional<ImportItemResponseDto> existingItemOpt = temporaryImportItems.stream()
+                .filter(item -> item.getProductId().equals(importItemDto.getProductId()))
                 .findFirst();
 
         if (existingItemOpt.isPresent()) {
-            ImportItem existingItem = existingItemOpt.get();
+            ImportItemResponseDto existingItem = existingItemOpt.get();
             existingItem.setQuantity(importItemDto.getQuantity());
             existingItem.setUnitPrice(importItemDto.getUnitPrice());
             existingItem.setDiscount(importItemDto.getDiscount());
@@ -152,8 +154,9 @@ public class ImportServiceImpl implements ImportService {
 
         return temporaryImportItems;
     }
+
     @Override
-    public List<ImportItem> getTemporaryImportItems() {
+    public List<ImportItemResponseDto> getTemporaryImportItems() {
         if (temporaryImportItems.isEmpty()) {
             throw new ResourceNotFoundException(Message.IMPORT_ITEM_NOT_FOUND);
         }
@@ -161,11 +164,12 @@ public class ImportServiceImpl implements ImportService {
     }
 
 
+
     @Override
     public void removeItemFromImport(Long productId) {
 
-        Optional<ImportItem> existingItemOpt = temporaryImportItems.stream()
-                .filter(item -> item.getProduct().getId().equals(productId))
+        Optional<ImportItemResponseDto> existingItemOpt = temporaryImportItems.stream()
+                .filter(item -> item.getProductId().equals(productId))
                 .findFirst();
 
         if (existingItemOpt.isPresent()) {
@@ -175,7 +179,8 @@ public class ImportServiceImpl implements ImportService {
         }
     }
 
-    private double calculateTotalAmount(ImportItem item) {
+
+    private double calculateTotalAmount(ImportItemResponseDto item) {
         double subTotal = item.getUnitPrice() * item.getQuantity();
         double discountedAmount = subTotal - (subTotal * item.getDiscount() / 100);
         return discountedAmount + (discountedAmount * item.getTax() / 100);
@@ -209,66 +214,17 @@ public class ImportServiceImpl implements ImportService {
         importReceipt.setNote(importDto.getNote());
         importReceipt.setUser(user.get());
         importReceipt.setSupplier(supplier.get());
-//
-//        importRepository.save(importReceipt);
-//
-//        if (importDto.getImportItemListDTO() != null) {
-//            List<ImportItem> importItemList = new ArrayList<>();
-//
-//            for (ImportItemRequestDto importItemRequestDto : importDto.getImportItemListDTO()) {
-//                Product product = productRepository.findById(importItemRequestDto.getProductId())
-//                        .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
-//                ImportItem importItem = new ImportItem();
-//                importItem.setProduct(product);
-//                importItem.setImportReceipt(importReceipt);
-//                importItem.setQuantity(importItemRequestDto.getQuantity());
-//                importItem.setUnitPrice(importItemRequestDto.getUnitPrice());
-//                importItem.setDiscount(importItemRequestDto.getDiscount());
-//                importItem.setTax(importItemRequestDto.getTax());
-//                importItem.setTotalAmount(importItemRequestDto.getTotalAmount());
-//                importItem.setBatchNumber(importItemRequestDto.getBatchNumber());
-//                importItem.setExpiryDate(importItemRequestDto.getExpiryDate());
-//                if (productUnitDTORequest.getProductId().equals(importItem.getProduct().getId())) {
-//                    List<ProductUnit> productUnitList = product.getProductUnitList();
-//                        //check product unit exist
-//                    ProductUnit productUnit = productUnitRepository.findProductUnitsByIdAndProductId(productUnitDTORequest.getProductId(), productUnitDTORequest.getUnitId());
-//                    if (productUnit != null){
-//                        //update product unit
-//                        productUnit.setRetailPrice(importItemRequestDto.getUnitPrice());
-//                        productUnitRepository.save(productUnit);
-//                        productUnitList.add(productUnit);
-//                    }
-//                    product.setProductUnitList(productUnitList);
-//                    productRepository.save(product);
-//                }
-//
-//            }
-//            importItemRepository.saveAll(importItemList);
-//        }
 
         //create import item
         //code here
 
+
+
+
+
     }
 
 
-    // Phương thức để lưu tất cả các ImportItem vào DB sau khi xác nhận
-//    public void saveImportAndItems(Import importReceipt) {
-//
-//        // Kiểm tra danh sách tạm thời
-//        if (temporaryImportItems.isEmpty()) {
-//            throw new ResourceNotFoundException(Message.IMPORT_ITEM_NOT_FOUND);
-//        }
-//
-//        // Lưu từng ImportItem trong danh sách vào DB, liên kết với phiếu nhập
-//        for (ImportItem item : temporaryImportItems) {
-//            item.setImportR(importReceipt);  // Liên kết với phiếu nhập kho
-//            importItemRepository.save(item); // Lưu vào DB
-//        }
-//
-//        // Xóa danh sách tạm sau khi lưu thành công
-//        temporaryImportItems.clear();
-//    }
 
 
     public Import getImportById(Long importId) {
@@ -279,34 +235,5 @@ public class ImportServiceImpl implements ImportService {
         return importReceipt.get();
     }
 
-    public void addItemToImport (Long importId , ImportItemResponseDto importItem) {
-
-        Import importReceipt = getImportById(importId);
-
-        Optional<Product> product = productRepository.getProductById(importItem.getProductId());
-        if (product.isEmpty()) {
-            throw new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND);
-        }
-        Optional<ImportItem> importItemOpt = importItemRepository.findByProductIdAndImportId(importItem.getProductId(), importId);
-        if (importItemOpt.isPresent()) {
-            // If importItem already exists, update the quantity
-            ImportItem existingImportItem = importItemOpt.get();
-            existingImportItem.setQuantity(existingImportItem.getQuantity() + importItem.getQuantity());
-            importItemRepository.save(existingImportItem);
-        } else {
-            // If importItem does not exist, create a new one
-            ImportItem newImportItem = new ImportItem();
-            newImportItem.setProduct(product.get());
-            newImportItem.setImportReceipt(importReceipt);
-            newImportItem.setQuantity(importItem.getQuantity());
-            newImportItem.setUnitPrice(importItem.getUnitPrice());
-            newImportItem.setDiscount(importItem.getDiscount());
-            newImportItem.setTax(importItem.getTax());
-            newImportItem.setTotalAmount(importItem.getTotalAmount());
-            newImportItem.setBatchNumber(importItem.getBatchNumber());
-            newImportItem.setExpiryDate(importItem.getExpiryDate());
-            importItemRepository.save(newImportItem);
-        }
-    }
 
 }

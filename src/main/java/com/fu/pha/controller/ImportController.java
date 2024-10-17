@@ -44,12 +44,12 @@ public class ImportController {
     }
 
     @PostMapping("/create-item")
-    public ResponseEntity<List<ImportItem>> addItemToImport(@Valid @RequestBody ImportItemResponseDto importItemDto) {
+    public ResponseEntity<List<ImportItemResponseDto>> addItemToImport(@Valid @RequestBody ImportItemResponseDto importItemDto) {
         return ResponseEntity.ok(importService.addItemToImport(importItemDto));
     }
 
     @PutMapping("/update-item")
-    public ResponseEntity<List<ImportItem>> updateItemInImport(@Valid @RequestBody ImportItemResponseDto importItemDto) {
+    public ResponseEntity<List<ImportItemResponseDto>> updateItemInImport(@Valid @RequestBody ImportItemResponseDto importItemDto) {
         return ResponseEntity.ok(importService.updateItemInImport(importItemDto));
     }
 
@@ -60,7 +60,7 @@ public class ImportController {
     }
 
     @GetMapping("/get-import-items")
-    public ResponseEntity<List<ImportItem>> getTemporaryImportItems() {
+    public ResponseEntity<List<ImportItemResponseDto>> getTemporaryImportItems() {
         return ResponseEntity.ok(importService.getTemporaryImportItems());
 
     }
