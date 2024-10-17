@@ -14,6 +14,6 @@ import java.util.Optional;
 public interface ImportItemRepository extends JpaRepository<ImportItem, Long> {
 
 
-    @Query("SELECT ii FROM ImportItem ii WHERE ii.product.id = :productId AND ii.importR.id = :importId")
+    @Query("SELECT ii FROM ImportItem ii WHERE ii.product.id = :productId AND ii.importReceipt.id = :importId")
     Optional<ImportItem> findByProductIdAndImportId(@Param("productId") Long productId, @Param("importId") Long importId);
 }

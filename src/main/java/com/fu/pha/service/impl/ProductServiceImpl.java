@@ -155,33 +155,47 @@ public class ProductServiceImpl implements ProductService {
         }
         productRepository.save(product);
         if (productDTORequest.getProductUnitListDTO() != null) {
-        List<ProductUnit> productUnitList = product.getProductUnitList();
-        for (ProductUnitDTORequest productUnitDTORequest : productDTORequest.getProductUnitListDTO()) {
-            //check product unit exist
-            ProductUnit productUnit = productUnitRepository.findProductUnitsByProductIdAndUnitId(productDTORequest.getId(),
-                    productUnitDTORequest.getUnitId());
+            List<ProductUnit> productUnitList = product.getProductUnitList();
 
-            if (productUnit != null){
-                //update product unit
-                productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
-                productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
-                productUnitRepository.save(productUnit);
-                productUnitList.add(productUnit);
-            } else {
-                //create new product unit
-                productUnit = new ProductUnit();
-                Unit unit = unitRepository.findUnitById(productUnitDTORequest.getUnitId());
-                product = productRepository.findProductById(productDTORequest.getId());
-                productUnit.setUnitId(unit);
-                productUnit.setProductId(product);
-                productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
-                productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
-                productUnitRepository.save(productUnit);
+            // Check if the current number of units already exceeds 3
+//            if (productUnitList.size() >= 3) {
+//                throw new IllegalArgumentException("Each product can only have up to 3 units.");
+//            }
+
+            for (ProductUnitDTORequest productUnitDTORequest : productDTORequest.getProductUnitListDTO()) {
+                // Check if adding this unit will exceed the limit of 3 units
+//                if (productUnitList.size() >= 3) {
+//                    throw new IllegalArgumentException("Each product can only have up to 3 units.");
+//                }
+
+                // Check if the product unit exists
+                ProductUnit productUnit = productUnitRepository.findProductUnitsByIdAndProductId(productUnitDTORequest.getId(),
+                        productDTORequest.getId());
+
+                if (productUnit != null) {
+                    // Update product unit
+                    productUnit.setUnitId(unitRepository.findUnitById(productUnitDTORequest.getUnitId()));
+                    productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
+                    productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
+                    productUnitRepository.save(productUnit);
+                } else {
+                    // Create a new product unit
+                    productUnit = new ProductUnit();
+                    Unit unit = unitRepository.findUnitById(productUnitDTORequest.getUnitId());
+                    product = productRepository.findProductById(productDTORequest.getId());
+                    productUnit.setUnitId(unit);
+                    productUnit.setProductId(product);
+                    productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
+                    productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
+                    productUnitRepository.save(productUnit);
+                }
+
+                // Add the product unit to the list
                 productUnitList.add(productUnit);
             }
-        }
-        product.setProductUnitList(productUnitList);
-        productRepository.save(product);
+
+            product.setProductUnitList(productUnitList);
+            productRepository.save(product);
         }
     }
 

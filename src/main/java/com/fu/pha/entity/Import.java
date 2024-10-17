@@ -35,8 +35,9 @@ public class Import extends BaseEntity{
     @Column(name = "payment_method")
     private PaymentMethod paymentMethod;
 
-    @Column(name = "tax_dentification_number")
-    private String taxiDentificationNumber;
+
+    @Column(name = "tax")
+    private String tax;
 
     @Column(name = "discount")
     private Double discount;
@@ -47,7 +48,8 @@ public class Import extends BaseEntity{
     @Column(name = "note")
     private String note;
 
-    @OneToMany(mappedBy = "importR")
+
+    @OneToMany(mappedBy = "importReceipt")
     @JsonManagedReference
     private List<ImportItem> importItemList;
 

@@ -1,5 +1,7 @@
 package com.fu.pha.service.impl;
 
+import com.fu.pha.dto.request.ProductDTORequest;
+import com.fu.pha.dto.request.ProductUnitDTORequest;
 import com.fu.pha.dto.request.importPack.ImportDto;
 import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.UnitDto;
@@ -17,7 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -73,6 +77,7 @@ public class ImportServiceImpl implements ImportService {
     public List<ImportViewListDto> getAllImportAndPaging() {
         return null;
     }
+    
 
 
     public void convertUnit(Long productId){
@@ -181,6 +186,7 @@ public class ImportServiceImpl implements ImportService {
     @Override
     public void createImport(ImportDto importDto) {
 
+
         Optional<User> user = userRepository.findById(importDto.getUserId());
         if (user.isEmpty()) {
             throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
@@ -203,11 +209,45 @@ public class ImportServiceImpl implements ImportService {
         importReceipt.setNote(importDto.getNote());
         importReceipt.setUser(user.get());
         importReceipt.setSupplier(supplier.get());
-
+//
+//        importRepository.save(importReceipt);
+//
+//        if (importDto.getImportItemListDTO() != null) {
+//            List<ImportItem> importItemList = new ArrayList<>();
+//
+//            for (ImportItemRequestDto importItemRequestDto : importDto.getImportItemListDTO()) {
+//                Product product = productRepository.findById(importItemRequestDto.getProductId())
+//                        .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
+//                ImportItem importItem = new ImportItem();
+//                importItem.setProduct(product);
+//                importItem.setImportReceipt(importReceipt);
+//                importItem.setQuantity(importItemRequestDto.getQuantity());
+//                importItem.setUnitPrice(importItemRequestDto.getUnitPrice());
+//                importItem.setDiscount(importItemRequestDto.getDiscount());
+//                importItem.setTax(importItemRequestDto.getTax());
+//                importItem.setTotalAmount(importItemRequestDto.getTotalAmount());
+//                importItem.setBatchNumber(importItemRequestDto.getBatchNumber());
+//                importItem.setExpiryDate(importItemRequestDto.getExpiryDate());
+//                if (productUnitDTORequest.getProductId().equals(importItem.getProduct().getId())) {
+//                    List<ProductUnit> productUnitList = product.getProductUnitList();
+//                        //check product unit exist
+//                    ProductUnit productUnit = productUnitRepository.findProductUnitsByIdAndProductId(productUnitDTORequest.getProductId(), productUnitDTORequest.getUnitId());
+//                    if (productUnit != null){
+//                        //update product unit
+//                        productUnit.setRetailPrice(importItemRequestDto.getUnitPrice());
+//                        productUnitRepository.save(productUnit);
+//                        productUnitList.add(productUnit);
+//                    }
+//                    product.setProductUnitList(productUnitList);
+//                    productRepository.save(product);
+//                }
+//
+//            }
+//            importItemRepository.saveAll(importItemList);
+//        }
 
         //create import item
         //code here
-
 
     }
 
@@ -231,6 +271,42 @@ public class ImportServiceImpl implements ImportService {
 //    }
 
 
+    public Import getImportById(Long importId) {
+        Optional<Import> importReceipt = importRepository.findById(importId);
+        if (importReceipt.isEmpty()) {
+            throw new ResourceNotFoundException(Message.IMPORT_NOT_FOUND);
+        }
+        return importReceipt.get();
+    }
 
+    public void addItemToImport (Long importId , ImportItemResponseDto importItem) {
+
+        Import importReceipt = getImportById(importId);
+
+        Optional<Product> product = productRepository.getProductById(importItem.getProductId());
+        if (product.isEmpty()) {
+            throw new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND);
+        }
+        Optional<ImportItem> importItemOpt = importItemRepository.findByProductIdAndImportId(importItem.getProductId(), importId);
+        if (importItemOpt.isPresent()) {
+            // If importItem already exists, update the quantity
+            ImportItem existingImportItem = importItemOpt.get();
+            existingImportItem.setQuantity(existingImportItem.getQuantity() + importItem.getQuantity());
+            importItemRepository.save(existingImportItem);
+        } else {
+            // If importItem does not exist, create a new one
+            ImportItem newImportItem = new ImportItem();
+            newImportItem.setProduct(product.get());
+            newImportItem.setImportReceipt(importReceipt);
+            newImportItem.setQuantity(importItem.getQuantity());
+            newImportItem.setUnitPrice(importItem.getUnitPrice());
+            newImportItem.setDiscount(importItem.getDiscount());
+            newImportItem.setTax(importItem.getTax());
+            newImportItem.setTotalAmount(importItem.getTotalAmount());
+            newImportItem.setBatchNumber(importItem.getBatchNumber());
+            newImportItem.setExpiryDate(importItem.getExpiryDate());
+            importItemRepository.save(newImportItem);
+        }
+    }
 
 }
