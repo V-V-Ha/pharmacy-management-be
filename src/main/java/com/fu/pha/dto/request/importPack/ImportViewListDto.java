@@ -1,29 +1,37 @@
 package com.fu.pha.dto.request.importPack;
 
 import com.fu.pha.entity.Import;
+import com.fu.pha.entity.ImportItem;
 import com.fu.pha.enums.PaymentMethod;
 import lombok.Builder;
 import lombok.Data;
+
+import java.time.Instant;
 
 @Data
 
 public class ImportViewListDto {
     private String invoiceNumber;
     private String createBy;
-    private String importDate;
+    private Instant importDate;
     private String paymentMethod;
-    private Integer numberOfProduct;
     private String supplierName;
-    private String totalAmount;
+    private Double totalAmount;
+    private Integer productCount;
+    private String fullName;
 
     public ImportViewListDto(Import importRequest) {
-       this.importDate = importRequest.getImportDate().toString();
+       this.importDate = importRequest.getImportDate();
        this.invoiceNumber = importRequest.getInvoiceNumber();
        this.createBy = importRequest.getCreateBy();
        this.paymentMethod = importRequest.getPaymentMethod().name();
-       this.numberOfProduct = importRequest.getImportItems().size();
+        this.productCount = (int) importRequest.getImportItems().stream()
+                .map(ImportItem::getProduct)
+                .distinct()
+                .count();
        this.supplierName = importRequest.getSupplier().getSupplierName();
-       this.totalAmount = importRequest.getTotalAmount().toString();
+       this.totalAmount = importRequest.getTotalAmount();
+       this.fullName = importRequest.getUser().getFullName();
     }
 
 }

@@ -8,7 +8,9 @@ import com.fu.pha.dto.request.importPack.ImportViewListDto;
 import com.fu.pha.dto.response.ImportItemResponseDto;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.ImportItem;
+import org.springframework.data.domain.Page;
 
+import java.time.Instant;
 import java.util.List;
 
 public interface ImportService {
@@ -27,5 +29,7 @@ public interface ImportService {
     List<ImportViewListDto> getAllImportAndPaging();
 
     void createImport(ImportDto importDto);
+
+    Page<ImportViewListDto> getAllImportPaging(int size, int index, String supplierName, Instant fromDate, Instant toDate);
 
 }

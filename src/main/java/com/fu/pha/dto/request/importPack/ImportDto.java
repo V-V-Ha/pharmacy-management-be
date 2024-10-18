@@ -25,10 +25,13 @@ public class ImportDto {
     private List<ImportItemResponseDto> importItems;
     private Long userId;
     private Long supplierId;
+    private String supplierName;
     private Instant createDate;
     private Instant lastModifiedDate;
     private String createBy;
     private String lastModifiedBy;
+
+    private Long productCount;
 
     public ImportDto (Import importRequest) {
         this.id = importRequest.getId();
@@ -41,6 +44,7 @@ public class ImportDto {
         this.note = importRequest.getNote();
         this.userId = importRequest.getUser().getId();
         this.supplierId = importRequest.getSupplier().getId();
+        this.supplierName = importRequest.getSupplier().getSupplierName();
         this.createDate = importRequest.getCreateDate();
         this.lastModifiedDate = importRequest.getLastModifiedDate();
         this.createBy = importRequest.getCreateBy();
@@ -48,6 +52,10 @@ public class ImportDto {
         this.importItems = importRequest.getImportItems().stream()
                 .map(ImportItemResponseDto::new)
                 .collect(Collectors.toList());
+        this.productCount = importRequest.getImportItems().stream()
+                .map(ImportItem::getProduct)
+                .distinct()
+                .count();
     }
 
 }

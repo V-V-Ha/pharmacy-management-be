@@ -33,6 +33,7 @@ public class Import extends BaseEntity{
     private Instant importDate;
 
     @Column(name = "payment_method")
+    @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 
 
