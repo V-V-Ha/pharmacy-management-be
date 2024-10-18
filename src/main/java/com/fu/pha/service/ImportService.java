@@ -28,4 +28,6 @@ public interface ImportService {
 
     void createImport(ImportDto importDto);
 
+    void updateImport(Long importId, ImportDto importDto);
+
 }

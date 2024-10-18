@@ -38,32 +38,38 @@ public class ImportController {
     }
 
     @PostMapping("/create-import-receipt")
-    public ResponseEntity<String> createImportReceipt(@RequestBody ImportDto importReceiptDto) {
+    public ResponseEntity<String> createImportReceipt(@Valid @RequestBody ImportDto importReceiptDto ) {
         importService.createImport(importReceiptDto);
         return ResponseEntity.ok(Message.CREATE_SUCCESS);
     }
 
-    @PostMapping("/create-item")
-    public ResponseEntity<List<ImportItemResponseDto>> addItemToImport(@Valid @RequestBody ImportItemResponseDto importItemDto) {
-        return ResponseEntity.ok(importService.addItemToImport(importItemDto));
+    @PutMapping("/update-import-receipt")
+    public ResponseEntity<String> updateImportReceipt(@RequestParam Long importId, @Valid @RequestBody ImportDto importReceiptDto) {
+        importService.updateImport(importId, importReceiptDto);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
-    @PutMapping("/update-item")
-    public ResponseEntity<List<ImportItemResponseDto>> updateItemInImport(@Valid @RequestBody ImportItemResponseDto importItemDto) {
-        return ResponseEntity.ok(importService.updateItemInImport(importItemDto));
-    }
-
-    @DeleteMapping("/remove-item")
-    public ResponseEntity<String> removeItemFromImport(@RequestParam Long productId) {
-        importService.removeItemFromImport(productId);
-        return ResponseEntity.ok(Message.DELETE_SUCCESS);
-    }
-
-    @GetMapping("/get-import-items")
-    public ResponseEntity<List<ImportItemResponseDto>> getTemporaryImportItems() {
-        return ResponseEntity.ok(importService.getTemporaryImportItems());
-
-    }
+//    @PostMapping("/create-item")
+//    public ResponseEntity<List<ImportItemResponseDto>> addItemToImport(@Valid @RequestBody ImportItemResponseDto importItemDto) {
+//        return ResponseEntity.ok(importService.addItemToImport(importItemDto));
+//    }
+//
+//    @PutMapping("/update-item")
+//    public ResponseEntity<List<ImportItemResponseDto>> updateItemInImport(@Valid @RequestBody ImportItemResponseDto importItemDto) {
+//        return ResponseEntity.ok(importService.updateItemInImport(importItemDto));
+//    }
+//
+//    @DeleteMapping("/remove-item")
+//    public ResponseEntity<String> removeItemFromImport(@RequestParam Long productId) {
+//        importService.removeItemFromImport(productId);
+//        return ResponseEntity.ok(Message.DELETE_SUCCESS);
+//    }
+//
+//    @GetMapping("/get-import-items")
+//    public ResponseEntity<List<ImportItemResponseDto>> getTemporaryImportItems() {
+//        return ResponseEntity.ok(importService.getTemporaryImportItems());
+//
+//    }
 
 
 }

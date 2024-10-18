@@ -11,12 +11,14 @@ import com.fu.pha.dto.response.ImportItemResponseDto;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.*;
 import com.fu.pha.enums.PaymentMethod;
+import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.*;
 import com.fu.pha.service.ImportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -187,17 +189,15 @@ public class ImportServiceImpl implements ImportService {
     }
 
 
-
+    @Transactional
     @Override
     public void createImport(ImportDto importDto) {
-
-        // Tìm user
+        // Tìm user và supplier
         Optional<User> user = userRepository.findById(importDto.getUserId());
         if (user.isEmpty()) {
             throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
         }
 
-        // Tìm supplier
         Optional<Supplier> supplier = supplierRepository.findById(importDto.getSupplierId());
         if (supplier.isEmpty()) {
             throw new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND);
@@ -212,55 +212,111 @@ public class ImportServiceImpl implements ImportService {
         }
 
         importReceipt.setImportDate(Instant.now());
-        importReceipt.setPaymentMethod(PaymentMethod.valueOf(importDto.getPaymentMethod()));
+        importReceipt.setPaymentMethod(importDto.getPaymentMethod());
         importReceipt.setNote(importDto.getNote());
         importReceipt.setUser(user.get());
         importReceipt.setSupplier(supplier.get());
         importReceipt.setTax(importDto.getTax());
         importReceipt.setDiscount(importDto.getDiscount());
-        importReceipt.setTotalAmount(importDto.getTotalAmount());
 
-        // Lưu Import entity
+        // **Lưu Import entity trước**
         importRepository.save(importReceipt);
 
-        // Tạo các ImportItem từ danh sách importItems trong importDto
-        List<ImportItem> importItems = importDto.getImportItems().stream().map(importItemDto -> {
+        // Tính tổng totalAmount từ các ImportItem
+        double totalAmount = 0.0;
+
+        // Lưu các ImportItem và tính tổng totalAmount
+        for (ImportItemResponseDto itemDto : importDto.getImportItems()) {
             ImportItem importItem = new ImportItem();
-            importItem.setQuantity(importItemDto.getQuantity());
-            importItem.setUnitPrice(importItemDto.getUnitPrice());
-            importItem.setDiscount(importItemDto.getDiscount());
-            importItem.setTax(importItemDto.getTax());
-            importItem.setBatchNumber(importItemDto.getBatchNumber());
-            importItem.setExpiryDate(importItemDto.getExpiryDate());
-            importItem.setTotalAmount(importItemDto.getTotalAmount());
+            importItem.setImportReceipt(importReceipt); // Đã lưu Import trước, nên có thể gán nó vào ImportItem
+            importItem.setProduct(productRepository.getProductById(itemDto.getProductId()).orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND)));
+            importItem.setQuantity(itemDto.getQuantity());
+            importItem.setUnitPrice(itemDto.getUnitPrice());
+            importItem.setDiscount(itemDto.getDiscount());
+            importItem.setTax(itemDto.getTax());
+            importItem.setBatchNumber(itemDto.getBatchNumber());
+            importItem.setExpiryDate(itemDto.getExpiryDate());
+            importItem.setTotalAmount(itemDto.getTotalAmount());
 
-            // Tìm product dựa vào productId
-            Optional<Product> product = productRepository.findById(importItemDto.getProductId());
-            if (product.isEmpty()) {
-                throw new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND);
-            }
-            importItem.setProduct(product.get());
+            // Cộng dồn totalAmount
+            totalAmount += itemDto.getTotalAmount();
 
-            // Gán Import item vào Import Receipt
-            importItem.setImportReceipt(importReceipt);
+            // Lưu ImportItem vào repository
+            importItemRepository.save(importItem);
+        }
 
-            return importItem;
-        }).collect(Collectors.toList());
+        // Kiểm tra tổng totalAmount của Import với tổng các ImportItem
+        if (importDto.getTotalAmount() != null && !importDto.getTotalAmount().equals(totalAmount)) {
+            throw new BadRequestException(Message.TOTAL_AMOUNT_NOT_MATCH);
+        }
 
-        // Lưu danh sách ImportItem
-        importItemRepository.saveAll(importItems);
+        // Cập nhật lại tổng totalAmount cho Import
+        importReceipt.setTotalAmount(totalAmount);
+        importRepository.save(importReceipt); // Lưu lần nữa nếu muốn cập nhật totalAmount sau khi tính toán
     }
 
 
+    @Transactional
+    @Override
+    public void updateImport(Long importId, ImportDto importDto) {
+        // Tìm Import hiện tại
+        Import importReceipt = importRepository.findById(importId)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
 
-
-
-    public Import getImportById(Long importId) {
-        Optional<Import> importReceipt = importRepository.findById(importId);
-        if (importReceipt.isEmpty()) {
-            throw new ResourceNotFoundException(Message.IMPORT_NOT_FOUND);
+        // Tìm user và supplier
+        Optional<User> user = userRepository.findById(importDto.getUserId());
+        if (user.isEmpty()) {
+            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
         }
-        return importReceipt.get();
+
+        Optional<Supplier> supplier = supplierRepository.findById(importDto.getSupplierId());
+        if (supplier.isEmpty()) {
+            throw new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND);
+        }
+
+        // Cập nhật thông tin Import
+        importReceipt.setPaymentMethod(importDto.getPaymentMethod());
+        importReceipt.setNote(importDto.getNote());
+        importReceipt.setUser(user.get());
+        importReceipt.setSupplier(supplier.get());
+        importReceipt.setTax(importDto.getTax());
+        importReceipt.setDiscount(importDto.getDiscount());
+        importReceipt.setImportDate(Instant.now());
+
+        // Xóa các ImportItem hiện có của Import này để cập nhật lại các mục mới
+        importItemRepository.deleteByImportId(importId);
+
+        // Tính tổng totalAmount từ các ImportItem mới
+        double totalAmount = 0.0;
+
+        // Lưu các ImportItem mới và tính tổng totalAmount
+        for (ImportItemResponseDto itemDto : importDto.getImportItems()) {
+            ImportItem importItem = new ImportItem();
+            importItem.setImportReceipt(importReceipt); // Gán importReceipt đã cập nhật vào ImportItem
+            importItem.setProduct(productRepository.getProductById(itemDto.getProductId()).orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND)));
+            importItem.setQuantity(itemDto.getQuantity());
+            importItem.setUnitPrice(itemDto.getUnitPrice());
+            importItem.setDiscount(itemDto.getDiscount());
+            importItem.setTax(itemDto.getTax());
+            importItem.setBatchNumber(itemDto.getBatchNumber());
+            importItem.setExpiryDate(itemDto.getExpiryDate());
+            importItem.setTotalAmount(itemDto.getTotalAmount());
+
+            // Cộng dồn totalAmount
+            totalAmount += itemDto.getTotalAmount();
+
+            // Lưu ImportItem vào repository
+            importItemRepository.save(importItem);
+        }
+
+        // Kiểm tra tổng totalAmount của Import với tổng các ImportItem
+        if (importDto.getTotalAmount() != null && !importDto.getTotalAmount().equals(totalAmount)) {
+            throw new BadRequestException(Message.TOTAL_AMOUNT_NOT_MATCH);
+        }
+
+        // Cập nhật lại tổng totalAmount cho Import và lưu vào repository
+        importReceipt.setTotalAmount(totalAmount);
+        importRepository.save(importReceipt);
     }
 
 

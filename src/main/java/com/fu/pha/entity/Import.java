@@ -33,8 +33,8 @@ public class Import extends BaseEntity{
     private Instant importDate;
 
     @Column(name = "payment_method")
+    @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
-
 
     @Column(name = "tax")
     private String tax;
@@ -47,7 +47,6 @@ public class Import extends BaseEntity{
 
     @Column(name = "note")
     private String note;
-
 
     @OneToMany(mappedBy = "importReceipt")
     @JsonManagedReference
