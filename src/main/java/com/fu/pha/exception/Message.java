@@ -66,4 +66,5 @@ public class Message {
     public static final String IMPORT_ITEM_NOT_FOUND = "Sản phẩm trong phiếu nhập không tồn tại";
 
     public static final String IMPORT_SUCCESS = "Tạo phiếu nhập thành công";
+    public static final String TOTAL_AMOUNT_NOT_MATCH = "Tổng tiền không khớp";
 }

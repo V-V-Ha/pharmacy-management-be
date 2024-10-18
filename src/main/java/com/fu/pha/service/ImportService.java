@@ -31,5 +31,6 @@ public interface ImportService {
     void createImport(ImportDto importDto);
 
     Page<ImportViewListDto> getAllImportPaging(int size, int index, String supplierName, Instant fromDate, Instant toDate);
+    void updateImport(Long importId, ImportDto importDto);
 
 }
