@@ -30,7 +30,7 @@ public class ImportItem extends BaseEntity{
     private Double unitPrice;
 
     @Column(name = "unit")
-    private Long unit;
+    private String unit;
 
     @Column(name = "discount")
     private Double discount;

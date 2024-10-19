@@ -95,101 +95,101 @@ public class ImportServiceImpl implements ImportService {
     }
 
    // IMPORT ITEM
-   private final List<ImportItemResponseDto> temporaryImportItems = new ArrayList<>();
-
-    @Override
-    public List<ImportItemResponseDto> addItemToImport(ImportItemResponseDto importItemDto) {
-
-        // Lấy sản phẩm từ repository
-        Optional<Product> productOpt = productRepository.getProductById(importItemDto.getProductId());
-        if (productOpt.isEmpty()) {
-            throw new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND);
-        }
-
-        Product product = productOpt.get();
-
-        // Tìm kiếm sản phẩm trong danh sách tạm thời dựa trên productId
-        Optional<ImportItemResponseDto> existingItemOpt = temporaryImportItems.stream()
-                .filter(item -> item.getProductId().equals(importItemDto.getProductId()))
-                .findFirst();
-
-        if (existingItemOpt.isPresent()) {
-            // Nếu đã có sản phẩm trong danh sách tạm, cập nhật số lượng
-            ImportItemResponseDto existingItem = existingItemOpt.get();
-            existingItem.setQuantity(existingItem.getQuantity() + importItemDto.getQuantity());
-            existingItem.setTotalAmount(calculateTotalAmount(existingItem));
-        } else {
-            // Nếu chưa có, tạo mới ImportItemResponseDto tạm thời
-            ImportItemResponseDto newImportItem = new ImportItemResponseDto();
-            newImportItem.setProductId(product.getId());
-            newImportItem.setQuantity(importItemDto.getQuantity());
-            newImportItem.setUnitPrice(importItemDto.getUnitPrice());
-            newImportItem.setDiscount(importItemDto.getDiscount());
-            newImportItem.setTax(importItemDto.getTax());
-            newImportItem.setBatchNumber(importItemDto.getBatchNumber());
-            newImportItem.setExpiryDate(importItemDto.getExpiryDate());
-            newImportItem.setTotalAmount(calculateTotalAmount(newImportItem));
-
-            temporaryImportItems.add(newImportItem);
-        }
-
-        return temporaryImportItems;
-    }
-
-
-    @Override
-    public List<ImportItemResponseDto> updateItemInImport(ImportItemResponseDto importItemDto) {
-
-        Optional<ImportItemResponseDto> existingItemOpt = temporaryImportItems.stream()
-                .filter(item -> item.getProductId().equals(importItemDto.getProductId()))
-                .findFirst();
-
-        if (existingItemOpt.isPresent()) {
-            ImportItemResponseDto existingItem = existingItemOpt.get();
-            existingItem.setQuantity(importItemDto.getQuantity());
-            existingItem.setUnitPrice(importItemDto.getUnitPrice());
-            existingItem.setDiscount(importItemDto.getDiscount());
-            existingItem.setTax(importItemDto.getTax());
-            existingItem.setBatchNumber(importItemDto.getBatchNumber());
-            existingItem.setExpiryDate(importItemDto.getExpiryDate());
-            existingItem.setTotalAmount(calculateTotalAmount(existingItem));
-        } else {
-            throw new ResourceNotFoundException(Message.IMPORT_ITEM_NOT_FOUND);
-        }
-
-        return temporaryImportItems;
-    }
-
-    @Override
-    public List<ImportItemResponseDto> getTemporaryImportItems() {
-        if (temporaryImportItems.isEmpty()) {
-            throw new ResourceNotFoundException(Message.IMPORT_ITEM_NOT_FOUND);
-        }
-        return temporaryImportItems;
-    }
-
-
-
-    @Override
-    public void removeItemFromImport(Long productId) {
-
-        Optional<ImportItemResponseDto> existingItemOpt = temporaryImportItems.stream()
-                .filter(item -> item.getProductId().equals(productId))
-                .findFirst();
-
-        if (existingItemOpt.isPresent()) {
-            temporaryImportItems.remove(existingItemOpt.get());
-        } else {
-            throw new ResourceNotFoundException(Message.IMPORT_ITEM_NOT_FOUND);
-        }
-    }
-
-
-    private double calculateTotalAmount(ImportItemResponseDto item) {
-        double subTotal = item.getUnitPrice() * item.getQuantity();
-        double discountedAmount = subTotal - (subTotal * item.getDiscount() / 100);
-        return discountedAmount + (discountedAmount * item.getTax() / 100);
-    }
+//   private final List<ImportItemResponseDto> temporaryImportItems = new ArrayList<>();
+//
+//    @Override
+//    public List<ImportItemResponseDto> addItemToImport(ImportItemResponseDto importItemDto) {
+//
+//        // Lấy sản phẩm từ repository
+//        Optional<Product> productOpt = productRepository.getProductById(importItemDto.getProductId());
+//        if (productOpt.isEmpty()) {
+//            throw new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND);
+//        }
+//
+//        Product product = productOpt.get();
+//
+//        // Tìm kiếm sản phẩm trong danh sách tạm thời dựa trên productId
+//        Optional<ImportItemResponseDto> existingItemOpt = temporaryImportItems.stream()
+//                .filter(item -> item.getProductId().equals(importItemDto.getProductId()))
+//                .findFirst();
+//
+//        if (existingItemOpt.isPresent()) {
+//            // Nếu đã có sản phẩm trong danh sách tạm, cập nhật số lượng
+//            ImportItemResponseDto existingItem = existingItemOpt.get();
+//            existingItem.setQuantity(existingItem.getQuantity() + importItemDto.getQuantity());
+//            existingItem.setTotalAmount(calculateTotalAmount(existingItem));
+//        } else {
+//            // Nếu chưa có, tạo mới ImportItemResponseDto tạm thời
+//            ImportItemResponseDto newImportItem = new ImportItemResponseDto();
+//            newImportItem.setProductId(product.getId());
+//            newImportItem.setQuantity(importItemDto.getQuantity());
+//            newImportItem.setUnitPrice(importItemDto.getUnitPrice());
+//            newImportItem.setDiscount(importItemDto.getDiscount());
+//            newImportItem.setTax(importItemDto.getTax());
+//            newImportItem.setBatchNumber(importItemDto.getBatchNumber());
+//            newImportItem.setExpiryDate(importItemDto.getExpiryDate());
+//            newImportItem.setTotalAmount(calculateTotalAmount(newImportItem));
+//
+//            temporaryImportItems.add(newImportItem);
+//        }
+//
+//        return temporaryImportItems;
+//    }
+//
+//
+//    @Override
+//    public List<ImportItemResponseDto> updateItemInImport(ImportItemResponseDto importItemDto) {
+//
+//        Optional<ImportItemResponseDto> existingItemOpt = temporaryImportItems.stream()
+//                .filter(item -> item.getProductId().equals(importItemDto.getProductId()))
+//                .findFirst();
+//
+//        if (existingItemOpt.isPresent()) {
+//            ImportItemResponseDto existingItem = existingItemOpt.get();
+//            existingItem.setQuantity(importItemDto.getQuantity());
+//            existingItem.setUnitPrice(importItemDto.getUnitPrice());
+//            existingItem.setDiscount(importItemDto.getDiscount());
+//            existingItem.setTax(importItemDto.getTax());
+//            existingItem.setBatchNumber(importItemDto.getBatchNumber());
+//            existingItem.setExpiryDate(importItemDto.getExpiryDate());
+//            existingItem.setTotalAmount(calculateTotalAmount(existingItem));
+//        } else {
+//            throw new ResourceNotFoundException(Message.IMPORT_ITEM_NOT_FOUND);
+//        }
+//
+//        return temporaryImportItems;
+//    }
+//
+//    @Override
+//    public List<ImportItemResponseDto> getTemporaryImportItems() {
+//        if (temporaryImportItems.isEmpty()) {
+//            throw new ResourceNotFoundException(Message.IMPORT_ITEM_NOT_FOUND);
+//        }
+//        return temporaryImportItems;
+//    }
+//
+//
+//
+//    @Override
+//    public void removeItemFromImport(Long productId) {
+//
+//        Optional<ImportItemResponseDto> existingItemOpt = temporaryImportItems.stream()
+//                .filter(item -> item.getProductId().equals(productId))
+//                .findFirst();
+//
+//        if (existingItemOpt.isPresent()) {
+//            temporaryImportItems.remove(existingItemOpt.get());
+//        } else {
+//            throw new ResourceNotFoundException(Message.IMPORT_ITEM_NOT_FOUND);
+//        }
+//    }
+//
+//
+//    private double calculateTotalAmount(ImportItemResponseDto item) {
+//        double subTotal = item.getUnitPrice() * item.getQuantity();
+//        double discountedAmount = subTotal - (subTotal * item.getDiscount() / 100);
+//        return discountedAmount + (discountedAmount * item.getTax() / 100);
+//    }
 
 
     @Transactional
@@ -234,6 +234,7 @@ public class ImportServiceImpl implements ImportService {
             importItem.setImportReceipt(importReceipt); // Đã lưu Import trước, nên có thể gán nó vào ImportItem
             importItem.setProduct(productRepository.getProductById(itemDto.getProductId()).orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND)));
             importItem.setQuantity(itemDto.getQuantity());
+            importItem.setUnit(itemDto.getUnit());
             importItem.setUnitPrice(itemDto.getUnitPrice());
             importItem.setDiscount(itemDto.getDiscount());
             importItem.setTax(itemDto.getTax());
@@ -320,6 +321,7 @@ public class ImportServiceImpl implements ImportService {
             importItem.setImportReceipt(importReceipt); // Gán importReceipt đã cập nhật vào ImportItem
             importItem.setProduct(productRepository.getProductById(itemDto.getProductId()).orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND)));
             importItem.setQuantity(itemDto.getQuantity());
+            importItem.setUnit(itemDto.getUnit());
             importItem.setUnitPrice(itemDto.getUnitPrice());
             importItem.setDiscount(itemDto.getDiscount());
             importItem.setTax(itemDto.getTax());
@@ -345,9 +347,7 @@ public class ImportServiceImpl implements ImportService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public ImportDto getImportById(Long importId) {
-        // Tìm kiếm Import theo Id
         Import importReceipt = importRepository.findById(importId)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
 

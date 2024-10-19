@@ -2,6 +2,7 @@ package com.fu.pha.dto.request.importPack;
 
 import com.fu.pha.dto.response.ImportItemResponseDto;
 import com.fu.pha.entity.Import;
+import com.fu.pha.entity.ImportItem;
 import java.util.stream.Collectors;
 import com.fu.pha.enums.PaymentMethod;
 

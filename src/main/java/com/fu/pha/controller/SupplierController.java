@@ -57,6 +57,7 @@ public class SupplierController {
         return ResponseEntity.ok(response);
     }
 
+
     // get all supplier
     @GetMapping("/get-all-supplier")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
@@ -71,4 +72,6 @@ public class SupplierController {
         supplierService.deleteSupplier(id);
         return ResponseEntity.ok(Message.DELETE_SUCCESS);
     }
+
+
 }

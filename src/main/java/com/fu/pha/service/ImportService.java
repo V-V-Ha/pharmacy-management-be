@@ -15,12 +15,12 @@ import java.util.List;
 
 public interface ImportService {
 
-    List<ImportItemResponseDto> addItemToImport(ImportItemResponseDto importItemDto);
-    List<ImportItemResponseDto> updateItemInImport(ImportItemResponseDto importItemDto);
-
-    void removeItemFromImport(Long productId);
-
-    List<ImportItemResponseDto> getTemporaryImportItems();
+//    List<ImportItemResponseDto> addItemToImport(ImportItemResponseDto importItemDto);
+//    List<ImportItemResponseDto> updateItemInImport(ImportItemResponseDto importItemDto);
+//
+//    void removeItemFromImport(Long productId);
+//
+//    List<ImportItemResponseDto> getTemporaryImportItems();
 
     List<UnitDto> getUnitByProductId(Long productId);
 

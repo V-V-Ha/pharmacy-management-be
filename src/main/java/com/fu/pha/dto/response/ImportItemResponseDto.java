@@ -20,7 +20,7 @@ public class ImportItemResponseDto {
     @DecimalMin(value = "0.01", message = "Đơn giá phải lớn hơn 0")
     private Double unitPrice;
 
-    private Long unitId;
+    private String unit;
 
     @DecimalMin(value = "0", message = "Chiết khấu phải lớn hơn hoặc bằng 0")
     @DecimalMax(value = "100", message = "Chiết khấu phải nhỏ hơn hoặc bằng 100")
@@ -44,7 +44,7 @@ public class ImportItemResponseDto {
         this.id = importItem.getId();
         this.quantity = importItem.getQuantity();
         this.unitPrice = importItem.getUnitPrice();
-        this.unitId = importItem.getUnit();
+        this.unit = importItem.getUnit();
         this.discount = importItem.getDiscount();
         this.tax = importItem.getTax();
         this.batchNumber = importItem.getBatchNumber();
