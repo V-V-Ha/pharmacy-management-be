@@ -319,5 +319,20 @@ public class ImportServiceImpl implements ImportService {
         importRepository.save(importReceipt);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public ImportDto getImportById(Long importId) {
+        // Tìm kiếm Import theo Id
+        Import importReceipt = importRepository.findById(importId)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
+
+        // Chuyển đổi Import sang ImportDto và trả về
+        return new ImportDto(importReceipt);
+    }
+
+
+
+
+
 
 }

@@ -20,10 +20,15 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
     @Query("SELECT new com.fu.pha.dto.request.SupplierDto(s.id, s.supplierName, s.address, s.phoneNumber, s.email, s.tax) FROM Supplier s")
     List<SupplierDto> findAllSupplier();
 
-    @Query("SELECT new com.fu.pha.dto.request.SupplierDto(s.id, s.supplierName, s.address, s.phoneNumber, s.email, s.tax) FROM Supplier s WHERE " +
-            "(LOWER(s.supplierName) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL OR :name = '') " +
+    @Query("SELECT new com.fu.pha.dto.request.SupplierDto(s.id, s.supplierName, s.address, s.phoneNumber, s.email, s.tax, " +
+            "COALESCE(SUM(i.totalAmount), 0.0)) " +
+            "FROM Supplier s " +
+            "LEFT JOIN Import i ON s.id = i.supplier.id " +
+            "WHERE (LOWER(s.supplierName) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL OR :name = '') " +
+            "GROUP BY s.id, s.supplierName, s.address, s.phoneNumber, s.email, s.tax " +
             "ORDER BY s.lastModifiedDate DESC")
     Page<SupplierDto> findAllByNameContaining(String name, Pageable pageable);
+
 
 
 

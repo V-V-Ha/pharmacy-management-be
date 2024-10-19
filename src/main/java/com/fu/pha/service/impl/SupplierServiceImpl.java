@@ -62,6 +62,12 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public void deleteSupplier(Long id) {
+        Optional<Supplier> supplier = supplierRepository.findById(id);
+        if (supplier.isEmpty()) {
+            throw new BadRequestException(Message.SUPPLIER_NOT_FOUND);
+        }
+        supplier.get().setDeleted(true);
+        supplierRepository.save(supplier.get());
     }
 
     @Override
@@ -94,4 +100,7 @@ public class SupplierServiceImpl implements SupplierService {
         }
         return supplierPage;
     }
+
+
+
 }

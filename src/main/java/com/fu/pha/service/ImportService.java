@@ -30,4 +30,6 @@ public interface ImportService {
 
     void updateImport(Long importId, ImportDto importDto);
 
+    ImportDto getImportById(Long importId);
+
 }

@@ -10,8 +10,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class SupplierDto {
     private Long id;
     @NotBlank(message = Message.NULL_FILED)
@@ -29,4 +29,18 @@ public class SupplierDto {
     @NotBlank(message = Message.NULL_FILED)
     @Pattern(regexp = Constants.REGEX_TAX, message = Message.INVALID_TAX)
     private String tax;
+
+    private Double totalAmount;
+
+    public SupplierDto(Long id, String supplierName, String address, String phoneNumber, String email, String tax) {
+        this.id = id;
+        this.supplierName = supplierName;
+        this.address = address;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.tax = tax;
+    }
+
+
+
 }

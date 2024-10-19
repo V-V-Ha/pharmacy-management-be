@@ -63,4 +63,12 @@ public class SupplierController {
     public ResponseEntity<List<SupplierDto>> getAllSupplier() {
         return ResponseEntity.ok(supplierService.getAllSupplier());
     }
+
+    //delete supplier
+    @DeleteMapping("/delete-supplier")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> deleteSupplier(@RequestParam Long id) {
+        supplierService.deleteSupplier(id);
+        return ResponseEntity.ok(Message.DELETE_SUCCESS);
+    }
 }

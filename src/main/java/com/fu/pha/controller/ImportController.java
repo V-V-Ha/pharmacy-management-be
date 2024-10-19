@@ -49,6 +49,11 @@ public class ImportController {
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
+    @GetMapping("/get-import-receipt")
+    public ResponseEntity<ImportDto> getImportReceiptById(@RequestParam Long importId) {
+        return ResponseEntity.ok(importService.getImportById(importId));
+    }
+
 //    @PostMapping("/create-item")
 //    public ResponseEntity<List<ImportItemResponseDto>> addItemToImport(@Valid @RequestBody ImportItemResponseDto importItemDto) {
 //        return ResponseEntity.ok(importService.addItemToImport(importItemDto));

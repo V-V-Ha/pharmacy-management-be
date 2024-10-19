@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Where;
 
 import java.util.List;
 
@@ -14,6 +15,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Where(clause = "deleted = false")
 public class Supplier extends BaseEntity{
 
     @Id
@@ -39,5 +41,8 @@ public class Supplier extends BaseEntity{
     @OneToMany(mappedBy = "supplier")
     @JsonManagedReference
     private List<Import> importList;
+
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted = false;
 
 }
