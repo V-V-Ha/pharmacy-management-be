@@ -17,5 +17,6 @@ public class ProductUnitDTORequest {
     private Long unitId;
     private Long productId;
     private Integer conversionFactor;
+    private Double importPrice;
     private Double retailPrice;
 }

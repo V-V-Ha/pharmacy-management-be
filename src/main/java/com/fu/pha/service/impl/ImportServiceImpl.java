@@ -242,6 +242,19 @@ public class ImportServiceImpl implements ImportService {
             importItem.setExpiryDate(itemDto.getExpiryDate());
             importItem.setTotalAmount(itemDto.getTotalAmount());
 
+            // **Tìm tất cả ProductUnit của sản phẩm**
+            List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getProductId());
+
+            // Lặp qua từng ProductUnit và cập nhật giá nhập cho tất cả các đơn vị
+            for (ProductUnit productUnit : productUnits) {
+                // Điều chỉnh giá nhập dựa trên conversionFactor của đơn vị nhập và đơn vị hiện tại
+                double adjustedImportPrice = itemDto.getUnitPrice() / itemDto.getConversionFactor() * productUnit.getConversionFactor();
+                productUnit.setImportPrice(adjustedImportPrice);
+
+                // Lưu ProductUnit đã được cập nhật giá nhập
+                productUnitRepository.save(productUnit);
+            }
+
             // Cộng dồn totalAmount
             totalAmount += itemDto.getTotalAmount();
 
@@ -249,10 +262,13 @@ public class ImportServiceImpl implements ImportService {
             importItemRepository.save(importItem);
         }
 
+
+
         // Kiểm tra tổng totalAmount của Import với tổng các ImportItem
         if (importDto.getTotalAmount() != null && !importDto.getTotalAmount().equals(totalAmount)) {
             throw new BadRequestException(Message.TOTAL_AMOUNT_NOT_MATCH);
         }
+
 
         // Cập nhật lại tổng totalAmount cho Import
         importReceipt.setTotalAmount(totalAmount);
@@ -329,6 +345,19 @@ public class ImportServiceImpl implements ImportService {
             importItem.setExpiryDate(itemDto.getExpiryDate());
             importItem.setTotalAmount(itemDto.getTotalAmount());
 
+            // **Tìm tất cả ProductUnit của sản phẩm**
+            List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getProductId());
+
+            // Lặp qua từng ProductUnit và cập nhật giá nhập cho tất cả các đơn vị
+            for (ProductUnit productUnit : productUnits) {
+                // Điều chỉnh giá nhập dựa trên conversionFactor của đơn vị nhập và đơn vị hiện tại
+                double adjustedImportPrice = itemDto.getUnitPrice() / itemDto.getConversionFactor() * productUnit.getConversionFactor();
+                productUnit.setImportPrice(adjustedImportPrice);
+
+                // Lưu ProductUnit đã được cập nhật giá nhập
+                productUnitRepository.save(productUnit);
+            }
+
             // Cộng dồn totalAmount
             totalAmount += itemDto.getTotalAmount();
 
@@ -345,6 +374,7 @@ public class ImportServiceImpl implements ImportService {
         importReceipt.setTotalAmount(totalAmount);
         importRepository.save(importReceipt);
     }
+
 
     @Override
     public ImportDto getImportById(Long importId) {

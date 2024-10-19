@@ -67,6 +67,7 @@ public class ProductDTOResponse {
                         new UnitDto(productUnit.getUnitId().getId(), productUnit.getUnitId().getUnitName()),
                         productUnit.getProductId().getId(),
                         productUnit.getConversionFactor(),
+                        productUnit.getImportPrice(),
                         productUnit.getRetailPrice(),
                         productUnit.getUnitId().getUnitName()
                 ))

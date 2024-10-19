@@ -40,6 +40,8 @@ public class ImportItemResponseDto {
     private String createBy;
     private String lastModifiedBy;
 
+    private Integer conversionFactor;
+
     public ImportItemResponseDto(ImportItem importItem) {
         this.id = importItem.getId();
         this.quantity = importItem.getQuantity();

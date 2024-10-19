@@ -35,6 +35,9 @@ public class ProductUnit extends BaseEntity{
     @Column(name = "conversion_factor",nullable = false)
     private Integer conversionFactor;
 
+    @Column(name = "import_price")
+    private Double importPrice;
+
     @Column(name = "retail_price", nullable = false)
     private Double retailPrice;
 

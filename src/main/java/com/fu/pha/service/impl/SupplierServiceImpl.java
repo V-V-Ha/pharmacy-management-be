@@ -25,6 +25,7 @@ public class SupplierServiceImpl implements SupplierService {
         if(supplierExist.isPresent()){
             throw new BadRequestException(Message.SUPPLIER_EXIST);
         }
+
         //create new supplier
         Supplier supplier = new Supplier();
         supplier.setSupplierName(supplierDto.getSupplierName());

@@ -107,6 +107,7 @@ public class ProductServiceImpl implements ProductService {
             productUnit.setProductId(product);
             productUnit.setUnitId(unit);
             productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
+            productUnit.setImportPrice(productUnitDTORequest.getImportPrice());
             productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
             productUnitList.add(productUnit);
         }
@@ -176,6 +177,7 @@ public class ProductServiceImpl implements ProductService {
                     // Update product unit
                     productUnit.setUnitId(unitRepository.findUnitById(productUnitDTORequest.getUnitId()));
                     productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
+                    productUnit.setImportPrice(productUnitDTORequest.getImportPrice());
                     productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
                     productUnitRepository.save(productUnit);
                 } else {
@@ -186,6 +188,7 @@ public class ProductServiceImpl implements ProductService {
                     productUnit.setUnitId(unit);
                     productUnit.setProductId(product);
                     productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
+                    productUnit.setImportPrice(productUnitDTORequest.getImportPrice());
                     productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
                     productUnitRepository.save(productUnit);
                 }

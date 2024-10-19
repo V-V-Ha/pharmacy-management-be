@@ -23,4 +23,7 @@ public interface ProductUnitRepository extends JpaRepository<ProductUnit, Long> 
 
     @Query("SELECT pu FROM ProductUnit pu WHERE pu.id = :id AND pu.productId.id = :productId")
     ProductUnit findProductUnitsByIdAndProductId(@Param("id") Long id, @Param("productId") Long productId);
+
+    @Query("SELECT pu FROM ProductUnit pu WHERE pu.productId.id = :productId")
+    List<ProductUnit> findByProductId(Long productId);
 }
