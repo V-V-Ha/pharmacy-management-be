@@ -17,6 +17,9 @@ import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.*;
 import com.fu.pha.service.ImportService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -253,6 +256,28 @@ public class ImportServiceImpl implements ImportService {
         // Cập nhật lại tổng totalAmount cho Import
         importReceipt.setTotalAmount(totalAmount);
         importRepository.save(importReceipt); // Lưu lần nữa nếu muốn cập nhật totalAmount sau khi tính toán
+    }
+
+    @Override
+    public Page<ImportViewListDto> getAllImportPaging(int page, int size, String supplierName, Instant fromDate, Instant toDate) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Nếu cả fromDate và toDate đều null
+        if (fromDate == null && toDate == null) {
+            return importRepository.getListImportPagingWithoutDate(supplierName, pageable);
+        }
+        // Nếu chỉ có fromDate
+        else if (fromDate != null && toDate == null) {
+            return importRepository.getListImportPagingFromDate(supplierName, fromDate, pageable);
+        }
+        // Nếu chỉ có toDate
+        else if (fromDate == null) {
+            return importRepository.getListImportPagingToDate(supplierName, toDate, pageable);
+        }
+        // Nếu cả fromDate và toDate đều có giá trị
+        else {
+            return importRepository.getListImportPaging(supplierName, fromDate, toDate, pageable);
+        }
     }
 
 
