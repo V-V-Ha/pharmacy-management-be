@@ -6,13 +6,13 @@
 # Nếu không chạy dc thì vào đúng folder đang chứa build script và chạy command: chmod +x push-to-server.sh (Dùng gitbash terminal hoặc ps)
 
 # Variables
-DEFAULT_PRJ_PATH="C:\Users\haomingnguyen\Desktop\FU\2024 Fall\SEP490_G27_KS\sep490_g27_pharmacy-management"
-OLD_PATH="$DEFAULT_PRJ_PATH""\target\g1-app.jar"
+DEFAULT_PRJ_PATH="C:\Users\phamh\OneDrive\Desktop\FU\2024\Fall 2024\G27\sep490_g27_pharmacy-management"
+OLD_PATH="$DEFAULT_PRJ_PATH""\target\pha-0.0.1-SNAPSHOT.jar"
 LOCAL_FILE_PATH="$DEFAULT_PRJ_PATH""\target\app.jar"
 REMOTE_USER="root"
-REMOTE_HOST="139.180.188.108"
-REMOTE_DIR="/home/croakorder"
-SERVICE_NAME="croakorder"
+REMOTE_HOST="139.180.155.250"
+REMOTE_DIR="/home/pha"
+SERVICE_NAME="pha-api"
 
 # Check if the target directory exists
 if [ ! -d "$DEFAULT_PRJ_PATH" ]; then
@@ -57,7 +57,7 @@ countdown() {
 if [ $? -eq 0 ]; then
     echo "File copied successfully. Running command on remote server..."
     # Run command on remote server
-    ssh "$REMOTE_USER@$REMOTE_HOST" "systemctl stop $DEFAULT_PRJ_PATH; systemctl start $DEFAULT_PRJ_PATH"
+    ssh "$REMOTE_USER@$REMOTE_HOST" "systemctl stop ""$SERVICE_NAME""; systemctl start $SERVICE_NAME"
     echo "File successfully copied to $REMOTE_USER@$REMOTE_HOST:$REMOTE_DIR and wait for close...."
     countdown
     sleep 3 &
