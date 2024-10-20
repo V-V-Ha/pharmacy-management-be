@@ -30,6 +30,9 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
     Page<SupplierDto> findAllByNameContaining(String name, Pageable pageable);
 
 
-
+    @Query("SELECT new com.fu.pha.dto.request.SupplierDto(s.id, s.supplierName, s.address, s.phoneNumber, s.email, s.tax) " +
+            "FROM Supplier s " +
+            "WHERE (LOWER(s.supplierName) LIKE LOWER(CONCAT('%', :supplierName, '%')) OR :supplierName IS NULL OR :supplierName = '') ")
+    Optional<List<SupplierDto>> findSupplierBySupplierName(String supplierName);
 
 }

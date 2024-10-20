@@ -18,4 +18,6 @@ public interface SupplierService {
     List<SupplierDto> getAllSupplier();
 
     Page<SupplierDto> getAllSupplierAndPaging(int page, int size, String name);
+
+
 }

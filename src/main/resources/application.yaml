@@ -10,18 +10,18 @@ spring:
       restart:
         enabled: false
 
-  # DB Postgres SQL
-#  datasource:
-#    url: jdbc:postgresql://fug27.cvag40g8k9n5.ap-southeast-1.rds.amazonaws.com:5432/g27
-#    username: postgres
-#    password: 12345678
-#    driver-class-name: org.postgresql.Driver
-
+   #DB Postgres SQL
   datasource:
-    url: jdbc:postgresql://localhost:5432/pha
+    url: jdbc:postgresql://139.180.155.250:5432/fu_pha
     username: postgres
-    password: 23112002
+    password: 12345
     driver-class-name: org.postgresql.Driver
+
+#  datasource:
+#    url: jdbc:postgresql://localhost:5432/pha
+#    username: postgres
+#    password: 23112002
+#    driver-class-name: org.postgresql.Driver
 
   # JPA Setting
   jpa:
@@ -33,7 +33,7 @@ spring:
         enable_lazy_load_no_trans: true
     generate-ddl: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
 
   #mail
   mail:
