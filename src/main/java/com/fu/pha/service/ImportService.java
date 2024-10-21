@@ -2,6 +2,7 @@ package com.fu.pha.service;
 
 import com.fu.pha.dto.request.ProductDTORequest;
 import com.fu.pha.dto.request.ProductUnitDTORequest;
+import com.fu.pha.dto.request.SupplierDto;
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.dto.request.importPack.ImportDto;
 import com.fu.pha.dto.request.importPack.ImportViewListDto;
@@ -26,7 +27,6 @@ public interface ImportService {
 
     List<ProductDTOResponse> getProductByProductName(String productName);
 
-    List<ImportViewListDto> getAllImportAndPaging();
 
     void createImport(ImportDto importDto);
 
@@ -34,5 +34,7 @@ public interface ImportService {
     void updateImport(Long importId, ImportDto importDto);
 
     ImportDto getImportById(Long importId);
+
+    List<SupplierDto> getSuppplierBySupplierName(String supplierName);
 
 }

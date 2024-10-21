@@ -32,7 +32,7 @@ public class ImportItemResponseDto {
 
     private Double totalAmount;
     private String batchNumber;
-    private Long productId;
+    private ProductDTOResponse product;
     private Long importId;
     private Instant createDate;
     private Instant lastModifiedDate;
@@ -52,7 +52,9 @@ public class ImportItemResponseDto {
         this.batchNumber = importItem.getBatchNumber();
         this.expiryDate = importItem.getExpiryDate();
         this.totalAmount = importItem.getTotalAmount();
-        this.productId = importItem.getProduct().getId();
+        if (importItem.getProduct() != null) {
+            this.product = new ProductDTOResponse(importItem.getProduct());
+        }
         this.importId = importItem.getImportReceipt().getId();
         this.createDate = importItem.getCreateDate();
         this.lastModifiedDate = importItem.getLastModifiedDate();

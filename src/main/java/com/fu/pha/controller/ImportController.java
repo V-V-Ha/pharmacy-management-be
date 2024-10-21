@@ -2,6 +2,7 @@ package com.fu.pha.controller;
 
 import com.fu.pha.dto.request.ProductDTORequest;
 import com.fu.pha.dto.request.ProductUnitDTORequest;
+import com.fu.pha.dto.request.SupplierDto;
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.dto.request.importPack.ImportDto;
 import com.fu.pha.dto.request.importPack.ImportViewListDto;
@@ -62,27 +63,10 @@ public class ImportController {
         return ResponseEntity.ok(importService.getImportById(importId));
     }
 
-//    @PostMapping("/create-item")
-//    public ResponseEntity<List<ImportItemResponseDto>> addItemToImport(@Valid @RequestBody ImportItemResponseDto importItemDto) {
-//        return ResponseEntity.ok(importService.addItemToImport(importItemDto));
-//    }
-//
-//    @PutMapping("/update-item")
-//    public ResponseEntity<List<ImportItemResponseDto>> updateItemInImport(@Valid @RequestBody ImportItemResponseDto importItemDto) {
-//        return ResponseEntity.ok(importService.updateItemInImport(importItemDto));
-//    }
-//
-//    @DeleteMapping("/remove-item")
-//    public ResponseEntity<String> removeItemFromImport(@RequestParam Long productId) {
-//        importService.removeItemFromImport(productId);
-//        return ResponseEntity.ok(Message.DELETE_SUCCESS);
-//    }
-//
-//    @GetMapping("/get-import-items")
-//    public ResponseEntity<List<ImportItemResponseDto>> getTemporaryImportItems() {
-//        return ResponseEntity.ok(importService.getTemporaryImportItems());
-//
-//    }
+    @GetMapping("/get-supplier")
+    public ResponseEntity<List<SupplierDto>> getSupplierBySupplierName(@RequestParam String supplierName) {
+        return ResponseEntity.ok(importService.getSuppplierBySupplierName(supplierName));
+    }
 
     @GetMapping("/get-all-import-paging")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")

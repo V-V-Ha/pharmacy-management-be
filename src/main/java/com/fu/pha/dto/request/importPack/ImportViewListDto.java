@@ -11,6 +11,7 @@ import java.time.Instant;
 @Data
 
 public class ImportViewListDto {
+    private Long id;
     private String invoiceNumber;
     private String createBy;
     private Instant importDate;
@@ -21,6 +22,7 @@ public class ImportViewListDto {
     private String fullName;
 
     public ImportViewListDto(Import importRequest) {
+        this.id = importRequest.getId();
        this.importDate = importRequest.getImportDate();
        this.invoiceNumber = importRequest.getInvoiceNumber();
        this.createBy = importRequest.getCreateBy();
