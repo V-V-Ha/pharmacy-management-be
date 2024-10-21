@@ -63,7 +63,6 @@ public class UserController {
         return ResponseEntity.ok(userService.viewDetailUser(id));
     }
 
-
     @PutMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody ChangePasswordDto request, @RequestParam String token) {
         userService.resetPassword(request, token);

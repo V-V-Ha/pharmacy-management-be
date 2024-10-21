@@ -129,7 +129,7 @@ public class ImportServiceImpl implements ImportService {
         for (ImportItemResponseDto itemDto : importDto.getImportItems()) {
             ImportItem importItem = new ImportItem();
             importItem.setImportReceipt(importReceipt); // Đã lưu Import trước, nên có thể gán nó vào ImportItem
-            importItem.setProduct(productRepository.getProductById(itemDto.getProductId()).orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND)));
+            importItem.setProduct(productRepository.getProductById(itemDto.getProduct().getId()).orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND)));
             importItem.setQuantity(itemDto.getQuantity());
             importItem.setUnit(itemDto.getUnit());
             importItem.setUnitPrice(itemDto.getUnitPrice());
@@ -139,7 +139,7 @@ public class ImportServiceImpl implements ImportService {
             importItem.setExpiryDate(itemDto.getExpiryDate());
             importItem.setTotalAmount(itemDto.getTotalAmount());
 
-            List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getProductId());
+            List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getProduct().getId());
 
             // Lặp qua từng ProductUnit và cập nhật giá nhập cho tất cả các đơn vị nếu giá thay đổi
             for (ProductUnit productUnit : productUnits) {
@@ -234,7 +234,7 @@ public class ImportServiceImpl implements ImportService {
         for (ImportItemResponseDto itemDto : importDto.getImportItems()) {
             ImportItem importItem = new ImportItem();
             importItem.setImportReceipt(importReceipt); // Gán importReceipt đã cập nhật vào ImportItem
-            importItem.setProduct(productRepository.getProductById(itemDto.getProductId()).orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND)));
+            importItem.setProduct(productRepository.getProductById(itemDto.getProduct().getId()).orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND)));
             importItem.setQuantity(itemDto.getQuantity());
             importItem.setUnit(itemDto.getUnit());
             importItem.setUnitPrice(itemDto.getUnitPrice());
@@ -244,7 +244,7 @@ public class ImportServiceImpl implements ImportService {
             importItem.setExpiryDate(itemDto.getExpiryDate());
             importItem.setTotalAmount(itemDto.getTotalAmount());
 
-            List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getProductId());
+            List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getProduct().getId());
 
             // Lặp qua từng ProductUnit và cập nhật giá nhập cho tất cả các đơn vị nếu giá thay đổi
             for (ProductUnit productUnit : productUnits) {

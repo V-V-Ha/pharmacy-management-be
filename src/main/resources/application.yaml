@@ -33,7 +33,7 @@ spring:
         enable_lazy_load_no_trans: true
     generate-ddl: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
 
   #mail
   mail:
