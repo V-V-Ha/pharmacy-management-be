@@ -23,13 +23,13 @@ public class CustomerDto {
 
     private Gender gender;
 
-    private Integer yearOld;
+    private Integer yob;
 
     public CustomerDto(Customer customer) {
         this.id = customer.getId();
         this.customerName = customer.getCustomerName();
         this.address = customer.getAddress();
         this.gender = customer.getGender();
-        this.yearOld = customer.getYearOld();
+        this.yob = customer.getYob();
     }
 }
