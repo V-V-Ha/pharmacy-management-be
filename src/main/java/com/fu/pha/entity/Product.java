@@ -22,13 +22,13 @@ public class Product extends BaseEntity{
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "product_name")
+    @Column(name = "product_name", columnDefinition = "TEXT")
     private String productName;
 
     @Column(name = "registration_number")
     private String registrationNumber;
 
-    @Column(name = "active_ingredient")
+    @Column(name = "active_ingredient", columnDefinition = "TEXT")
     private String activeIngredient;
 
     @Column(name = "dosage_concentration")
@@ -49,19 +49,19 @@ public class Product extends BaseEntity{
     @Column(name = "import_price")
     private Double importPrice;
 
-    @Column(name = "indication")
+    @Column(name = "indication", columnDefinition = "TEXT")
     private String indication;
 
-    @Column(name = "contraindication")
+    @Column(name = "contraindication", columnDefinition = "TEXT")
     private String contraindication;
 
-    @Column(name = "side_effect")
+    @Column(name = "side_effect", columnDefinition = "TEXT")
     private String sideEffect;
 
     @Column(name = "dosage_forms")
     private String dosageForms;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "prescription_drug")

@@ -34,7 +34,7 @@ public class SaleOrder extends BaseEntity{
     private PaymentStatus status;
 
     @Column(name = "discount")
-    private double discount;
+    private Double discount;
 
     @Column(name = "total_amount")
     private Double totalAmount;

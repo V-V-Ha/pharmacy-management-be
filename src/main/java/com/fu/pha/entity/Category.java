@@ -26,7 +26,7 @@ public class Category extends BaseEntity{
     @Column(name = "category_name")
     private String categoryName;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @OneToMany(mappedBy = "categoryId")

@@ -45,7 +45,7 @@ public class Import extends BaseEntity{
     @Column(name = "total_amount")
     private Double totalAmount;
 
-    @Column(name = "note")
+    @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 
     @OneToMany(mappedBy = "importReceipt")
