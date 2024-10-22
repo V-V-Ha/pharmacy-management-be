@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -89,43 +90,43 @@ public class ImportServiceImpl implements ImportService {
     @Override
     public void createImport(ImportDto importDto) {
         // Tìm user và supplier
-        Optional<User> user = userRepository.findById(importDto.getUserId());
-        if (user.isEmpty()) {
-            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
-        }
+        User user = userRepository.findById(importDto.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
 
-        Optional<Supplier> supplier = supplierRepository.findById(importDto.getSupplierId());
-        if (supplier.isEmpty()) {
-            throw new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND);
-        }
+        Supplier supplier = supplierRepository.findById(importDto.getSupplierId())
+                .orElseThrow(() -> new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND));
 
         // Tạo Import entity và gán các giá trị
         Import importReceipt = new Import();
-        if (importRepository.getLastInvoiceNumber() == null) {
-            importReceipt.setInvoiceNumber("PN000001");
-        } else {
-            importReceipt.setInvoiceNumber(generateCode.generateNewProductCode(importRepository.getLastInvoiceNumber()));
-        }
+        String lastInvoiceNumber = importRepository.getLastInvoiceNumber();
+        importReceipt.setInvoiceNumber(lastInvoiceNumber == null ? "PN000001" : generateCode.generateNewProductCode(lastInvoiceNumber));
 
         importReceipt.setImportDate(Instant.now());
         importReceipt.setPaymentMethod(importDto.getPaymentMethod());
         importReceipt.setNote(importDto.getNote());
-        importReceipt.setUser(user.get());
-        importReceipt.setSupplier(supplier.get());
+        importReceipt.setUser(user);
+        importReceipt.setSupplier(supplier);
         importReceipt.setTax(importDto.getTax());
         importReceipt.setDiscount(importDto.getDiscount());
 
-        // **Lưu Import entity trước**
+        // Lưu Import entity trước
         importRepository.save(importReceipt);
 
-        // Tính tổng totalAmount từ các ImportItem
+        // Kiểm tra danh sách importItems không rỗng
+        if (importDto.getImportItems() == null || importDto.getImportItems().isEmpty()) {
+            throw new BadRequestException(Message.IMPORT_ITEMS_EMPTY);
+        }
+
         double totalAmount = 0.0;
 
         // Lưu các ImportItem và tính tổng totalAmount
         for (ImportItemRequestDto itemDto : importDto.getImportItems()) {
             ImportItem importItem = new ImportItem();
-            importItem.setImportReceipt(importReceipt); // Đã lưu Import trước, nên có thể gán nó vào ImportItem
-            importItem.setProduct(productRepository.getProductById(itemDto.getImportId()).orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND)));
+            importItem.setImportReceipt(importReceipt);
+            Product product = productRepository.getProductById(itemDto.getImportId())
+                    .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
+
+            importItem.setProduct(product);
             importItem.setQuantity(itemDto.getQuantity());
             importItem.setUnit(itemDto.getUnit());
             importItem.setUnitPrice(itemDto.getUnitPrice());
@@ -134,48 +135,45 @@ public class ImportServiceImpl implements ImportService {
             importItem.setBatchNumber(itemDto.getBatchNumber());
             importItem.setExpiryDate(itemDto.getExpiryDate());
             importItem.setTotalAmount(itemDto.getTotalAmount());
-
-            // ***Cập nhật remainQuantity*** cho ImportItem
             importItem.setRemainingQuantity(itemDto.getQuantity());
 
-            // Cập nhật tổng số lượng sản phẩm trong Product
-            Product product = importItem.getProduct();
-            product.setTotalQuantity(product.getTotalQuantity() + itemDto.getQuantity());
 
-            // Lưu cập nhật vào Product
+            Integer currentTotalQuantity = product.getTotalQuantity();
+            if (currentTotalQuantity == null) {
+                currentTotalQuantity = 0; // Gán giá trị mặc định nếu null
+            }
+            // Cập nhật tổng số lượng sản phẩm trong Product
+            product.setTotalQuantity(currentTotalQuantity + itemDto.getQuantity());
             productRepository.save(product);
 
+            // Cập nhật giá nhập cho từng ProductUnit nếu cần
             List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getImportId());
-
-            // Lặp qua từng ProductUnit và cập nhật giá nhập cho tất cả các đơn vị nếu giá thay đổi
             for (ProductUnit productUnit : productUnits) {
-                // Điều chỉnh giá nhập dựa trên conversionFactor của đơn vị nhập và đơn vị hiện tại
-                double adjustedImportPrice = itemDto.getUnitPrice() / itemDto.getConversionFactor() * productUnit.getConversionFactor();
-
-                // Kiểm tra nếu giá nhập mới khác với giá hiện tại
-                if (!Objects.equals(productUnit.getImportPrice(), adjustedImportPrice)) {
-                    productUnit.setImportPrice(adjustedImportPrice);
-                    // Lưu ProductUnit đã được cập nhật giá nhập
-                    productUnitRepository.save(productUnit);
+                if (itemDto.getConversionFactor() != 0) {
+                    double adjustedImportPrice = itemDto.getUnitPrice() / itemDto.getConversionFactor() * productUnit.getConversionFactor();
+                    if (!Objects.equals(productUnit.getImportPrice(), adjustedImportPrice)) {
+                        productUnit.setImportPrice(adjustedImportPrice);
+                        productUnitRepository.save(productUnit);
+                    }
+                } else {
+                    throw new BadRequestException(Message.INVALID_CONVERSION_FACTOR);
                 }
             }
 
-            // Cộng dồn totalAmount
             totalAmount += itemDto.getTotalAmount();
-
-            // Lưu ImportItem vào repository
             importItemRepository.save(importItem);
         }
 
+        // Kiểm tra sự khác biệt giữa totalAmount được tính và totalAmount trong DTO
         if (importDto.getTotalAmount() != null && !importDto.getTotalAmount().equals(totalAmount)) {
             throw new BadRequestException(Message.TOTAL_AMOUNT_NOT_MATCH);
         }
-
 
         // Cập nhật tổng số tiền vào Import
         importReceipt.setTotalAmount(totalAmount);
         importRepository.save(importReceipt);
     }
+
 
 
     @Override
@@ -209,82 +207,87 @@ public class ImportServiceImpl implements ImportService {
                 .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
 
         // Tìm user và supplier
-        Optional<User> user = userRepository.findById(importDto.getUserId());
-        if (user.isEmpty()) {
-            throw new ResourceNotFoundException(Message.USER_NOT_FOUND);
-        }
+        User user = userRepository.findById(importDto.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
 
-        Optional<Supplier> supplier = supplierRepository.findById(importDto.getSupplierId());
-        if (supplier.isEmpty()) {
-            throw new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND);
-        }
+        Supplier supplier = supplierRepository.findById(importDto.getSupplierId())
+                .orElseThrow(() -> new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND));
 
         // Cập nhật thông tin Import
         importReceipt.setPaymentMethod(importDto.getPaymentMethod());
         importReceipt.setNote(importDto.getNote());
-        importReceipt.setUser(user.get());
-        importReceipt.setSupplier(supplier.get());
+        importReceipt.setUser(user);
+        importReceipt.setSupplier(supplier);
         importReceipt.setTax(importDto.getTax());
         importReceipt.setDiscount(importDto.getDiscount());
         importReceipt.setImportDate(Instant.now());
 
-        // Xóa các ImportItem hiện có của Import này để cập nhật lại các mục mới
-        List<ImportItem> existingImportItems = importItemRepository.findByImportId(importId);
-        for (ImportItem existingItem : existingImportItems) {
-            // Cập nhật lại totalQuantity cho Product khi xóa các ImportItem cũ
-            Product product = existingItem.getProduct();
-            product.setTotalQuantity(product.getTotalQuantity() - existingItem.getQuantity()); // Trừ số lượng cũ
-            productRepository.save(product);
-        }
-
-        // Xóa các ImportItem cũ khỏi kho
-        importItemRepository.deleteByImportId(importId);
-
         // Tính tổng totalAmount từ các ImportItem mới
         double totalAmount = 0.0;
 
-        // Lưu các ImportItem mới và tính tổng totalAmount
+        // Lấy danh sách ImportItem hiện tại
+        List<ImportItem> existingImportItems = importItemRepository.findByImportId(importId);
+
+        // Sử dụng Map để tiện tra cứu các mục hiện tại theo ProductId
+        Map<Long, ImportItem> existingItemMap = existingImportItems.stream()
+                .collect(Collectors.toMap(item -> item.getProduct().getId(), item -> item));
+
         for (ImportItemRequestDto itemDto : importDto.getImportItems()) {
-            ImportItem importItem = new ImportItem();
-            importItem.setImportReceipt(importReceipt); // Gán importReceipt đã cập nhật vào ImportItem
-            importItem.setProduct(productRepository.getProductById(itemDto.getImportId()).orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND)));
-            importItem.setQuantity(itemDto.getQuantity());
-            importItem.setUnit(itemDto.getUnit());
-            importItem.setUnitPrice(itemDto.getUnitPrice());
-            importItem.setDiscount(itemDto.getDiscount());
-            importItem.setTax(itemDto.getTax());
-            importItem.setBatchNumber(itemDto.getBatchNumber());
-            importItem.setExpiryDate(itemDto.getExpiryDate());
-            importItem.setTotalAmount(itemDto.getTotalAmount());
+            ImportItem importItem = existingItemMap.get(itemDto.getImportId());
 
-            // ***Cập nhật remainQuantity*** cho ImportItem
-            importItem.setRemainingQuantity(itemDto.getQuantity());
+            // Nếu ImportItem đã tồn tại, thì cập nhật thông tin
+            if (importItem != null) {
+                // Cập nhật lại tổng số lượng cho Product khi thay đổi ImportItem
+                Product product = importItem.getProduct();
+                product.setTotalQuantity(product.getTotalQuantity() - importItem.getQuantity() + itemDto.getQuantity()); // Điều chỉnh lại số lượng
+                productRepository.save(product);
 
-            // Cập nhật tổng số lượng sản phẩm trong Product
-            Product product = importItem.getProduct();
-            product.setTotalQuantity(product.getTotalQuantity() + itemDto.getQuantity()); // Cộng số lượng mới
-            productRepository.save(product);
+                // Cập nhật lại thông tin của ImportItem
+                importItem.setQuantity(itemDto.getQuantity());
+                importItem.setUnit(itemDto.getUnit());
+                importItem.setUnitPrice(itemDto.getUnitPrice());
+                importItem.setDiscount(itemDto.getDiscount());
+                importItem.setTax(itemDto.getTax());
+                importItem.setBatchNumber(itemDto.getBatchNumber());
+                importItem.setExpiryDate(itemDto.getExpiryDate());
+                importItem.setTotalAmount(itemDto.getTotalAmount());
+                importItem.setRemainingQuantity(itemDto.getQuantity());
 
-            List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getImportId());
+                // Cập nhật giá nhập cho ProductUnit nếu cần
+                updateProductUnits(product, itemDto);
 
-            // Lặp qua từng ProductUnit và cập nhật giá nhập cho tất cả các đơn vị nếu giá thay đổi
-            for (ProductUnit productUnit : productUnits) {
-                // Điều chỉnh giá nhập dựa trên conversionFactor của đơn vị nhập và đơn vị hiện tại
-                double adjustedImportPrice = itemDto.getUnitPrice() / itemDto.getConversionFactor() * productUnit.getConversionFactor();
+                // Lưu ImportItem đã cập nhật
+                importItemRepository.save(importItem);
+            } else {
+                // Nếu ImportItem không tồn tại, tạo mới
+                importItem = new ImportItem();
+                importItem.setImportReceipt(importReceipt);
+                Product product = productRepository.getProductById(itemDto.getImportId())
+                        .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
+                importItem.setProduct(product);
+                importItem.setQuantity(itemDto.getQuantity());
+                importItem.setUnit(itemDto.getUnit());
+                importItem.setUnitPrice(itemDto.getUnitPrice());
+                importItem.setDiscount(itemDto.getDiscount());
+                importItem.setTax(itemDto.getTax());
+                importItem.setBatchNumber(itemDto.getBatchNumber());
+                importItem.setExpiryDate(itemDto.getExpiryDate());
+                importItem.setTotalAmount(itemDto.getTotalAmount());
+                importItem.setRemainingQuantity(itemDto.getQuantity());
 
-                // Kiểm tra nếu giá nhập mới khác với giá hiện tại
-                if (!Objects.equals(productUnit.getImportPrice(), adjustedImportPrice)) {
-                    productUnit.setImportPrice(adjustedImportPrice);
-                    // Lưu ProductUnit đã được cập nhật giá nhập
-                    productUnitRepository.save(productUnit);
-                }
+                // Cập nhật tổng số lượng sản phẩm trong Product
+                product.setTotalQuantity(product.getTotalQuantity() + itemDto.getQuantity());
+                productRepository.save(product);
+
+                // Cập nhật giá nhập cho ProductUnit nếu cần
+                updateProductUnits(product, itemDto);
+
+                // Lưu ImportItem mới
+                importItemRepository.save(importItem);
             }
 
             // Cộng dồn totalAmount
             totalAmount += itemDto.getTotalAmount();
-
-            // Lưu ImportItem vào repository
-            importItemRepository.save(importItem);
         }
 
         // Kiểm tra tổng totalAmount của Import với tổng các ImportItem
@@ -296,6 +299,23 @@ public class ImportServiceImpl implements ImportService {
         importReceipt.setTotalAmount(totalAmount);
         importRepository.save(importReceipt);
     }
+
+    // Hàm cập nhật giá nhập cho ProductUnit
+    private void updateProductUnits(Product product, ImportItemRequestDto itemDto) {
+        List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getImportId());
+        for (ProductUnit productUnit : productUnits) {
+            if (itemDto.getConversionFactor() != 0) {
+                double adjustedImportPrice = itemDto.getUnitPrice() / itemDto.getConversionFactor() * productUnit.getConversionFactor();
+                if (!Objects.equals(productUnit.getImportPrice(), adjustedImportPrice)) {
+                    productUnit.setImportPrice(adjustedImportPrice);
+                    productUnitRepository.save(productUnit);
+                }
+            } else {
+                throw new BadRequestException(Message.INVALID_CONVERSION_FACTOR);
+            }
+        }
+    }
+
 
 
     @Override
