@@ -69,7 +69,7 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    @Column(name ="note")
+    @Column(name ="note", columnDefinition = "TEXT")
     private String note;
 
     @OneToMany(mappedBy = "user")
