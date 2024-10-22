@@ -1,5 +1,6 @@
-package com.fu.pha.dto.response;
+package com.fu.pha.dto.response.importPack;
 
+import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.ImportItem;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -12,22 +13,13 @@ import java.time.Instant;
 public class ImportItemResponseDto {
     private Long id;
 
-    @NotNull(message = "Số lượng không được để trống")
-    @Min(value = 1, message = "Số lượng phải lớn hơn 0")
     private Integer quantity;
 
-    @NotNull(message = "Đơn giá không được để trống")
-    @DecimalMin(value = "0.01", message = "Đơn giá phải lớn hơn 0")
     private Double unitPrice;
 
     private String unit;
 
-    @DecimalMin(value = "0", message = "Chiết khấu phải lớn hơn hoặc bằng 0")
-    @DecimalMax(value = "100", message = "Chiết khấu phải nhỏ hơn hoặc bằng 100")
     private Double discount;
-
-    @DecimalMin(value = "0", message = "Thuế phải lớn hơn hoặc bằng 0")
-    @DecimalMax(value = "100", message = "Thuế phải nhỏ hơn hoặc bằng 100")
     private Double tax;
 
     private Double totalAmount;
@@ -41,6 +33,8 @@ public class ImportItemResponseDto {
     private String lastModifiedBy;
 
     private Integer conversionFactor;
+
+    private Integer remainingQuantity;
 
     public ImportItemResponseDto(ImportItem importItem) {
         this.id = importItem.getId();
@@ -60,6 +54,7 @@ public class ImportItemResponseDto {
         this.lastModifiedDate = importItem.getLastModifiedDate();
         this.createBy = importItem.getCreateBy();
         this.lastModifiedBy = importItem.getLastModifiedBy();
+        this.remainingQuantity = importItem.getRemainingQuantity();
     }
 }
 

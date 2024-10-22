@@ -49,4 +49,11 @@ public class ExportSlipItem extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "export_slip_id", nullable = false)
     private ExportSlip exportSlip;
+
+    @Column(name = "total_amount")
+    private Double totalAmount;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "import_item_id", nullable = false)
+    private ImportItem importItem;
 }

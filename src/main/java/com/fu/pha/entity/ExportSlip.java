@@ -1,5 +1,6 @@
 package com.fu.pha.entity;
 
+import com.fu.pha.enums.ExportType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,8 +30,9 @@ public class ExportSlip extends BaseEntity{
     @Column(name = "export_date")
     private Instant exportDate;
 
-    @Column(name = "type_delivery_note")
-    private String typeDeliveryNote;
+    @Column(name = "type_delivery")
+    @Enumerated(EnumType.STRING)
+    private ExportType typeDelivery;
 
     @Column(name = "discount")
     private Double discount;
@@ -47,4 +49,9 @@ public class ExportSlip extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id", nullable = true)
+    private Supplier supplier;
+
 }

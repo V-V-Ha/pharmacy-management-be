@@ -1,7 +1,12 @@
 package com.fu.pha.dto.request.importPack;
 
 import com.fu.pha.dto.request.ProductUnitDTORequest;
+import com.fu.pha.dto.response.ProductDTOResponse;
+import com.fu.pha.entity.ImportItem;
 import com.fu.pha.exception.Message;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -11,16 +16,55 @@ import java.util.List;
 @Data
 public class ImportItemRequestDto {
     private Long id;
-    @NotNull(message = Message.NULL_FILED)
-    private Long unit;
+
+    @NotNull(message = "Số lượng không được để trống")
+    @Min(value = 1, message = "Số lượng phải lớn hơn 0")
+    private Integer quantity;
+
+    @NotNull(message = "Đơn giá không được để trống")
+    @DecimalMin(value = "0.01", message = "Đơn giá phải lớn hơn 0")
     private Double unitPrice;
-    @NotNull(message = Message.NULL_FILED)
+
+    private String unit;
+
+    @DecimalMin(value = "0", message = "Chiết khấu phải lớn hơn hoặc bằng 0")
+    @DecimalMax(value = "100", message = "Chiết khấu phải nhỏ hơn hoặc bằng 100")
+    private Double discount;
+
+    @DecimalMin(value = "0", message = "Thuế phải lớn hơn hoặc bằng 0")
+    @DecimalMax(value = "100", message = "Thuế phải nhỏ hơn hoặc bằng 100")
+    private Double tax;
+
+    private Double totalAmount;
     private String batchNumber;
     private Long productId;
     private Long importId;
-    private Integer quantity;
-    private Double discount;
-    private String tax;
+    private Instant createDate;
+    private Instant lastModifiedDate;
     private Instant expiryDate;
-    private Double totalAmount;
+    private String createBy;
+    private String lastModifiedBy;
+
+    private Integer conversionFactor;
+
+    private Integer remainingQuantity;
+
+    public ImportItemRequestDto(ImportItem importItem) {
+        this.id = importItem.getId();
+        this.quantity = importItem.getQuantity();
+        this.unitPrice = importItem.getUnitPrice();
+        this.unit = importItem.getUnit();
+        this.discount = importItem.getDiscount();
+        this.tax = importItem.getTax();
+        this.batchNumber = importItem.getBatchNumber();
+        this.expiryDate = importItem.getExpiryDate();
+        this.totalAmount = importItem.getTotalAmount();
+        this.productId = importItem.getProduct().getId();
+        this.importId = importItem.getImportReceipt().getId();
+        this.createDate = importItem.getCreateDate();
+        this.lastModifiedDate = importItem.getLastModifiedDate();
+        this.createBy = importItem.getCreateBy();
+        this.lastModifiedBy = importItem.getLastModifiedBy();
+        this.remainingQuantity = importItem.getRemainingQuantity();
+    }
 }

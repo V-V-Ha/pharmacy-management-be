@@ -57,4 +57,7 @@ public class ImportItem extends BaseEntity{
     @JoinColumn(name = "import_id", nullable = false)
     private Import importReceipt;
 
+    @Column(name = "remaining_quantity")
+    private Integer remainingQuantity;
+
 }

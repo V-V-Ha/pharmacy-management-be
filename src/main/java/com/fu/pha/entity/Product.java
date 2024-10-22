@@ -61,7 +61,8 @@ public class Product extends BaseEntity{
     @Column(name = "dosage_forms")
     private String dosageForms;
 
-    @Column(name = "description")
+    @Column(name = "description",columnDefinition = "TEXT")
+
     private String description;
 
     @Column(name = "prescription_drug")
@@ -91,4 +92,7 @@ public class Product extends BaseEntity{
 
     @Column(name = "deleted", nullable = false)
     private Boolean deleted = false;
+
+    @Column(name = "total_quantity")
+    private Integer totalQuantity;
 }

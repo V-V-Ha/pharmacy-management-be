@@ -85,12 +85,12 @@ public class GlobalExceptionHandler {
 
 
 
-//    @ExceptionHandler(Exception.class)
-//    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-//    public ResponseEntity<MessageResponse> handleGenericException(Exception ex) {
-//        MessageResponse errorResponse = new MessageResponse(Message.OTHER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.value());
-//        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-//    }
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseEntity<MessageResponse> handleGenericException(Exception ex) {
+        MessageResponse errorResponse = new MessageResponse(Message.OTHER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.value());
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     private String toExactlyPath(String input) {
         return input.replace("uri=", "");

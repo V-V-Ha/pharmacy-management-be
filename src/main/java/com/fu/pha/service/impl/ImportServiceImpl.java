@@ -1,17 +1,14 @@
 package com.fu.pha.service.impl;
 
-import com.fu.pha.dto.request.ProductDTORequest;
-import com.fu.pha.dto.request.ProductUnitDTORequest;
 import com.fu.pha.dto.request.SupplierDto;
 import com.fu.pha.dto.request.importPack.ImportDto;
 import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.dto.request.importPack.ImportItemRequestDto;
 import com.fu.pha.dto.request.importPack.ImportViewListDto;
-import com.fu.pha.dto.response.ImportItemResponseDto;
+import com.fu.pha.dto.response.importPack.ImportResponseDto;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.*;
-import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
@@ -25,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -126,10 +122,10 @@ public class ImportServiceImpl implements ImportService {
         double totalAmount = 0.0;
 
         // Lưu các ImportItem và tính tổng totalAmount
-        for (ImportItemResponseDto itemDto : importDto.getImportItems()) {
+        for (ImportItemRequestDto itemDto : importDto.getImportItems()) {
             ImportItem importItem = new ImportItem();
             importItem.setImportReceipt(importReceipt); // Đã lưu Import trước, nên có thể gán nó vào ImportItem
-            importItem.setProduct(productRepository.getProductById(itemDto.getProduct().getId()).orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND)));
+            importItem.setProduct(productRepository.getProductById(itemDto.getImportId()).orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND)));
             importItem.setQuantity(itemDto.getQuantity());
             importItem.setUnit(itemDto.getUnit());
             importItem.setUnitPrice(itemDto.getUnitPrice());
@@ -139,7 +135,17 @@ public class ImportServiceImpl implements ImportService {
             importItem.setExpiryDate(itemDto.getExpiryDate());
             importItem.setTotalAmount(itemDto.getTotalAmount());
 
-            List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getProduct().getId());
+            // ***Cập nhật remainQuantity*** cho ImportItem
+            importItem.setRemainingQuantity(itemDto.getQuantity());
+
+            // Cập nhật tổng số lượng sản phẩm trong Product
+            Product product = importItem.getProduct();
+            product.setTotalQuantity(product.getTotalQuantity() + itemDto.getQuantity());
+
+            // Lưu cập nhật vào Product
+            productRepository.save(product);
+
+            List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getImportId());
 
             // Lặp qua từng ProductUnit và cập nhật giá nhập cho tất cả các đơn vị nếu giá thay đổi
             for (ProductUnit productUnit : productUnits) {
@@ -161,18 +167,16 @@ public class ImportServiceImpl implements ImportService {
             importItemRepository.save(importItem);
         }
 
-
-
-        // Kiểm tra tổng totalAmount của Import với tổng các ImportItem
         if (importDto.getTotalAmount() != null && !importDto.getTotalAmount().equals(totalAmount)) {
             throw new BadRequestException(Message.TOTAL_AMOUNT_NOT_MATCH);
         }
 
 
-        // Cập nhật lại tổng totalAmount cho Import
+        // Cập nhật tổng số tiền vào Import
         importReceipt.setTotalAmount(totalAmount);
-        importRepository.save(importReceipt); // Lưu lần nữa nếu muốn cập nhật totalAmount sau khi tính toán
+        importRepository.save(importReceipt);
     }
+
 
     @Override
     public Page<ImportViewListDto> getAllImportPaging(int page, int size, String supplierName, Instant fromDate, Instant toDate) {
@@ -225,16 +229,25 @@ public class ImportServiceImpl implements ImportService {
         importReceipt.setImportDate(Instant.now());
 
         // Xóa các ImportItem hiện có của Import này để cập nhật lại các mục mới
+        List<ImportItem> existingImportItems = importItemRepository.findByImportId(importId);
+        for (ImportItem existingItem : existingImportItems) {
+            // Cập nhật lại totalQuantity cho Product khi xóa các ImportItem cũ
+            Product product = existingItem.getProduct();
+            product.setTotalQuantity(product.getTotalQuantity() - existingItem.getQuantity()); // Trừ số lượng cũ
+            productRepository.save(product);
+        }
+
+        // Xóa các ImportItem cũ khỏi kho
         importItemRepository.deleteByImportId(importId);
 
         // Tính tổng totalAmount từ các ImportItem mới
         double totalAmount = 0.0;
 
         // Lưu các ImportItem mới và tính tổng totalAmount
-        for (ImportItemResponseDto itemDto : importDto.getImportItems()) {
+        for (ImportItemRequestDto itemDto : importDto.getImportItems()) {
             ImportItem importItem = new ImportItem();
             importItem.setImportReceipt(importReceipt); // Gán importReceipt đã cập nhật vào ImportItem
-            importItem.setProduct(productRepository.getProductById(itemDto.getProduct().getId()).orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND)));
+            importItem.setProduct(productRepository.getProductById(itemDto.getImportId()).orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND)));
             importItem.setQuantity(itemDto.getQuantity());
             importItem.setUnit(itemDto.getUnit());
             importItem.setUnitPrice(itemDto.getUnitPrice());
@@ -244,7 +257,15 @@ public class ImportServiceImpl implements ImportService {
             importItem.setExpiryDate(itemDto.getExpiryDate());
             importItem.setTotalAmount(itemDto.getTotalAmount());
 
-            List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getProduct().getId());
+            // ***Cập nhật remainQuantity*** cho ImportItem
+            importItem.setRemainingQuantity(itemDto.getQuantity());
+
+            // Cập nhật tổng số lượng sản phẩm trong Product
+            Product product = importItem.getProduct();
+            product.setTotalQuantity(product.getTotalQuantity() + itemDto.getQuantity()); // Cộng số lượng mới
+            productRepository.save(product);
+
+            List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getImportId());
 
             // Lặp qua từng ProductUnit và cập nhật giá nhập cho tất cả các đơn vị nếu giá thay đổi
             for (ProductUnit productUnit : productUnits) {
@@ -278,12 +299,12 @@ public class ImportServiceImpl implements ImportService {
 
 
     @Override
-    public ImportDto getImportById(Long importId) {
+    public ImportResponseDto getImportById(Long importId) {
         Import importReceipt = importRepository.findById(importId)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
 
         // Chuyển đổi Import sang ImportDto và trả về
-        return new ImportDto(importReceipt);
+        return new ImportResponseDto(importReceipt);
     }
 
 
