@@ -147,7 +147,7 @@ public class ImportServiceImpl implements ImportService {
             productRepository.save(product);
 
             // Cập nhật giá nhập cho từng ProductUnit nếu cần
-            List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getImportId());
+            List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getProductId());
             for (ProductUnit productUnit : productUnits) {
                 if (itemDto.getConversionFactor() != 0) {
                     double adjustedImportPrice = itemDto.getUnitPrice() / itemDto.getConversionFactor() * productUnit.getConversionFactor();
