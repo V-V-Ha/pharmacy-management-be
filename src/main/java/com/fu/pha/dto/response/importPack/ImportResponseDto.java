@@ -1,10 +1,8 @@
-package com.fu.pha.dto.request.importPack;
+package com.fu.pha.dto.response.importPack;
 
 import com.fu.pha.entity.Import;
 import com.fu.pha.entity.ImportItem;
-import java.util.stream.Collectors;
 import com.fu.pha.enums.PaymentMethod;
-
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -12,10 +10,10 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.List;
-
+import java.util.stream.Collectors;
 @Data
 @NoArgsConstructor
-public class ImportDto {
+public class ImportResponseDto {
     private Long id;
     private String invoiceNumber;
     @NotNull(message = "Ngày nhập không đươc để trống")
@@ -28,7 +26,7 @@ public class ImportDto {
     private Double totalAmount;
     private String note;
     @NotNull(message = "Danh sách sản phẩm nhập không được để trống")
-    private List<ImportItemRequestDto> importItems;
+    private List<ImportItemResponseDto> importItems;
     @NotNull(message = "Người dùng không được để trống")
     private Long userId;
     @NotNull(message = "Nhà cung cấp không được để trống")
@@ -41,7 +39,7 @@ public class ImportDto {
 
     private Long productCount;
 
-    public ImportDto (Import importRequest) {
+    public ImportResponseDto (Import importRequest) {
         this.id = importRequest.getId();
         this.invoiceNumber = importRequest.getInvoiceNumber();
         this.importDate = importRequest.getImportDate();
@@ -58,12 +56,11 @@ public class ImportDto {
         this.createBy = importRequest.getCreateBy();
         this.lastModifiedBy = importRequest.getLastModifiedBy();
         this.importItems = importRequest.getImportItems().stream()
-                .map(ImportItemRequestDto::new)
+                .map(ImportItemResponseDto::new)
                 .collect(Collectors.toList());
         this.productCount = importRequest.getImportItems().stream()
                 .map(ImportItem::getProduct)
                 .distinct()
                 .count();
     }
-
 }

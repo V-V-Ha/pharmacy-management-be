@@ -67,4 +67,6 @@ public class Message {
 
     public static final String IMPORT_SUCCESS = "Tạo phiếu nhập thành công";
     public static final String TOTAL_AMOUNT_NOT_MATCH = "Tổng tiền không khớp";
+    public static final String IMPORT_ITEMS_EMPTY = "Danh sách sản phẩm không được trống";
+    public static final String INVALID_CONVERSION_FACTOR = "Hệ số quy đổi không hợp lệ";
 }

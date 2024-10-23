@@ -28,3 +28,9 @@ public class SwaggerConfig {
     }
 }
 //http://localhost:8080/swagger-ui.html
+//Https://croak-order.click/login
+//Http://139.180.155.250:8080/swagger-ui.html
+//http://139.180.155.250:8000/view/dashboard
+//Usr: root
+//PW: 3%My{pgDtN*UK,SV
+

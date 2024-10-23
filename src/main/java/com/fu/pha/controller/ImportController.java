@@ -1,15 +1,12 @@
 package com.fu.pha.controller;
 
-import com.fu.pha.dto.request.ProductDTORequest;
-import com.fu.pha.dto.request.ProductUnitDTORequest;
 import com.fu.pha.dto.request.SupplierDto;
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.dto.request.importPack.ImportDto;
 import com.fu.pha.dto.request.importPack.ImportViewListDto;
-import com.fu.pha.dto.response.ImportItemResponseDto;
+import com.fu.pha.dto.response.importPack.ImportResponseDto;
 import com.fu.pha.dto.response.PageResponseModel;
 import com.fu.pha.dto.response.ProductDTOResponse;
-import com.fu.pha.entity.ImportItem;
 
 import com.fu.pha.exception.Message;
 import com.fu.pha.service.ImportService;
@@ -59,7 +56,7 @@ public class ImportController {
     }
 
     @GetMapping("/get-import-receipt")
-    public ResponseEntity<ImportDto> getImportReceiptById(@RequestParam Long importId) {
+    public ResponseEntity<ImportResponseDto> getImportReceiptById(@RequestParam Long importId) {
         return ResponseEntity.ok(importService.getImportById(importId));
     }
 
