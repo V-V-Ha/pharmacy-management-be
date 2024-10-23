@@ -24,6 +24,7 @@ public class SupplierDto {
     private String phoneNumber;
 
     @Pattern(regexp = Constants.REGEX_GMAIL, message = Message.INVALID_GMAIL)
+    @jakarta.validation.constraints.Null
     private String email;
 
     @NotBlank(message = Message.NULL_FILED)

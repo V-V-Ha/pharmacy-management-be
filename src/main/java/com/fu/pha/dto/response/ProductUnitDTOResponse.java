@@ -16,8 +16,8 @@ public class ProductUnitDTOResponse {
     private UnitDto unit;
     private Long productId;
     private Integer conversionFactor;
-    private Double retailPrice;
     private Double importPrice;
+    private Double retailPrice;
     private String unitName;
 
     public ProductUnitDTOResponse(ProductUnit productUnit) {

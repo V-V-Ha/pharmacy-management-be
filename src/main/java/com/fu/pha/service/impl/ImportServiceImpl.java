@@ -123,7 +123,7 @@ public class ImportServiceImpl implements ImportService {
         for (ImportItemRequestDto itemDto : importDto.getImportItems()) {
             ImportItem importItem = new ImportItem();
             importItem.setImportReceipt(importReceipt);
-            Product product = productRepository.getProductById(itemDto.getImportId())
+            Product product = productRepository.getProductById(itemDto.getProductId())
                     .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
             importItem.setProduct(product);
@@ -233,7 +233,7 @@ public class ImportServiceImpl implements ImportService {
                 .collect(Collectors.toMap(item -> item.getProduct().getId(), item -> item));
 
         for (ImportItemRequestDto itemDto : importDto.getImportItems()) {
-            ImportItem importItem = existingItemMap.get(itemDto.getImportId());
+            ImportItem importItem = existingItemMap.get(itemDto.getProductId());
 
             // Nếu ImportItem đã tồn tại, thì cập nhật thông tin
             if (importItem != null) {
@@ -262,7 +262,7 @@ public class ImportServiceImpl implements ImportService {
                 // Nếu ImportItem không tồn tại, tạo mới
                 importItem = new ImportItem();
                 importItem.setImportReceipt(importReceipt);
-                Product product = productRepository.getProductById(itemDto.getImportId())
+                Product product = productRepository.getProductById(itemDto.getProductId())
                         .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
                 importItem.setProduct(product);
                 importItem.setQuantity(itemDto.getQuantity());
@@ -276,7 +276,7 @@ public class ImportServiceImpl implements ImportService {
                 importItem.setRemainingQuantity(itemDto.getQuantity());
 
                 // Cập nhật tổng số lượng sản phẩm trong Product
-                product.setTotalQuantity(product.getTotalQuantity() + itemDto.getQuantity());
+                product.setTotalQuantity((product.getTotalQuantity() == null ? 0 : product.getTotalQuantity()) + itemDto.getQuantity());
                 productRepository.save(product);
 
                 // Cập nhật giá nhập cho ProductUnit nếu cần
@@ -316,8 +316,6 @@ public class ImportServiceImpl implements ImportService {
         }
     }
 
-
-
     @Override
     public ImportResponseDto getImportById(Long importId) {
         Import importReceipt = importRepository.findById(importId)
@@ -326,12 +324,4 @@ public class ImportServiceImpl implements ImportService {
         // Chuyển đổi Import sang ImportDto và trả về
         return new ImportResponseDto(importReceipt);
     }
-
-
-
-
-
-
-
-
 }
