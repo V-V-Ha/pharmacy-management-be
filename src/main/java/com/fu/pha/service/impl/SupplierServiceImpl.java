@@ -26,6 +26,12 @@ public class SupplierServiceImpl implements SupplierService {
             throw new BadRequestException(Message.SUPPLIER_EXIST);
         }
 
+        // check exist phone number
+        Optional<Supplier> supplierExistByPhone = supplierRepository.findByPhoneNumber(supplierDto.getPhoneNumber());
+        if (supplierExistByPhone.isPresent()) {
+            throw new BadRequestException(Message.EXIST_PHONE);  
+        }
+
         //create new supplier
         Supplier supplier = new Supplier();
         supplier.setSupplierName(supplierDto.getSupplierName());

@@ -31,7 +31,7 @@ public class Product extends BaseEntity{
     @Column(name = "active_ingredient", columnDefinition = "TEXT")
     private String activeIngredient;
 
-    @Column(name = "dosage_concentration")
+    @Column(name = "dosage_concentration", columnDefinition = "TEXT")
     private String dosageConcentration;
 
     @Column(name = "packing_method")
@@ -60,7 +60,6 @@ public class Product extends BaseEntity{
 
     @Column(name = "dosage_forms")
     private String dosageForms;
-
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;

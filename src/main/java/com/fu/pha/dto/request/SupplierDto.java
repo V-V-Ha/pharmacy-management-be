@@ -1,6 +1,7 @@
 package com.fu.pha.dto.request;
 
 import com.fu.pha.exception.Message;
+import com.fu.pha.util.OptionalEmail;
 import com.fu.pha.validate.Constants;
 import jakarta.validation.Constraint;
 import jakarta.validation.constraints.NotBlank;
