@@ -61,7 +61,6 @@ public class Product extends BaseEntity{
     @Column(name = "dosage_forms")
     private String dosageForms;
 
-
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 

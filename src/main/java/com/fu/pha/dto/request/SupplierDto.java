@@ -1,6 +1,7 @@
 package com.fu.pha.dto.request;
 
 import com.fu.pha.exception.Message;
+import com.fu.pha.util.OptionalEmail;
 import com.fu.pha.validate.Constants;
 import jakarta.validation.Constraint;
 import jakarta.validation.constraints.NotBlank;
@@ -23,7 +24,7 @@ public class SupplierDto {
     @Pattern(regexp = Constants.REGEX_PHONE, message = Message.INVALID_PHONE)
     private String phoneNumber;
 
-    @Pattern(regexp = Constants.REGEX_GMAIL, message = Message.INVALID_GMAIL)
+    @OptionalEmail
     private String email;
 
     @NotBlank(message = Message.NULL_FILED)

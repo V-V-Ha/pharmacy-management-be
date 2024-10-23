@@ -35,4 +35,5 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
             "WHERE (LOWER(s.supplierName) LIKE LOWER(CONCAT('%', :supplierName, '%')) OR :supplierName IS NULL OR :supplierName = '') ")
     Optional<List<SupplierDto>> findSupplierBySupplierName(String supplierName);
 
+    Optional<Supplier> findByPhoneNumber(String phoneNumber);
 }
