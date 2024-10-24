@@ -41,6 +41,7 @@ public class ProductDTOResponse {
     private Instant lastModifiedDate;
     private String createBy;
     private String lastModifiedBy;
+    private Integer totalQuantity;
 
     public ProductDTOResponse(Product product){
         this.id = product.getId();
@@ -76,5 +77,6 @@ public class ProductDTOResponse {
         this.lastModifiedBy = product.getLastModifiedBy();
         this.createDate = product.getCreateDate();
         this.lastModifiedDate = product.getLastModifiedDate();
+        this.totalQuantity = product.getTotalQuantity();
     }
 }

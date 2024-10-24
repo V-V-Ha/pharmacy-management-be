@@ -158,16 +158,7 @@ public class ProductServiceImpl implements ProductService {
         if (productDTORequest.getProductUnitListDTO() != null) {
             List<ProductUnit> productUnitList = product.getProductUnitList();
 
-            // Check if the current number of units already exceeds 3
-//            if (productUnitList.size() >= 3) {
-//                throw new IllegalArgumentException("Each product can only have up to 3 units.");
-//            }
-
             for (ProductUnitDTORequest productUnitDTORequest : productDTORequest.getProductUnitListDTO()) {
-                // Check if adding this unit will exceed the limit of 3 units
-//                if (productUnitList.size() >= 3) {
-//                    throw new IllegalArgumentException("Each product can only have up to 3 units.");
-//                }
 
                 // Check if the product unit exists
                 ProductUnit productUnit = productUnitRepository.findProductUnitsByIdAndProductId(productUnitDTORequest.getId(),

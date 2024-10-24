@@ -32,7 +32,7 @@ public class Doctor extends BaseEntity{
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @Column(name = "note")
+    @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 
     @OneToMany(mappedBy = "doctor")
