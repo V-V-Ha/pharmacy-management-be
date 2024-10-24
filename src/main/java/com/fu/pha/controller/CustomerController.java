@@ -53,4 +53,11 @@ public class CustomerController {
     public ResponseEntity<CustomerDTOResponse> getCustomerById(@RequestParam Long id) {
         return ResponseEntity.ok(customerService.getCustomerById(id));
     }
+
+    @DeleteMapping("/delete-customer")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> deleteCustomer(@RequestParam Long id) {
+        customerService.deleteCustomer(id);
+        return ResponseEntity.ok(Message.DELETE_SUCCESS);
+    }
 }
