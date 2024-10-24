@@ -47,4 +47,10 @@ public class CustomerController {
         customerService.updateCustomer(request);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
+
+    @GetMapping("/get-customer-by-id")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<CustomerDTOResponse> getCustomerById(@RequestParam Long id) {
+        return ResponseEntity.ok(customerService.getCustomerById(id));
+    }
 }

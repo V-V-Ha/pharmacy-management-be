@@ -12,7 +12,7 @@ public interface CustomerService {
 
     void deleteCustomer(Long id);
 
-    CustomerDto getCustomerById(Long id);
+    CustomerDTOResponse getCustomerById(Long id);
 
     Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String phoneNumber);
 }

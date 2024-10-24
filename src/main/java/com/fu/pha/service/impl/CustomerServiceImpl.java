@@ -4,6 +4,7 @@ import com.fu.pha.dto.request.CustomerDTORequest;
 import com.fu.pha.dto.request.CustomerDto;
 import com.fu.pha.dto.response.CustomerDTOResponse;
 import com.fu.pha.entity.Customer;
+import com.fu.pha.entity.SaleOrder;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.CustomerRepository;
@@ -74,8 +75,22 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public CustomerDto getCustomerById(Long id) {
-        return null;
+    public CustomerDTOResponse getCustomerById(Long id) {
+        Optional<Customer> customerOptional = customerRepository.findById(id);
+        if (customerOptional.isEmpty()) {
+            throw new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND);
+        }
+
+        CustomerDTOResponse customerDTOResponse = new CustomerDTOResponse();
+        customerDTOResponse.setId(customerOptional.get().getId());
+        customerDTOResponse.setCustomerName(customerOptional.get().getCustomerName());
+        customerDTOResponse.setAddress(customerOptional.get().getAddress());
+        customerDTOResponse.setPhoneNumber(customerOptional.get().getPhoneNumber());
+        customerDTOResponse.setYob(customerOptional.get().getYob());
+        customerDTOResponse.setGender(customerOptional.get().getGender());
+        customerDTOResponse.setTotalAmount(customerOptional.get().getSaleOrderList().stream()
+                .mapToDouble(SaleOrder::getTotalAmount).sum());
+        return customerDTOResponse;
     }
 
     @Override
