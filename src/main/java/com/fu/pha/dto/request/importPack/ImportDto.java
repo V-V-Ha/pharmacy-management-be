@@ -21,7 +21,7 @@ public class ImportDto {
     @NotNull(message = "Ngày nhập không đươc để trống")
     private Instant importDate;
     private PaymentMethod paymentMethod;
-    private String tax;
+    private Double tax;
     private Double discount;
     @NotNull(message = "Tổng tiền không được để trống")
     @DecimalMin(value = "0.0", message = "Tổng tiền phải lớn hơn 0")

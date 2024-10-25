@@ -54,4 +54,7 @@ public class ExportSlip extends BaseEntity{
     @JoinColumn(name = "supplier_id", nullable = true)
     private Supplier supplier;
 
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
+
 }

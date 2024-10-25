@@ -56,5 +56,6 @@ public class ImportItemResponseDto {
         this.lastModifiedBy = importItem.getLastModifiedBy();
         this.remainingQuantity = importItem.getRemainingQuantity();
     }
+
 }
 

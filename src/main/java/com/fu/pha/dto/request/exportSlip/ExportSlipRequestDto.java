@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExportSlipDto {
+public class ExportSlipRequestDto {
     private Long id;
     private String invoiceNumber;
     private Instant exportDate;
@@ -21,4 +21,5 @@ public class ExportSlipDto {
     private Long userId;
     private Long supplierId;
     private List<ExportSlipItemRequestDto> exportSlipItems;
+    private Long productCount;
 }

@@ -34,13 +34,10 @@ public class ExportSlipItem extends BaseEntity{
     private Double discount;
 
     @Column(name = "batch_number")
-    private String batchNumber;
+    private String batch_number;
 
-    @Column(name = "expiration_date")
-    private Instant expirationDate;
-
-    @Column(name = "production_date")
-    private Instant productionDate;
+    @Column(name = "expiry_date")
+    private Instant expiryDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
@@ -56,4 +53,7 @@ public class ExportSlipItem extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "import_item_id", nullable = false)
     private ImportItem importItem;
+
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
 }

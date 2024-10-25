@@ -4,6 +4,8 @@ import com.fu.pha.dto.request.SupplierDto;
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.dto.request.importPack.ImportDto;
 import com.fu.pha.dto.request.importPack.ImportViewListDto;
+import com.fu.pha.dto.response.importPack.ImportItemResponseDto;
+import com.fu.pha.dto.response.importPack.ImportItemResponseForExport;
 import com.fu.pha.dto.response.importPack.ImportResponseDto;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import org.springframework.data.domain.Page;
@@ -33,5 +35,6 @@ public interface ImportService {
     ImportResponseDto getImportById(Long importId);
 
     List<SupplierDto> getSuppplierBySupplierName(String supplierName);
+    List<ImportItemResponseForExport> getImportItemByProductName(String productName);
 
 }

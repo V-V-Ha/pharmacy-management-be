@@ -37,7 +37,7 @@ public class Import extends BaseEntity{
     private PaymentMethod paymentMethod;
 
     @Column(name = "tax")
-    private String tax;
+    private Double tax;
 
     @Column(name = "discount")
     private Double discount;

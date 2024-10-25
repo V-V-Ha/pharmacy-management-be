@@ -6,6 +6,8 @@ import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.dto.request.importPack.ImportItemRequestDto;
 import com.fu.pha.dto.request.importPack.ImportViewListDto;
+import com.fu.pha.dto.response.importPack.ImportItemResponseDto;
+import com.fu.pha.dto.response.importPack.ImportItemResponseForExport;
 import com.fu.pha.dto.response.importPack.ImportResponseDto;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.*;
@@ -77,6 +79,15 @@ public class ImportServiceImpl implements ImportService {
         return product.get();
     }
 
+    @Override
+    public List<ImportItemResponseForExport> getImportItemByProductName(String productName) {
+        // Tìm tất cả sản phẩm dựa trên tên sản phẩm
+         List<ImportItemResponseForExport> importItems = importItemRepository.findImportItemsByProductName(productName);
+         return importItems;
+
+    }
+
+
     public List<SupplierDto> getSuppplierBySupplierName(String supplierName) {
         Optional<List<SupplierDto>> supplier = supplierRepository.findSupplierBySupplierName(supplierName);
         if (supplier.isEmpty()) {
@@ -123,8 +134,13 @@ public class ImportServiceImpl implements ImportService {
         for (ImportItemRequestDto itemDto : importDto.getImportItems()) {
             ImportItem importItem = new ImportItem();
             importItem.setImportReceipt(importReceipt);
+
+            // Lấy sản phẩm từ repository
             Product product = productRepository.getProductById(itemDto.getProductId())
                     .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
+
+            // Chuyển đổi quantity về đơn vị nhỏ nhất
+            int smallestQuantity = itemDto.getQuantity() * itemDto.getConversionFactor();
 
             importItem.setProduct(product);
             importItem.setQuantity(itemDto.getQuantity());
@@ -135,18 +151,18 @@ public class ImportServiceImpl implements ImportService {
             importItem.setBatchNumber(itemDto.getBatchNumber());
             importItem.setExpiryDate(itemDto.getExpiryDate());
             importItem.setTotalAmount(itemDto.getTotalAmount());
-            importItem.setRemainingQuantity(itemDto.getQuantity());
+            importItem.setRemainingQuantity(smallestQuantity);  // Cập nhật số lượng còn lại theo đơn vị nhỏ nhất
 
-
+            // Cập nhật totalQuantity của sản phẩm trong kho
             Integer currentTotalQuantity = product.getTotalQuantity();
             if (currentTotalQuantity == null) {
-                currentTotalQuantity = 0; // Gán giá trị mặc định nếu null
+                currentTotalQuantity = 0;  // Gán giá trị mặc định nếu null
             }
-            // Cập nhật tổng số lượng sản phẩm trong Product
-            product.setTotalQuantity(currentTotalQuantity + itemDto.getQuantity());
+            // Cập nhật tổng số lượng sản phẩm dựa trên đơn vị nhỏ nhất
+            product.setTotalQuantity(currentTotalQuantity + smallestQuantity);
             productRepository.save(product);
 
-            // Cập nhật giá nhập cho từng ProductUnit nếu cần
+            // Cập nhật giá nhập cho từng ProductUnit
             List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getProductId());
             for (ProductUnit productUnit : productUnits) {
                 if (itemDto.getConversionFactor() != 0) {
@@ -173,6 +189,7 @@ public class ImportServiceImpl implements ImportService {
         importReceipt.setTotalAmount(totalAmount);
         importRepository.save(importReceipt);
     }
+
 
 
 
@@ -235,15 +252,21 @@ public class ImportServiceImpl implements ImportService {
         for (ImportItemRequestDto itemDto : importDto.getImportItems()) {
             ImportItem importItem = existingItemMap.get(itemDto.getProductId());
 
-            // Nếu ImportItem đã tồn tại, thì cập nhật thông tin
+            // Lấy sản phẩm từ repository
+            Product product = productRepository.getProductById(itemDto.getProductId())
+                    .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
+
+            // Chuyển đổi quantity về đơn vị nhỏ nhất
+            int smallestQuantity = itemDto.getQuantity() * itemDto.getConversionFactor();
+
             if (importItem != null) {
-                // Cập nhật lại tổng số lượng cho Product khi thay đổi ImportItem
-                Product product = importItem.getProduct();
-                product.setTotalQuantity(product.getTotalQuantity() - importItem.getQuantity() + itemDto.getQuantity()); // Điều chỉnh lại số lượng
-                productRepository.save(product);
+                // Nếu ImportItem đã tồn tại, cập nhật lại `totalQuantity` dựa trên sự chênh lệch giữa số lượng cũ và mới
+                int oldSmallestQuantity = importItem.getRemainingQuantity();  // Số lượng còn lại trước đó
+                int quantityDifference = smallestQuantity - oldSmallestQuantity;
+                product.setTotalQuantity(product.getTotalQuantity() + quantityDifference);
 
                 // Cập nhật lại thông tin của ImportItem
-                importItem.setQuantity(itemDto.getQuantity());
+                importItem.setQuantity(itemDto.getQuantity());  // Giữ nguyên đơn vị nhập
                 importItem.setUnit(itemDto.getUnit());
                 importItem.setUnitPrice(itemDto.getUnitPrice());
                 importItem.setDiscount(itemDto.getDiscount());
@@ -251,7 +274,7 @@ public class ImportServiceImpl implements ImportService {
                 importItem.setBatchNumber(itemDto.getBatchNumber());
                 importItem.setExpiryDate(itemDto.getExpiryDate());
                 importItem.setTotalAmount(itemDto.getTotalAmount());
-                importItem.setRemainingQuantity(itemDto.getQuantity());
+                importItem.setRemainingQuantity(smallestQuantity);  // Cập nhật số lượng còn lại theo đơn vị nhỏ nhất
 
                 // Cập nhật giá nhập cho ProductUnit nếu cần
                 updateProductUnits(product, itemDto);
@@ -262,10 +285,9 @@ public class ImportServiceImpl implements ImportService {
                 // Nếu ImportItem không tồn tại, tạo mới
                 importItem = new ImportItem();
                 importItem.setImportReceipt(importReceipt);
-                Product product = productRepository.getProductById(itemDto.getProductId())
-                        .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
+
                 importItem.setProduct(product);
-                importItem.setQuantity(itemDto.getQuantity());
+                importItem.setQuantity(itemDto.getQuantity());  // Giữ nguyên đơn vị nhập
                 importItem.setUnit(itemDto.getUnit());
                 importItem.setUnitPrice(itemDto.getUnitPrice());
                 importItem.setDiscount(itemDto.getDiscount());
@@ -273,10 +295,10 @@ public class ImportServiceImpl implements ImportService {
                 importItem.setBatchNumber(itemDto.getBatchNumber());
                 importItem.setExpiryDate(itemDto.getExpiryDate());
                 importItem.setTotalAmount(itemDto.getTotalAmount());
-                importItem.setRemainingQuantity(itemDto.getQuantity());
+                importItem.setRemainingQuantity(smallestQuantity);  // Chuyển đổi số lượng còn lại theo đơn vị nhỏ nhất
 
-                // Cập nhật tổng số lượng sản phẩm trong Product
-                product.setTotalQuantity((product.getTotalQuantity() == null ? 0 : product.getTotalQuantity()) + itemDto.getQuantity());
+                // Cập nhật tổng số lượng sản phẩm trong Product khi thêm mới
+                product.setTotalQuantity((product.getTotalQuantity() == null ? 0 : product.getTotalQuantity()) + smallestQuantity);
                 productRepository.save(product);
 
                 // Cập nhật giá nhập cho ProductUnit nếu cần
@@ -302,7 +324,7 @@ public class ImportServiceImpl implements ImportService {
 
     // Hàm cập nhật giá nhập cho ProductUnit
     private void updateProductUnits(Product product, ImportItemRequestDto itemDto) {
-        List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getImportId());
+        List<ProductUnit> productUnits = productUnitRepository.findByProductId(product.getId()); // Cập nhật đúng theo productId
         for (ProductUnit productUnit : productUnits) {
             if (itemDto.getConversionFactor() != 0) {
                 double adjustedImportPrice = itemDto.getUnitPrice() / itemDto.getConversionFactor() * productUnit.getConversionFactor();
@@ -315,6 +337,7 @@ public class ImportServiceImpl implements ImportService {
             }
         }
     }
+
 
     @Override
     public ImportResponseDto getImportById(Long importId) {

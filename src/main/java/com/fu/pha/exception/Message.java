@@ -63,11 +63,17 @@ public class Message {
     public static final String SUPPLIER_NOT_FOUND = "Nhà cung cấp không tồn tại";
     public static final String QUANTITY_NOT_FOUND = "Số lượng không được trống";
     public static final String IMPORT_NOT_FOUND = "Phiếu nhập không tồn tại";
-    public static final String IMPORT_ITEM_NOT_FOUND = "Sản phẩm trong phiếu nhập không tồn tại";
 
     public static final String IMPORT_SUCCESS = "Tạo phiếu nhập thành công";
     public static final String TOTAL_AMOUNT_NOT_MATCH = "Tổng tiền không khớp";
     public static final String IMPORT_ITEMS_EMPTY = "Danh sách sản phẩm không được trống";
     public static final String INVALID_CONVERSION_FACTOR = "Hệ số quy đổi không hợp lệ";
     public static final String CUSTOMER_NOT_FOUND = "Không tìm thấy khách hàng";
+    public static final String EXPORT_ITEMS_EMPTY = "Danh sách sản phẩm xuất không được trống";
+    public static final String NOT_ENOUGH_STOCK = "Số lượng tồn kho không đủ";
+    public static final String INVALID_EXPORT_TYPE = "Loại xuất kho không hợp lệ";
+    public static final String IMPORT_ITEM_NOT_FOUND_FOR_BATCH = "Không tìm thấy sản phẩm trong lô hàng nhập";
+    public static final String NOT_ENOUGH_STOCK_IN_BATCH = "Số lượng trong lô hàng không đủ";
+    public static final String EXPORT_SLIP_NOT_FOUND = "Không tìm thấy phiếu xuất kho";
+
 }
