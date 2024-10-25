@@ -1,16 +1,18 @@
 package com.fu.pha.service;
 
+import com.fu.pha.dto.request.CustomerDTORequest;
 import com.fu.pha.dto.request.CustomerDto;
+import com.fu.pha.dto.response.CustomerDTOResponse;
 import org.springframework.data.domain.Page;
 
 public interface CustomerService {
-    void createCustomer(CustomerDto customerDto);
+    void createCustomer(CustomerDTORequest customerDTORequest);
 
-    void updateCustomer(CustomerDto customerDto);
+    void updateCustomer(CustomerDTORequest customerDTORequest);
 
     void deleteCustomer(Long id);
 
-    CustomerDto getCustomerById(Long id);
+    CustomerDTOResponse getCustomerById(Long id);
 
-    Page<CustomerDto> getAllCustomerByPaging(int size, int index, String customerName, String phoneNumber);
+    Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String phoneNumber);
 }
