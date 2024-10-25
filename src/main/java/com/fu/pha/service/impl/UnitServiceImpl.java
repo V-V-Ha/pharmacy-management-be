@@ -51,20 +51,37 @@ public class UnitServiceImpl implements UnitService {
         if (unitDto == null || unitDto.getUnitName() == null || unitDto.getUnitName().isEmpty()) {
             throw new BadRequestException(Message.NULL_FILED);
         }
-        // Existing unit
-        Unit unitExist = unitRepository.findByUnitName(unitDto.getUnitName());
+        String normalizedUnitName = capitalizeWords(unitDto.getUnitName());
+
+
+        Unit unitExist = unitRepository.findByUnitName(normalizedUnitName);
         if (unitExist != null) {
             throw new BadRequestException(Message.UNIT_EXIST);
         }
 
-        // Create a new unit entity
         Unit unit = new Unit();
-        unit.setUnitName(unitDto.getUnitName());
+        unit.setUnitName(normalizedUnitName);
         unit.setDescription(unitDto.getDescription());
 
         // Save the unit to the database
         unitRepository.save(unit);
     }
+
+
+    private String capitalizeWords(String str) {
+        String[] words = str.toLowerCase().split("\\s+");
+        StringBuilder capitalizedWords = new StringBuilder();
+
+        for (String word : words) {
+            if (word.length() > 0) {
+                capitalizedWords.append(Character.toUpperCase(word.charAt(0)))
+                        .append(word.substring(1))
+                        .append(" ");
+            }
+        }
+        return capitalizedWords.toString().trim();
+    }
+
 
     @Override
     @Transactional

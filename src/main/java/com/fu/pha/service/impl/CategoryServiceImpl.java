@@ -37,16 +37,20 @@ public class CategoryServiceImpl implements CategoryService {
         if (request == null || request.getName() == null || request.getName().isEmpty()) {
             throw new BadRequestException(Message.NULL_FILED);
         }
-        // existing category
-        Optional<Category> categoryExist = categoryRepository.findByCategoryName(request.getName());
+
+        // Normalize the category name to capitalize the first letter of each word
+        String normalizedCategoryName = capitalizeWords(request.getName());
+
+        // Check if the category with the normalized name already exists
+        Optional<Category> categoryExist = categoryRepository.findByCategoryName(normalizedCategoryName);
         if (categoryExist.isPresent()) {
             throw new BadRequestException(Message.CATEGORY_EXIST);
         }
 
         try {
-            // Create a new category entity
+            // Create a new category entity with the normalized name
             Category category = new Category();
-            category.setCategoryName(request.getName());
+            category.setCategoryName(normalizedCategoryName); // Set the formatted name
             category.setDescription(request.getDescription());
             category.setCreateDate(Instant.now());
             category.setCreateBy(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -58,6 +62,21 @@ public class CategoryServiceImpl implements CategoryService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to create category", e);
         }
+    }
+
+    // Helper method to capitalize the first letter of each word
+    private String capitalizeWords(String str) {
+        String[] words = str.toLowerCase().split("\\s+");
+        StringBuilder capitalizedWords = new StringBuilder();
+
+        for (String word : words) {
+            if (word.length() > 0) {
+                capitalizedWords.append(Character.toUpperCase(word.charAt(0)))
+                        .append(word.substring(1))
+                        .append(" ");
+            }
+        }
+        return capitalizedWords.toString().trim();
     }
 
 

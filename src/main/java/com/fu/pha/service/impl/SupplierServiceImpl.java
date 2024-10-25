@@ -20,29 +20,48 @@ public class SupplierServiceImpl implements SupplierService {
     private SupplierRepository supplierRepository;
     @Override
     public void createSupplier(SupplierDto supplierDto) {
-        //check exist tax
+        // Check exist tax
         Optional<Supplier> supplierExist = supplierRepository.findByTax(supplierDto.getTax());
-        if(supplierExist.isPresent()){
+        if (supplierExist.isPresent()) {
             throw new BadRequestException(Message.SUPPLIER_EXIST);
         }
 
-        // check exist phone number
+        // Check exist phone number
         Optional<Supplier> supplierExistByPhone = supplierRepository.findByPhoneNumber(supplierDto.getPhoneNumber());
         if (supplierExistByPhone.isPresent()) {
-            throw new BadRequestException(Message.EXIST_PHONE);  
+            throw new BadRequestException(Message.EXIST_PHONE);
         }
 
-        //create new supplier
+        // Normalize the supplier name to capitalize the first letter of each word
+        String normalizedSupplierName = capitalizeWords(supplierDto.getSupplierName());
+
+        // Create new supplier with normalized name
         Supplier supplier = new Supplier();
-        supplier.setSupplierName(supplierDto.getSupplierName());
+        supplier.setSupplierName(normalizedSupplierName); // Set the formatted name
         supplier.setTax(supplierDto.getTax());
         supplier.setAddress(supplierDto.getAddress());
         supplier.setPhoneNumber(supplierDto.getPhoneNumber());
         supplier.setEmail(supplierDto.getEmail());
 
+        // Save supplier to the database
         supplierRepository.save(supplier);
-
     }
+
+    // Helper method to capitalize the first letter of each word
+    private String capitalizeWords(String str) {
+        String[] words = str.toLowerCase().split("\\s+");
+        StringBuilder capitalizedWords = new StringBuilder();
+
+        for (String word : words) {
+            if (word.length() > 0) {
+                capitalizedWords.append(Character.toUpperCase(word.charAt(0)))
+                        .append(word.substring(1))
+                        .append(" ");
+            }
+        }
+        return capitalizedWords.toString().trim();
+    }
+
 
     @Override
     public void updateSupplier(SupplierDto supplierDto) {
