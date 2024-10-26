@@ -1,0 +1,64 @@
+package com.fu.pha.controller;
+
+import com.fu.pha.dto.request.DoctorDTORequest;
+import com.fu.pha.dto.response.DoctorDTOResponse;
+import com.fu.pha.dto.response.PageResponseModel;
+import com.fu.pha.exception.Message;
+import com.fu.pha.service.DoctorService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/doctor")
+public class DoctorController {
+
+    @Autowired
+    DoctorService doctorService;
+
+    @GetMapping("/get-all-doctor")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<PageResponseModel<DoctorDTOResponse>> getAllDoctor(@RequestParam(defaultValue = "0") int page,
+                                                                             @RequestParam(defaultValue = "10") int size,
+                                                                             @RequestParam(defaultValue = "", name = "doctorName") String doctorName) {
+        Page<DoctorDTOResponse> doctorDTOResponses = doctorService.getAllDoctorByPaging(page, size, doctorName);
+        PageResponseModel<DoctorDTOResponse> response = PageResponseModel.<DoctorDTOResponse>builder()
+                .page(page)
+                .size(size)
+                .total(doctorDTOResponses.getTotalElements())
+                .listData(doctorDTOResponses.getContent())
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/get-doctor-by-id")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<DoctorDTOResponse> getDoctorById(@RequestParam Long id) {
+        return ResponseEntity.ok(doctorService.getDoctorById(id));
+    }
+
+    @DeleteMapping("/delete-doctor")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> deleteDoctor(@RequestParam Long id) {
+        doctorService.deleteDoctor(id);
+        return ResponseEntity.ok(Message.DELETE_SUCCESS);
+    }
+
+    @PostMapping("/create-doctor")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> createDoctor(@Valid  @RequestParam DoctorDTORequest request) {
+        doctorService.createDoctor(request);
+        return ResponseEntity.ok(Message.CREATE_SUCCESS);
+    }
+
+    @PutMapping("/update-doctor")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> updateDoctor(@Valid @RequestParam DoctorDTORequest request) {
+        doctorService.updateDoctor(request);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    }
+
+}

@@ -76,4 +76,5 @@ public class Message {
     public static final String NOT_ENOUGH_STOCK_IN_BATCH = "Số lượng trong lô hàng không đủ";
     public static final String EXPORT_SLIP_NOT_FOUND = "Không tìm thấy phiếu xuất kho";
 
+    public static final String DOCTOR_NOT_FOUND = "Không tìm thấy bác sĩ";
 }

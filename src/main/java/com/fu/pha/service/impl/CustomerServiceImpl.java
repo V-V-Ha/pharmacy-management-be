@@ -24,6 +24,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Autowired
     private CustomerRepository customerRepository;
 
+    @Transactional
     @Override
     public void createCustomer(CustomerDTORequest customerDTORequest) {
 
@@ -43,6 +44,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
 
+    @Transactional
     @Override
     public void updateCustomer(CustomerDTORequest customerDTORequest) {
         Optional<Customer> customerOptional = customerRepository.findById(customerDTORequest.getId());
