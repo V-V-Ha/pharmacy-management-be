@@ -49,14 +49,14 @@ public class DoctorController {
 
     @PostMapping("/create-doctor")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> createDoctor(@Valid  @RequestParam DoctorDTORequest request) {
+    public ResponseEntity<String> createDoctor(@Valid  @RequestBody DoctorDTORequest request) {
         doctorService.createDoctor(request);
         return ResponseEntity.ok(Message.CREATE_SUCCESS);
     }
 
     @PutMapping("/update-doctor")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> updateDoctor(@Valid @RequestParam DoctorDTORequest request) {
+    public ResponseEntity<String> updateDoctor(@Valid @RequestBody DoctorDTORequest request) {
         doctorService.updateDoctor(request);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
