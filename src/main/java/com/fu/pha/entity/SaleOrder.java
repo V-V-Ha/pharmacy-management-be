@@ -31,7 +31,7 @@ public class SaleOrder extends BaseEntity{
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
-    private PaymentStatus status;
+    private PaymentStatus paymentMethod;
 
     @Column(name = "discount")
     private Double discount;
@@ -44,13 +44,14 @@ public class SaleOrder extends BaseEntity{
     private Customer customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "doctor_id")
+    private Doctor doctor;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @OneToMany(mappedBy = "saleOrder")
     private List<SaleOrderItem> saleOrderItemList;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "prescription_id", nullable = false)
-    private Prescription prescription;
 }

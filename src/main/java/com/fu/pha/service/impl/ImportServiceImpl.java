@@ -6,6 +6,7 @@ import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.dto.request.importPack.ImportItemRequestDto;
 import com.fu.pha.dto.request.importPack.ImportViewListDto;
+import com.fu.pha.dto.response.ProductUnitDTOResponse;
 import com.fu.pha.dto.response.importPack.ImportItemResponseDto;
 import com.fu.pha.dto.response.importPack.ImportItemResponseForExport;
 import com.fu.pha.dto.response.importPack.ImportResponseDto;
@@ -79,13 +80,41 @@ public class ImportServiceImpl implements ImportService {
         return product.get();
     }
 
+//    @Override
+//    public List<ImportItemResponseForExport> getImportItemByProductName(String productName) {
+//        // Tìm tất cả sản phẩm dựa trên tên sản phẩm
+//         List<ImportItemResponseForExport> importItems = importItemRepository.findImportItemsByProductName(productName);
+//         return importItems;
+//
+//    }
     @Override
     public List<ImportItemResponseForExport> getImportItemByProductName(String productName) {
-        // Tìm tất cả sản phẩm dựa trên tên sản phẩm
-         List<ImportItemResponseForExport> importItems = importItemRepository.findImportItemsByProductName(productName);
-         return importItems;
+        List<ImportItem> importItems = importItemRepository.findImportItemsByProductName(productName);
 
+        return importItems.stream().map(importItem -> {
+            List<ProductUnitDTOResponse> productUnits = importItem.getProduct().getProductUnitList()
+                    .stream()
+                    .map(ProductUnitDTOResponse::new)
+                    .collect(Collectors.toList());
+
+            return new ImportItemResponseForExport(
+                    importItem.getId(),
+                    importItem.getQuantity(),
+                    importItem.getUnitPrice(),
+                    importItem.getUnit(),
+                    importItem.getDiscount(),
+                    importItem.getTax(),
+                    importItem.getTotalAmount(),
+                    importItem.getBatchNumber(),
+                    importItem.getProduct().getProductName(),
+                    importItem.getImportReceipt().getId(),
+                    importItem.getExpiryDate(),
+                    importItem.getRemainingQuantity(),
+                    productUnits
+            );
+        }).collect(Collectors.toList());
     }
+
 
 
     public List<SupplierDto> getSuppplierBySupplierName(String supplierName) {
