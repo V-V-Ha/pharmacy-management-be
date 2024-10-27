@@ -21,11 +21,11 @@ public class SaleOrderItem extends BaseEntity{
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "quantity")
+    @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @Column(name = "unit_price")
-    private Double unitPrice;
+    @Column(name = "unit_price", nullable = false)
+    private BigDecimal unitPrice;
 
     @Column(name = "unit")
     private String unit;
@@ -33,11 +33,17 @@ public class SaleOrderItem extends BaseEntity{
     @Column(name = "discount")
     private Double discount;
 
-    @Column(name = "total_amount")
-    private Double totalAmount;
+    @Column(name = "total_amount", nullable = false)
+    private BigDecimal totalAmount;
 
     @Column(name = "batch_number")
     private String batchNumber;
+
+    @Column(name = "dosage")
+    private String dosage;
+
+    @Column(name = "prescription_required", nullable = false)
+    private Boolean prescriptionRequired;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_order_id", nullable = false)
@@ -47,7 +53,4 @@ public class SaleOrderItem extends BaseEntity{
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "prescription_item_id", nullable = false)
-    private PrescriptionItem prescriptionItem;
 }
