@@ -80,13 +80,6 @@ public class ImportServiceImpl implements ImportService {
         return product.get();
     }
 
-//    @Override
-//    public List<ImportItemResponseForExport> getImportItemByProductName(String productName) {
-//        // Tìm tất cả sản phẩm dựa trên tên sản phẩm
-//         List<ImportItemResponseForExport> importItems = importItemRepository.findImportItemsByProductName(productName);
-//         return importItems;
-//
-//    }
     @Override
     public List<ImportItemResponseForExport> getImportItemByProductName(String productName) {
         List<ImportItem> importItems = importItemRepository.findImportItemsByProductName(productName);

@@ -25,7 +25,7 @@ public class SaleOrderItem extends BaseEntity{
     private Integer quantity;
 
     @Column(name = "unit_price", nullable = false)
-    private BigDecimal unitPrice;
+    private Double unitPrice;
 
     @Column(name = "unit")
     private String unit;
@@ -34,7 +34,7 @@ public class SaleOrderItem extends BaseEntity{
     private Double discount;
 
     @Column(name = "total_amount", nullable = false)
-    private BigDecimal totalAmount;
+    private Double totalAmount;
 
     @Column(name = "batch_number")
     private String batchNumber;
