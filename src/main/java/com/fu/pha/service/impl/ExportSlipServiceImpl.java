@@ -12,6 +12,9 @@ import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.*;
 import com.fu.pha.service.ExportSlipService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -243,8 +246,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         exportSlipRepository.save(exportSlip);
     }
 
-
-
     @Transactional
     @Override
     public void updateExport(Long exportSlipId, ExportSlipRequestDto exportDto) {
@@ -372,9 +373,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         exportSlipRepository.save(exportSlip);
     }
 
-
-
-
     @Transactional
     @Override
     public void softDeleteExportSlip(Long exportSlipId) {
@@ -410,6 +408,28 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         return new ExportSlipResponseDto(exportSlip);
     }
 
+    @Override
+    public Page<ExportSlipResponseDto> getAllExportSlipPaging(int page, int size, ExportType exportType, Instant fromDate, Instant toDate) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Nếu không có fromDate và toDate
+        if (fromDate == null && toDate == null) {
+            return exportSlipRepository.getListExportSlipPagingWithoutDate(exportType, pageable);
+        }
+        //Nếu có fromDate và không có toDate
+        else if (fromDate != null && toDate == null) {
+            return exportSlipRepository.getListExportSlipPagingFromDate(exportType, fromDate, pageable);
+        }
+        //Nếu không có fromDate và có toDate
+        else if (fromDate == null) {
+            return exportSlipRepository.getListExportSlipPagingToDate(exportType, toDate, pageable);
+        }
+        //Nếu có cả fromDate và toDate
+        else {
+            return exportSlipRepository.getListExportSlipPaging(exportType, fromDate, toDate, pageable);
+        }
+    }
+
     public List<ExportSlipResponseDto> getAllActiveExportSlips() {
         // Lấy danh sách các phiếu xuất kho chưa bị xóa mềm từ repository
         List<ExportSlip> exportSlips = exportSlipRepository.findAllActive();
@@ -419,14 +439,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
                 .map(ExportSlipResponseDto::new)  // Sử dụng constructor của DTO để chuyển đổi
                 .collect(Collectors.toList());
     }
-
-
-
-
-
-
-
-
 
 
 

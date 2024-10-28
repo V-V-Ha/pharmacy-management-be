@@ -20,4 +20,5 @@ public interface ProductService {
     List<String> getAllCountries();
     List<ProductDTOResponse> getAllProducts();
     ResponseEntity<byte[]> exportProductsToExcel() throws IOException;
+    void importProductsFromExcel(MultipartFile file) throws IOException;
 }
