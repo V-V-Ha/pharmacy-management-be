@@ -423,4 +423,61 @@ public class ProductServiceImpl implements ProductService {
         return headerCellStyle;
     }
 
-}
+    @Override
+    public void importProductsFromExcel(MultipartFile file) throws IOException {
+        if (file.isEmpty() || !file.getOriginalFilename().endsWith(".xlsx")) {
+            throw new BadRequestException("Invalid file. Please upload an Excel file.");
+        }
+
+        Workbook workbook = new XSSFWorkbook(file.getInputStream());
+        Sheet sheet = workbook.getSheetAt(0);
+
+        List<Product> products = new ArrayList<>();
+
+        int rowNum = 1; // Skip header row
+        while (rowNum <= sheet.getLastRowNum()) {
+            Row row = sheet.getRow(rowNum);
+
+            // Read product-level data
+            String productCode = row.getCell(1).getStringCellValue();
+            Product product = new Product();
+            product.setProductCode(productCode);
+            product.setProductName(row.getCell(2).getStringCellValue());
+          //  product.setCategoryName(row.getCell(3).getStringCellValue());
+            product.setRegistrationNumber(row.getCell(7).getStringCellValue());
+            product.setTotalQuantity((int) row.getCell(8).getNumericCellValue());
+
+            List<ProductUnit> units = new ArrayList<>();
+
+            // Loop to read all units for this product
+            do {
+                ProductUnit unit = new ProductUnit();
+            //    unit.setUnitName(row.getCell(4).getStringCellValue()); // Đơn vị sản phẩm
+                unit.setImportPrice(row.getCell(5).getNumericCellValue()); // Giá nhập
+                unit.setRetailPrice(row.getCell(6).getNumericCellValue()); // Giá bán
+                units.add(unit);
+
+                rowNum++; // Move to the next row
+
+                // Stop if it's the last row or we encounter a new product
+                row = (rowNum <= sheet.getLastRowNum()) ? sheet.getRow(rowNum) : null;
+            } while (row != null && row.getCell(1) == null); // Continue if productCode cell is empty
+
+            // Save product and units
+       //     product.setProductUnits(units);
+            products.add(product);
+        }
+
+        workbook.close();
+
+        // Save all products in the database
+        for (Product product : products) {
+            productRepository.save(product);
+        //    for (ProductUnit unit : product.getProductUnits()) {
+           //     unit.setProduct(product); // Set the relationship
+             //   productUnitRepository.save(unit);
+            }
+        }
+    }
+
+

@@ -7,6 +7,7 @@ import com.fu.pha.exception.Message;
 import com.fu.pha.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -88,4 +89,15 @@ public class ProductController {
     public ResponseEntity<byte[]> exportToExcel() throws IOException {
         return productService.exportProductsToExcel();
     }
+
+    @PostMapping("/import-excel")
+    public ResponseEntity<?> importProductsFromExcel(@RequestParam("file") MultipartFile file) {
+        try {
+            productService.importProductsFromExcel(file);
+            return ResponseEntity.ok("Products imported successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to import products: " + e.getMessage());
+        }
+    }
+
 }
