@@ -6,7 +6,9 @@ import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.dto.request.importPack.ImportItemRequestDto;
 import com.fu.pha.dto.request.importPack.ImportViewListDto;
+import com.fu.pha.dto.response.ProductDtoResponseForExport;
 import com.fu.pha.dto.response.ProductUnitDTOResponse;
+import com.fu.pha.dto.response.exportSlip.BatchInfo;
 import com.fu.pha.dto.response.importPack.ImportItemResponseDto;
 import com.fu.pha.dto.response.importPack.ImportItemResponseForExport;
 import com.fu.pha.dto.response.importPack.ImportResponseDto;
@@ -80,33 +82,94 @@ public class ImportServiceImpl implements ImportService {
         return product.get();
     }
 
+//    @Override
+//    public List<ImportItemResponseForExport> getImportItemByProductName(String productName) {
+//        List<ImportItem> importItems = importItemRepository.findImportItemsByProductName(productName);
+//
+//        return importItems.stream().map(importItem -> {
+//            List<ProductUnitDTOResponse> productUnits = importItem.getProduct().getProductUnitList()
+//                    .stream()
+//                    .map(ProductUnitDTOResponse::new)
+//                    .collect(Collectors.toList());
+//
+//            return new ImportItemResponseForExport(
+//                    importItem.getId(),
+//                    importItem.getQuantity(),
+//                    importItem.getUnitPrice(),
+//                    importItem.getUnit(),
+//                    importItem.getDiscount(),
+//                    importItem.getTax(),
+//                    importItem.getTotalAmount(),
+//                    importItem.getBatchNumber(),
+//                    importItem.getProduct().getProductName(),
+//                    importItem.getImportReceipt().getId(),
+//                    importItem.getExpiryDate(),
+//                    importItem.getRemainingQuantity(),
+//                    productUnits
+//
+//            );
+//        }).collect(Collectors.toList());
+//    }
+
+
     @Override
-    public List<ImportItemResponseForExport> getImportItemByProductName(String productName) {
+    public List<ProductDtoResponseForExport> getProductImportByProductName(String productName) {
+        // Tìm tất cả các ImportItem theo productName
         List<ImportItem> importItems = importItemRepository.findImportItemsByProductName(productName);
 
-        return importItems.stream().map(importItem -> {
-            List<ProductUnitDTOResponse> productUnits = importItem.getProduct().getProductUnitList()
-                    .stream()
-                    .map(ProductUnitDTOResponse::new)
-                    .collect(Collectors.toList());
+        // Nhóm các ImportItem theo Product để tránh trùng lặp sản phẩm
+        Map<Product, List<ImportItem>> importItemsGroupedByProduct = importItems.stream()
+                .collect(Collectors.groupingBy(ImportItem::getProduct));
 
-            return new ImportItemResponseForExport(
-                    importItem.getId(),
-                    importItem.getQuantity(),
-                    importItem.getUnitPrice(),
-                    importItem.getUnit(),
-                    importItem.getDiscount(),
-                    importItem.getTax(),
-                    importItem.getTotalAmount(),
-                    importItem.getBatchNumber(),
-                    importItem.getProduct().getProductName(),
-                    importItem.getImportReceipt().getId(),
-                    importItem.getExpiryDate(),
-                    importItem.getRemainingQuantity(),
-                    productUnits
-            );
-        }).collect(Collectors.toList());
+        // Tạo danh sách ProductDtoResponseForExport từ nhóm sản phẩm
+        List<ProductDtoResponseForExport> productDtoResponses = importItemsGroupedByProduct.entrySet().stream()
+                .map(entry -> {
+                    Product product = entry.getKey();
+                    List<ImportItem> itemsForProduct = entry.getValue();
+
+                    // Tạo danh sách ImportItemResponseForExport cho từng sản phẩm
+                    List<ImportItemResponseForExport> importItemResponses = itemsForProduct.stream()
+                            .map(importItem -> {
+                                List<ProductUnitDTOResponse> productUnits = importItem.getProduct().getProductUnitList()
+                                        .stream()
+                                        .map(ProductUnitDTOResponse::new)
+                                        .collect(Collectors.toList());
+
+                                return new ImportItemResponseForExport(
+                                        importItem.getId(),
+                                        importItem.getQuantity(),
+                                        importItem.getUnitPrice(),
+                                        importItem.getUnit(),
+                                        importItem.getDiscount(),
+                                        importItem.getTax(),
+                                        importItem.getTotalAmount(),
+                                        importItem.getBatchNumber(),
+                                        importItem.getImportReceipt().getId(),
+                                        importItem.getExpiryDate(),
+                                        importItem.getRemainingQuantity()
+                                );
+                            })
+                            .collect(Collectors.toList());
+
+                    // Tạo ProductDtoResponseForExport cho từng sản phẩm
+                    return new ProductDtoResponseForExport(
+                            product.getProductName(),
+                            product.getProductUnitList().stream().map(ProductUnitDTOResponse::new).collect(Collectors.toList()),
+                            product.getRegistrationNumber(),
+                            product.getManufacturer(),
+                            product.getCountryOfOrigin(),
+                            importItemResponses,
+                            product.getTotalQuantity() // Lấy totalQuantity có sẵn từ Product
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return productDtoResponses;
     }
+
+
+
+
 
 
 

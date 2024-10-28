@@ -55,7 +55,7 @@ public class ExportSlipController {
 
     @GetMapping("/get-import-item-by-product-name")
     public ResponseEntity<?> getImportItemByProductName(@RequestParam String productName) {
-        return ResponseEntity.ok(importService.getImportItemByProductName(productName));
+        return ResponseEntity.ok(importService.getProductImportByProductName(productName));
     }
 
     @GetMapping("/get-all-export-slip-paging")
