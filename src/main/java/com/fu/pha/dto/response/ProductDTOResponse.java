@@ -34,6 +34,7 @@ public class ProductDTOResponse {
     private String description;
     private String category;
     private Long categoryId;
+    private String categoryName;
     private String imageProduct;
     private Boolean prescriptionDrug;
     private List<ProductUnitDTOResponse> productUnitList;
@@ -78,5 +79,6 @@ public class ProductDTOResponse {
         this.createDate = product.getCreateDate();
         this.lastModifiedDate = product.getLastModifiedDate();
         this.totalQuantity = product.getTotalQuantity();
+        this.categoryName = product.getCategoryId().getCategoryName();
     }
 }

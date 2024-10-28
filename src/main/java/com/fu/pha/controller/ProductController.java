@@ -12,6 +12,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/product")
 public class ProductController {
@@ -71,5 +74,18 @@ public class ProductController {
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<?> getAllUnit() {
         return ResponseEntity.ok(productService.getAllUnit());
+    }
+
+    @GetMapping("/get-all-countries")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<List<String>> getAllCountries() {
+        List<String> countries = productService.getAllCountries();
+        return ResponseEntity.ok(countries);
+    }
+
+    @GetMapping("/export-excel")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<byte[]> exportToExcel() throws IOException {
+        return productService.exportProductsToExcel();
     }
 }

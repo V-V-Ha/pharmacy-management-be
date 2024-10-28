@@ -66,8 +66,7 @@ public class UnitServiceImpl implements UnitService {
         // Save the unit to the database
         unitRepository.save(unit);
     }
-
-
+    
     private String capitalizeWords(String str) {
         String[] words = str.toLowerCase().split("\\s+");
         StringBuilder capitalizedWords = new StringBuilder();
@@ -81,7 +80,6 @@ public class UnitServiceImpl implements UnitService {
         }
         return capitalizedWords.toString().trim();
     }
-
 
     @Override
     @Transactional
@@ -118,8 +116,5 @@ public class UnitServiceImpl implements UnitService {
                 new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
         unit.setDeleted(true);
         unitRepository.save(unit);
-
-
     }
-
 }

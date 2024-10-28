@@ -6,6 +6,7 @@ import com.fu.pha.dto.request.ProductUnitDTORequest;
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.dto.response.CloudinaryResponse;
 import com.fu.pha.dto.response.ProductDTOResponse;
+import com.fu.pha.dto.response.ProductUnitDTOResponse;
 import com.fu.pha.entity.*;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.MaxUploadSizeExceededException;
@@ -18,21 +19,24 @@ import com.fu.pha.repository.UnitRepository;
 import com.fu.pha.service.CloudinaryService;
 import com.fu.pha.service.ProductService;
 import com.fu.pha.util.FileUploadUtil;
-import com.fu.pha.validate.Validate;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.*;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -54,6 +58,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     CloudinaryService cloudinaryService;
+
+    private static final String COUNTRY_API_URL = "https://restcountries.com/v3.1/all";
 
     @Transactional
     @Override
@@ -264,4 +270,157 @@ public class ProductServiceImpl implements ProductService {
         }
         return unitDtos;
     }
+
+    @Override
+    public List<String> getAllCountries() {
+        RestTemplate restTemplate = new RestTemplate();
+        List<Map<String, Object>> response = restTemplate.getForObject(COUNTRY_API_URL, List.class);
+        List<String> countryNames = new ArrayList<>();
+
+        for (Map<String, Object> country : response) {
+            Map<String, String> name = (Map<String, String>) country.get("name");
+            countryNames.add(name.get("common")); // Lấy tên phổ biến của quốc gia
+        }
+        return countryNames;
+    }
+
+    @Override
+    public List<ProductDTOResponse> getAllProducts() {
+        List<Product> products = productRepository.findAll();
+        List<ProductDTOResponse> productDTOResponses = new ArrayList<>();
+        for (Product product : products) {
+            productDTOResponses.add(new ProductDTOResponse(product));
+        }
+        return productDTOResponses;
+    }
+
+    @Override
+    public ResponseEntity<byte[]> exportProductsToExcel() throws IOException {
+        List<ProductDTOResponse> products = getAllProducts();
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Product List");
+
+        // Define columns and create header row
+        String[] columns = {"STT", "Mã", "Tên sản phẩm", "Nhóm sản phẩm", "Đơn vị sản phẩm", "Giá nhập", "Giá bán", "Số đăng kí", "Tồn"};
+        Row headerRow = sheet.createRow(0);
+        CellStyle headerCellStyle = createHeaderCellStyle(workbook);
+        CellStyle borderedCellStyle = createBorderedAndCenteredCellStyle(workbook);
+
+        // Set headers with borders
+        for (int i = 0; i < columns.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(columns[i]);
+            cell.setCellStyle(headerCellStyle);
+        }
+
+        int rowNum = 1;
+        for (int i = 0; i < products.size(); i++) {
+            ProductDTOResponse product = products.get(i);
+            List<ProductUnitDTOResponse> units = product.getProductUnitList();
+            int startRow = rowNum; // Track the starting row for merging
+
+            // Create rows for each unit
+            for (ProductUnitDTOResponse unit : units) {
+                Row row = sheet.createRow(rowNum++);
+                row.setHeightInPoints(20); // Set row height for better readability
+
+                // Fill unit-specific data with borders
+                createCellWithStyle(row, 4, unit.getUnitName(), borderedCellStyle); // Đơn vị sản phẩm
+                createCellWithStyle(row, 5, unit.getImportPrice(), borderedCellStyle); // Giá nhập
+                createCellWithStyle(row, 6, unit.getRetailPrice(), borderedCellStyle); // Giá bán
+            }
+
+            // Fill product-specific data in the first row only
+            Row productRow = sheet.getRow(startRow);
+            createCellWithStyle(productRow, 0, i + 1, borderedCellStyle); // STT
+            createCellWithStyle(productRow, 1, product.getProductCode(), borderedCellStyle); // Mã
+            createCellWithStyle(productRow, 2, product.getProductName(), borderedCellStyle); // Tên sản phẩm
+            createCellWithStyle(productRow, 3, product.getCategoryName(), borderedCellStyle); // Nhóm sản phẩm
+            createCellWithStyle(productRow, 7, product.getRegistrationNumber(), borderedCellStyle); // Số đăng kí
+            createCellWithStyle(productRow, 8, product.getTotalQuantity(), borderedCellStyle); // Tồn
+
+            // Merge cells for product-specific columns and ensure bottom border for merged cells
+            if (units.size() > 1) { // Only merge if there are multiple units
+                mergeAndApplyBottomBorder(sheet, startRow, rowNum - 1, 0, borderedCellStyle); // STT
+                mergeAndApplyBottomBorder(sheet, startRow, rowNum - 1, 1, borderedCellStyle); // Mã
+                mergeAndApplyBottomBorder(sheet, startRow, rowNum - 1, 2, borderedCellStyle); // Tên sản phẩm
+                mergeAndApplyBottomBorder(sheet, startRow, rowNum - 1, 3, borderedCellStyle); // Nhóm sản phẩm
+                mergeAndApplyBottomBorder(sheet, startRow, rowNum - 1, 7, borderedCellStyle); // Số đăng kí
+                mergeAndApplyBottomBorder(sheet, startRow, rowNum - 1, 8, borderedCellStyle); // Tồn
+            }
+        }
+
+        // Auto-size columns to fit content
+        for (int i = 0; i < columns.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Set a minimum width for the "Nhóm sản phẩm" column to ensure visibility
+        sheet.setColumnWidth(3, 6000); // Adjust as needed, 5000 units roughly equals 20 characters in width
+
+        // Write data to byte array output
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        workbook.write(out);
+        workbook.close();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=product_list.xlsx")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(out.toByteArray());
+    }
+
+    // Helper method to create cells with border style and alignment
+    private void createCellWithStyle(Row row, int colIndex, Object value, CellStyle style) {
+        Cell cell = row.createCell(colIndex);
+        if (value instanceof String) {
+            cell.setCellValue((String) value);
+        } else if (value instanceof Number) {
+            cell.setCellValue(((Number) value).doubleValue());
+        }
+        cell.setCellStyle(style);
+    }
+
+    // Helper method to create a bordered and centered cell style with thick bottom border
+    private CellStyle createBorderedAndCenteredCellStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        style.setBorderTop(BorderStyle.THIN); // Thin top border
+        style.setBorderBottom(BorderStyle.THICK); // Thick bottom border
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setAlignment(HorizontalAlignment.CENTER); // Center align text
+        style.setVerticalAlignment(VerticalAlignment.CENTER); // Middle align text
+        return style;
+    }
+
+    // Helper method to merge cells and ensure bottom border
+    private void mergeAndApplyBottomBorder(Sheet sheet, int startRow, int endRow, int column, CellStyle style) {
+        sheet.addMergedRegion(new CellRangeAddress(startRow, endRow, column, column));
+
+        // Apply the style with thick bottom border to each cell in the merged region
+        for (int row = startRow; row <= endRow; row++) {
+            Row currentRow = sheet.getRow(row);
+            Cell cell = currentRow.getCell(column);
+            if (cell == null) cell = currentRow.createCell(column);
+            cell.setCellStyle(style);
+        }
+    }
+
+    // Helper method for header cell style with center alignment and white font on blue background
+    private CellStyle createHeaderCellStyle(Workbook workbook) {
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerFont.setColor(IndexedColors.WHITE.getIndex());
+
+        CellStyle headerCellStyle = workbook.createCellStyle();
+        headerCellStyle.setFont(headerFont);
+        headerCellStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
+        headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerCellStyle.setBorderTop(BorderStyle.THIN); // Thin top border
+        headerCellStyle.setBorderLeft(BorderStyle.THIN);
+        headerCellStyle.setBorderRight(BorderStyle.THIN);
+        headerCellStyle.setAlignment(HorizontalAlignment.CENTER); // Center align text
+        headerCellStyle.setVerticalAlignment(VerticalAlignment.CENTER); // Middle align text
+        return headerCellStyle;
+    }
+
 }
