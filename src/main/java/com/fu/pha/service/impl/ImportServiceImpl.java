@@ -135,6 +135,11 @@ public class ImportServiceImpl implements ImportService {
                                         .map(ProductUnitDTOResponse::new)
                                         .collect(Collectors.toList());
 
+                                Long supplierId = null;
+                                if (importItem.getImportReceipt() != null && importItem.getImportReceipt().getSupplier() != null) {
+                                    supplierId = importItem.getImportReceipt().getSupplier().getId();
+                                }
+
                                 return new ImportItemResponseForExport(
                                         importItem.getId(),
                                         importItem.getQuantity(),
@@ -146,7 +151,8 @@ public class ImportServiceImpl implements ImportService {
                                         importItem.getBatchNumber(),
                                         importItem.getImportReceipt().getId(),
                                         importItem.getExpiryDate(),
-                                        importItem.getRemainingQuantity()
+                                        importItem.getRemainingQuantity(),
+                                        supplierId
                                 );
                             })
                             .collect(Collectors.toList());

@@ -78,7 +78,6 @@ public class ExportSlipController {
                 .total(exportSlipResponseDtoPage.getTotalElements())
                 .listData(exportSlipResponseDtoPage.getContent())
                 .build();
-
         return ResponseEntity.ok(response);
     }
 
