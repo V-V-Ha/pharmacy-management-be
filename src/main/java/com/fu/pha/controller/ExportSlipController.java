@@ -5,6 +5,7 @@ import com.fu.pha.dto.request.exportSlip.ExportSlipRequestDto;
 import com.fu.pha.exception.Message;
 import com.fu.pha.service.ExportSlipService;
 import com.fu.pha.service.ImportService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,13 +21,13 @@ public class ExportSlipController {
     ImportService importService;
 
     @PostMapping("/create-export-slip")
-    public ResponseEntity<String> createExportSlip(@RequestBody ExportSlipRequestDto exportSlipRequestDto) {
+    public ResponseEntity<String> createExportSlip(@Valid @RequestBody ExportSlipRequestDto exportSlipRequestDto) {
         exportSlipService.createExport(exportSlipRequestDto);
         return ResponseEntity.ok(Message.CREATE_SUCCESS);
     }
 
     @PutMapping("/update-export-slip/{exportSlipId}")
-    public ResponseEntity<String> updateExportSlip(@PathVariable Long exportSlipId, @RequestBody ExportSlipRequestDto exportSlipRequestDto) {
+    public ResponseEntity<String> updateExportSlip(@Valid @PathVariable Long exportSlipId, @RequestBody ExportSlipRequestDto exportSlipRequestDto) {
         exportSlipService.updateExport(exportSlipId, exportSlipRequestDto);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }

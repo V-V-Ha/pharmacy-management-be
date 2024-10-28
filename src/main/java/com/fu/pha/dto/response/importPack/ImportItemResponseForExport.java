@@ -2,6 +2,7 @@ package com.fu.pha.dto.response.importPack;
 
 import com.fu.pha.dto.response.ProductUnitDTOResponse;
 import com.fu.pha.entity.ImportItem;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class ImportItemResponseForExport {
     private Long id;
     private Integer quantity;
@@ -46,4 +48,17 @@ public class ImportItemResponseForExport {
         this.productUnits = productUnits;
     }
 
+
+    public ImportItemResponseForExport(Long id, Integer quantity, Double unitPrice, String unit, Double discount, Double tax, Double totalAmount, String batchNumber, Instant expiryDate, Integer remainingQuantity) {
+        this.id = id;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+        this.unit = unit;
+        this.discount = discount;
+        this.tax = tax;
+        this.totalAmount = totalAmount;
+        this.batchNumber = batchNumber;
+        this.expiryDate = expiryDate;
+        this.remainingQuantity = remainingQuantity;
+    }
 }
