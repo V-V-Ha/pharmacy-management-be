@@ -17,8 +17,6 @@ cache:
 
 build:
   stage: build
-  # script:
-    # - mvn install -DskipTests
   script:
     - mvn package -DskipTests=true
   artifacts:
@@ -33,8 +31,7 @@ deploy:
   script:
     - mv "target/pha-0.0.1-SNAPSHOT.jar" "target/app.jar"
     - sshpass -p "3%My{pgDtN*UK,SV" scp -o StrictHostKeyChecking=no target/app.jar root@139.180.155.250:/home/pha
-    - systemctl stop pha-api # Stop service running 
-    - systemctl start pha-api # Re-start service running 
+    - sshpass -p "3%My{pgDtN*UK,SV" scp -o StrictHostKeyChecking=no "systemctl stop pha-api"; "systemctl start pha-api";
   only:
     - feature/cicd-spike 
 
