@@ -32,16 +32,11 @@ deploy:
     - apk add --no-cache openssh sshpass  # Install SSH client
   script:
     - mv "target/pha-0.0.1-SNAPSHOT.jar" "target/app.jar"
-    - sshpass -p "3%My{pgDtN*UK,SV" scp -o StrictHostKeyChecking=no target/app.jar root@139.180.155.250:/home/pha/test  # Replace with your server details
+    - sshpass -p "3%My{pgDtN*UK,SV" scp -o StrictHostKeyChecking=no target/app.jar root@139.180.155.250:/home/pha/test
+    - systemctl stop pha-api # Stop service running 
+    - systemctl start pha-api # Re-start service running 
   only:
     - feature/cicd-spike 
-
-    # test:
-    #   stage: test
-    #   script:
-    # - mvn $MAVEN_CLI_OPTS test
-    # - mvn test
-    # - echo "Skip test~~"
 
 # run:
 #   stage: run
