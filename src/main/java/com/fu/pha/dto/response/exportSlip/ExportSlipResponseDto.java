@@ -25,7 +25,7 @@ public class ExportSlipResponseDto {
     private String note;
     private Long userId;
     private Long supplierId;
-    private List<ExportSlipItemRequestDto> exportSlipItems;
+    private List<ExportSlipItemResponseDto> exportSlipItems;
     private Long productCount;
 
     // Constructor đúng để chuyển từ ExportSlip entity sang ExportSlipResponseDto
@@ -40,7 +40,7 @@ public class ExportSlipResponseDto {
         this.userId = exportSlip.getUser().getId();
         this.supplierId = exportSlip.getSupplier() != null ? exportSlip.getSupplier().getId() : null;
         this.exportSlipItems = exportSlip.getExportSlipItemList().stream()
-                .map(ExportSlipItemRequestDto::new)
+                .map(ExportSlipItemResponseDto::new)
                 .collect(Collectors.toList());
         this.productCount = exportSlip.getExportSlipItemList().stream()
                 .map(ExportSlipItem::getProduct)

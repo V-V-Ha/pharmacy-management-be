@@ -1,6 +1,7 @@
 package com.fu.pha.dto.request.exportSlip;
 
 import com.fu.pha.enums.ExportType;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.Instant;
@@ -20,6 +21,7 @@ public class ExportSlipRequestDto {
     private String note;
     private Long userId;
     private Long supplierId;
+    @NotNull(message = "Danh sách sản phẩm nhập không được để trống")
     private List<ExportSlipItemRequestDto> exportSlipItems;
     private Long productCount;
 }

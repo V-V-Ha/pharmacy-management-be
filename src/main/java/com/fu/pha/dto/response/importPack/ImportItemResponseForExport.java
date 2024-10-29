@@ -1,7 +1,9 @@
 package com.fu.pha.dto.response.importPack;
 
 import com.fu.pha.dto.response.ProductUnitDTOResponse;
+import com.fu.pha.dto.response.exportSlip.BatchInfo;
 import com.fu.pha.entity.ImportItem;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +12,7 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class ImportItemResponseForExport {
     private Long id;
     private Integer quantity;
@@ -19,18 +22,17 @@ public class ImportItemResponseForExport {
     private Double tax;
     private Double totalAmount;
     private String batchNumber;
-    private String productName; // Thay đổi từ ProductDTOResponse thành String để chỉ lưu productName
+    private String productName;
     private Long importId;
     private Instant expiryDate;
     private Integer conversionFactor;
     private Integer remainingQuantity;
-    private List<ProductUnitDTOResponse> productUnits;
+    private Long supplierId;
 
 
     public ImportItemResponseForExport(Long id, Integer quantity, Double unitPrice, String unit, Double discount,
-                                       Double tax, Double totalAmount, String batchNumber, String productName,
-                                       Long importId, Instant expiryDate, Integer remainingQuantity,
-                                       List<ProductUnitDTOResponse> productUnits) {
+                                       Double tax, Double totalAmount, String batchNumber,
+                                       Long importId, Instant expiryDate, Integer remainingQuantity,Long supplierId) {
         this.id = id;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
@@ -39,11 +41,23 @@ public class ImportItemResponseForExport {
         this.tax = tax;
         this.totalAmount = totalAmount;
         this.batchNumber = batchNumber;
-        this.productName = productName;
         this.importId = importId;
         this.expiryDate = expiryDate;
         this.remainingQuantity = remainingQuantity;
-        this.productUnits = productUnits;
+        this.supplierId = supplierId;
     }
 
+
+    public ImportItemResponseForExport(Long id, Integer quantity, Double unitPrice, String unit, Double discount, Double tax, Double totalAmount, String batchNumber, Instant expiryDate, Integer remainingQuantity) {
+        this.id = id;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+        this.unit = unit;
+        this.discount = discount;
+        this.tax = tax;
+        this.totalAmount = totalAmount;
+        this.batchNumber = batchNumber;
+        this.expiryDate = expiryDate;
+        this.remainingQuantity = remainingQuantity;
+    }
 }

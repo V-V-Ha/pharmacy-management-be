@@ -8,6 +8,7 @@ import com.fu.pha.enums.ExportType;
 import com.fu.pha.exception.Message;
 import com.fu.pha.service.ExportSlipService;
 import com.fu.pha.service.ImportService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -30,13 +31,13 @@ public class ExportSlipController {
     ImportService importService;
 
     @PostMapping("/create-export-slip")
-    public ResponseEntity<String> createExportSlip(@RequestBody ExportSlipRequestDto exportSlipRequestDto) {
+    public ResponseEntity<String> createExportSlip(@Valid @RequestBody ExportSlipRequestDto exportSlipRequestDto) {
         exportSlipService.createExport(exportSlipRequestDto);
         return ResponseEntity.ok(Message.CREATE_SUCCESS);
     }
 
     @PutMapping("/update-export-slip/{exportSlipId}")
-    public ResponseEntity<String> updateExportSlip(@PathVariable Long exportSlipId, @RequestBody ExportSlipRequestDto exportSlipRequestDto) {
+    public ResponseEntity<String> updateExportSlip(@Valid @PathVariable Long exportSlipId, @RequestBody ExportSlipRequestDto exportSlipRequestDto) {
         exportSlipService.updateExport(exportSlipId, exportSlipRequestDto);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
@@ -54,7 +55,7 @@ public class ExportSlipController {
 
     @GetMapping("/get-import-item-by-product-name")
     public ResponseEntity<?> getImportItemByProductName(@RequestParam String productName) {
-        return ResponseEntity.ok(importService.getImportItemByProductName(productName));
+        return ResponseEntity.ok(importService.getProductImportByProductName(productName));
     }
 
     @GetMapping("/get-all-export-slip-paging")
@@ -77,7 +78,6 @@ public class ExportSlipController {
                 .total(exportSlipResponseDtoPage.getTotalElements())
                 .listData(exportSlipResponseDtoPage.getContent())
                 .build();
-
         return ResponseEntity.ok(response);
     }
 

@@ -78,4 +78,5 @@ public class Message {
 
     public static final String DOCTOR_NOT_FOUND = "Không tìm thấy bác sĩ";
     public static final String OUT_OF_STOCK = "Sản phẩm không đủ tồn kho";
+    public static final String SUPPLIER_NOT_MATCH = "Nhà cung cấp không trùng khớp";
 }

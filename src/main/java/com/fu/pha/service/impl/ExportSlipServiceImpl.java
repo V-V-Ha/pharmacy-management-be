@@ -191,6 +191,12 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             ImportItem importItem = importItemRepository.findById(itemDto.getImportItemId())
                     .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
 
+            if (exportDto.getTypeDelivery() == ExportType.RETURN_TO_SUPPLIER) {
+                if (!importItem.getImportReceipt().getSupplier().equals(exportSlip.getSupplier())) {
+                    throw new BadRequestException(Message.SUPPLIER_NOT_MATCH);
+                }
+            }
+
             // Chuyển đổi quantity về đơn vị nhỏ nhất
             int smallestQuantity = itemDto.getQuantity() * itemDto.getConversionFactor();
 
@@ -314,6 +320,12 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             // Tìm ImportItem theo importItemId
             ImportItem importItem = importItemRepository.findById(itemDto.getImportItemId())
                     .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
+
+            if (exportDto.getTypeDelivery() == ExportType.RETURN_TO_SUPPLIER) {
+                if (!importItem.getImportReceipt().getSupplier().equals(exportSlip.getSupplier())) {
+                    throw new BadRequestException(Message.SUPPLIER_NOT_MATCH);
+                }
+            }
 
             // Cập nhật số lượng remainingQuantity trong ImportItem
             if (importItem.getRemainingQuantity() < smallestQuantity) {
