@@ -17,7 +17,6 @@ public interface ProductService {
     ProductDTOResponse getProductById(Long id);
     void deleteProduct(Long id);
     List<UnitDto> getAllUnit();
-    List<String> getAllCountries();
     List<ProductDTOResponse> getAllProducts();
     ResponseEntity<byte[]> exportProductsToExcel() throws IOException;
     void importProductsFromExcel(MultipartFile file) throws IOException;
