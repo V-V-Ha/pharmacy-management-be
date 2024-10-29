@@ -31,7 +31,7 @@ deploy:
   script:
     - mv "target/pha-0.0.1-SNAPSHOT.jar" "target/app.jar"
     - sshpass -p "3%My{pgDtN*UK,SV" scp -o StrictHostKeyChecking=no target/app.jar root@139.180.155.250:/home/pha
-    - sshpass -p "3%My{pgDtN*UK,SV" scp -o StrictHostKeyChecking=no "systemctl stop pha-api"; "systemctl start pha-api";
+    - sshpass -p "3%My{pgDtN*UK,SV" root@139.180.155.250 "systemctl stop pha-api"; "systemctl start pha-api";
   only:
     - feature/cicd-spike 
 
