@@ -27,9 +27,11 @@ deploy:
   before_script:
     - apk add --no-cache openssh sshpass
   script:
+    - echo "Deploying to remote host with IP $REMOTE_HOST"
+    - echo "Deploying to remote host with pw $REMOTE_PW"
+    - echo "Copying app.jar to $REMOTE_HOST:/home/pha"
     - mv "target/pha-0.0.1-SNAPSHOT.jar" "target/app.jar"
     - sshpass -p "$REMOTE_PW" scp -o StrictHostKeyChecking=no target/app.jar root@"$REMOTE_HOST":/home/pha
-    - sshpass -p "$REMOTE_PW" ssh root@"$REMOTE_HOST" "systemctl stop pha-api; systemctl start pha-api"
+    - sshpass -p "$REMOTE_PW" ssh -o StrictHostKeyChecking=no root@"$REMOTE_HOST" "systemctl stop pha-api; systemctl start pha-api"
   only:
-    - feature/cicd-spike 
-
+    - feature/cicd-spike
