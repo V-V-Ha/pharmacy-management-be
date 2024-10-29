@@ -2,6 +2,7 @@ image: maven:latest
 
 stages:
   - build
+  - deploy
   # - test
   # - run
 
@@ -23,6 +24,17 @@ build:
   artifacts:
     paths:
       - target/pha-0.0.1-SNAPSHOT.jar
+
+deploy:
+  stage: deploy
+  image: alpine:latest  # Use a lightweight image for deployment
+  before_script:
+    - apk add --no-cache openssh  # Install SSH client
+  script:
+    - mv "target/pha-0.0.1-SNAPSHOT.jar" "target/app.jar"
+    - scp -o StrictHostKeyChecking=no target/app.jar root@139.180.155.250:/home/pha  # Replace with your server details
+  only:
+    - feature/cicd-spike 
 
     # test:
     #   stage: test
