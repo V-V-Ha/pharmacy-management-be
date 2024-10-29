@@ -16,8 +16,14 @@ cache:
 
 build:
   stage: build
+  # script:
+    # - mvn install -DskipTests
   script:
-    - mvn install -DskipTests
+    - mvn package -DskipTests=true
+  artifacts:
+    paths:
+      - target/demo-0.0.1-SNAPSHOT.jar
+
 
     # test:
     #   stage: test
