@@ -1,6 +1,7 @@
 image: maven:latest
 
 stages:
+  - cleanup
   - build
   - deploy
 
@@ -12,6 +13,13 @@ cache:
   paths:
     - .m2/repository/
     - target/
+
+clean-env:
+  stage: cleanup
+  script:
+    - echo "Started leaning up temporary files..."
+    - rm -rf target/*
+
 
 build:
   stage: build
