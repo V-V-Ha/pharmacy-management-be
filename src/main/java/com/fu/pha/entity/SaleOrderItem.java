@@ -36,14 +36,8 @@ public class SaleOrderItem extends BaseEntity{
     @Column(name = "total_amount", nullable = false)
     private Double totalAmount;
 
-    @Column(name = "batch_number")
-    private String batchNumber;
-
     @Column(name = "dosage")
     private String dosage;
-
-    @Column(name = "prescription_required", nullable = false)
-    private Boolean prescriptionRequired;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_order_id", nullable = false)

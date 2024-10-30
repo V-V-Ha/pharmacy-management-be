@@ -17,6 +17,5 @@ public class SaleOrderItemRequestDto {
     private Double totalAmount;
     private String batchNumber;
     private String dosage;
-    private Boolean prescriptionRequired;
     private Integer conversionFactor;
 }

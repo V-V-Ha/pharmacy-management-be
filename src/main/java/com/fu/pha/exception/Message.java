@@ -79,4 +79,13 @@ public class Message {
     public static final String DOCTOR_NOT_FOUND = "Không tìm thấy bác sĩ";
     public static final String OUT_OF_STOCK = "Sản phẩm không đủ tồn kho";
     public static final String SUPPLIER_NOT_MATCH = "Nhà cung cấp không trùng khớp";
+    public static final String SALE_ORDER_NOT_FOUND = "Không tìm thấy đơn hàng";
+    public static final String DATE_NOT_NULL = "Ngày tạo không được trống";
+    public static final String TOTAL_AMOUNT_NOT_NULL = "Tổng tiền không được trống";
+    public static final String CUSTOMER_NOT_NULL = "Khách hàng không được trống";
+    public static final String USER_NOT_NULL = "Người tạo không được trống";
+    public static final String SUPPLIER_NOT_NULL = "Nhà cung cấp không được trống";
+    public static final String TOTAL_AMOUNT_VALID = "Tổng tiền phải lớn hơn 0";
+    public static final String LIST_ITEM_NOT_NULL = "Danh sách sản phẩm không được trống";
+    public static final String DOCTOR_REQUIRED = "Bác sĩ không được trống";
 }

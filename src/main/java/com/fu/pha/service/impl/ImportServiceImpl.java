@@ -159,6 +159,7 @@ public class ImportServiceImpl implements ImportService {
 
                     // Tạo ProductDtoResponseForExport cho từng sản phẩm
                     return new ProductDtoResponseForExport(
+                            product.getProductCode(),
                             product.getProductName(),
                             product.getProductUnitList().stream().map(ProductUnitDTOResponse::new).collect(Collectors.toList()),
                             product.getRegistrationNumber(),

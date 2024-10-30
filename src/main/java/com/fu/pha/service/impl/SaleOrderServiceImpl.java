@@ -2,7 +2,10 @@ package com.fu.pha.service.impl;
 
 import com.fu.pha.dto.request.SaleOrder.SaleOrderItemRequestDto;
 import com.fu.pha.dto.request.SaleOrder.SaleOrderRequestDto;
+import com.fu.pha.dto.response.SaleOrder.SaleOrderItemResponseDto;
+import com.fu.pha.dto.response.SaleOrder.SaleOrderResponseDto;
 import com.fu.pha.entity.*;
+import com.fu.pha.enums.OrderType;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
@@ -15,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class SaleOrderServiceImpl implements SaleOrderService {
@@ -54,8 +59,12 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         User user = userRepository.findById(saleOrderRequestDto.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
 
+        if (saleOrderRequestDto.getOrderType() == OrderType.PRESCRIPTION && saleOrderRequestDto.getDoctorId() == null) {
+            throw new BadRequestException(Message.DOCTOR_REQUIRED);
+        }
+
         Doctor doctor = null;
-        if (saleOrderRequestDto.getDoctorId() != null) {
+        if (saleOrderRequestDto.getDoctorId() != null && saleOrderRequestDto.getOrderType() == OrderType.PRESCRIPTION) {
             doctor = doctorRepository.findById(saleOrderRequestDto.getDoctorId())
                     .orElseThrow(() -> new ResourceNotFoundException(Message.DOCTOR_NOT_FOUND));
         }
@@ -70,6 +79,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         saleOrder.setCustomer(customer);
         saleOrder.setUser(user);
         saleOrder.setDoctor(doctor);
+        saleOrder.setDiagnosis(saleOrderRequestDto.getDiagnosis());
 
         saleOrderRepository.save(saleOrder);
 
@@ -81,50 +91,24 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             Integer quantityToSell = itemRequestDto.getQuantity();
             Double unitPrice = itemRequestDto.getUnitPrice();
 
-            // Lấy sản phẩm và thông tin conversion factor (đơn vị nhỏ nhất)
+            // Lấy sản phẩm và tính toán số lượng nhỏ nhất cần bán
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
             int smallestQuantityToSell = quantityToSell * itemRequestDto.getConversionFactor();
 
-            // Lấy danh sách lô hàng theo thứ tự nhập FIFO cho sản phẩm
+            // Lấy danh sách lô hàng theo FIFO
             List<ImportItem> batches = importItemRepository.findByProductIdOrderByCreateDateAsc(productId);
-
             int remainingQuantity = smallestQuantityToSell;
 
             for (ImportItem batch : batches) {
                 if (batch.getRemainingQuantity() > 0) {
                     int quantityFromBatch = Math.min(batch.getRemainingQuantity(), remainingQuantity);
 
-                    // Tạo SaleOrderItem cho sản phẩm từ lô hiện tại
-                    SaleOrderItem saleOrderItem = new SaleOrderItem();
-                    saleOrderItem.setSaleOrder(saleOrder);
-                    saleOrderItem.setProduct(product);
-                    saleOrderItem.setBatchNumber(batch.getBatchNumber());
-                    saleOrderItem.setQuantity(quantityToSell); // Lưu theo đơn vị yêu cầu từ DTO
-                    saleOrderItem.setUnitPrice(unitPrice);
-                    saleOrderItem.setDiscount(itemRequestDto.getDiscount());
-
-                    // Tính toán totalAmount cho SaleOrderItem với discount
-                    double itemTotalAmount = (unitPrice * quantityToSell)
-                            - (itemRequestDto.getDiscount() != null ? itemRequestDto.getDiscount() : 0.0);
-                    saleOrderItem.setTotalAmount(itemTotalAmount);
-
-                    saleOrderItem.setPrescriptionRequired(itemRequestDto.getPrescriptionRequired());
-                    saleOrderItem.setDosage(itemRequestDto.getDosage());
-                    saleOrderItem.setUnit(itemRequestDto.getUnit());
-
                     // Cập nhật số lượng còn lại trong lô
                     batch.setRemainingQuantity(batch.getRemainingQuantity() - quantityFromBatch);
                     importItemRepository.save(batch);
 
-                    // Lưu SaleOrderItem vào cơ sở dữ liệu
-                    saleOrderItemRepository.save(saleOrderItem);
-
-                    // Cập nhật tổng tiền đơn hàng
-                    totalOrderAmount += itemTotalAmount;
-
-                    // Cập nhật số lượng còn lại cần bán
                     remainingQuantity -= quantityFromBatch;
                     if (remainingQuantity <= 0) break;
                 }
@@ -134,6 +118,24 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             if (remainingQuantity > 0) {
                 throw new BadRequestException(Message.OUT_OF_STOCK);
             }
+
+            // Tạo một bản ghi SaleOrderItem duy nhất với tổng quantity
+            SaleOrderItem saleOrderItem = new SaleOrderItem();
+            saleOrderItem.setSaleOrder(saleOrder);
+            saleOrderItem.setProduct(product);
+            saleOrderItem.setQuantity(quantityToSell); // Lưu tổng số lượng từ DTO
+            saleOrderItem.setUnitPrice(unitPrice);
+            saleOrderItem.setDiscount(itemRequestDto.getDiscount());
+            saleOrderItem.setTotalAmount((unitPrice * quantityToSell) -
+                    (itemRequestDto.getDiscount() != null ? itemRequestDto.getDiscount() : 0.0));
+            saleOrderItem.setDosage(itemRequestDto.getDosage());
+            saleOrderItem.setUnit(itemRequestDto.getUnit());
+
+            // Lưu SaleOrderItem vào cơ sở dữ liệu
+            saleOrderItemRepository.save(saleOrderItem);
+
+            // Cập nhật tổng tiền đơn hàng
+            totalOrderAmount += saleOrderItem.getTotalAmount();
 
             // Cập nhật lại tổng tồn kho của sản phẩm
             int updatedTotalQuantity = product.getTotalQuantity() - smallestQuantityToSell;
@@ -147,6 +149,156 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     }
 
 
+    @Override
+    @Transactional
+    public void updateSaleOrder(Long saleOrderId, SaleOrderRequestDto saleOrderRequestDto) {
+        // 1. Lấy SaleOrder từ cơ sở dữ liệu và kiểm tra sự tồn tại
+        SaleOrder saleOrder = saleOrderRepository.findById(saleOrderId)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.SALE_ORDER_NOT_FOUND));
 
+        // 2. Kiểm tra và cập nhật các thông tin liên quan: Customer, User, Doctor (nếu có)
+        Customer customer = customerRepository.findById(saleOrderRequestDto.getCustomerId())
+                .orElseThrow(() -> new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND));
+
+        User user = userRepository.findById(saleOrderRequestDto.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
+
+        if (saleOrderRequestDto.getOrderType() == OrderType.PRESCRIPTION && saleOrderRequestDto.getDoctorId() == null) {
+            throw new BadRequestException(Message.DOCTOR_REQUIRED);
+        }
+
+        Doctor doctor = null;
+        if (saleOrderRequestDto.getDoctorId() != null && saleOrderRequestDto.getOrderType() == OrderType.PRESCRIPTION) {
+            doctor = doctorRepository.findById(saleOrderRequestDto.getDoctorId())
+                    .orElseThrow(() -> new ResourceNotFoundException(Message.DOCTOR_NOT_FOUND));
+        }
+
+        // 3. Khôi phục lại tồn kho từ các SaleOrderItem hiện tại trước khi cập nhật
+        List<SaleOrderItem> existingItems = saleOrderItemRepository.findBySaleOrderId(saleOrderId);
+        for (SaleOrderItem existingItem : existingItems) {
+            Product product = existingItem.getProduct();
+            int quantityToRestore = existingItem.getQuantity() * 1; // Tổng số lượng cần khôi phục
+
+            // Khôi phục lại tồn kho trong các lô hàng (FIFO) đúng theo thứ tự đã trừ
+            List<ImportItem> batches = importItemRepository.findByProductIdOrderByCreateDateAsc(product.getId());
+            for (ImportItem batch : batches) {
+                if (batch.getRemainingQuantity() < batch.getQuantity()) {
+                    int restoreAmount = Math.min(batch.getQuantity() - batch.getRemainingQuantity(), quantityToRestore);
+                    batch.setRemainingQuantity(batch.getRemainingQuantity() + restoreAmount);
+                    importItemRepository.save(batch);
+                    quantityToRestore -= restoreAmount;
+                    if (quantityToRestore <= 0) break;
+                }
+            }
+
+            // Khôi phục lại tổng tồn kho của sản phẩm
+            product.setTotalQuantity(product.getTotalQuantity() + existingItem.getQuantity());
+            productRepository.save(product);
+        }
+
+        // Xóa các SaleOrderItem hiện tại và xử lý lại danh sách mới
+        saleOrderItemRepository.deleteBySaleOrderId(saleOrderId);
+
+        // 4. Cập nhật các thuộc tính của SaleOrder từ SaleOrderRequestDto
+        saleOrder.setInvoiceNumber(saleOrderRequestDto.getInvoiceNumber());
+        saleOrder.setSaleDate(saleOrderRequestDto.getSaleDate() != null ? saleOrderRequestDto.getSaleDate() : Instant.now());
+        saleOrder.setOrderType(saleOrderRequestDto.getOrderType());
+        saleOrder.setPaymentMethod(saleOrderRequestDto.getPaymentMethod());
+        saleOrder.setDiscount(saleOrderRequestDto.getDiscount() != null ? saleOrderRequestDto.getDiscount() : 0.0);
+        saleOrder.setCustomer(customer);
+        saleOrder.setUser(user);
+        saleOrder.setDoctor(doctor);
+        saleOrder.setDiagnosis(saleOrderRequestDto.getDiagnosis());
+
+        double totalOrderAmount = 0.0;
+
+        // 5. Tạo và xử lý danh sách SaleOrderItem mới
+        for (SaleOrderItemRequestDto itemRequestDto : saleOrderRequestDto.getSaleOrderItems()) {
+            Long productId = itemRequestDto.getProductId();
+            Integer quantityToSell = itemRequestDto.getQuantity();
+            Double unitPrice = itemRequestDto.getUnitPrice();
+
+            // Lấy sản phẩm và conversion factor
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
+
+            int smallestQuantityToSell = quantityToSell * itemRequestDto.getConversionFactor();
+
+            // Lấy danh sách lô hàng theo FIFO để trừ tồn kho cho các lô mới
+            List<ImportItem> batches = importItemRepository.findByProductIdOrderByCreateDateAsc(productId);
+            int remainingQuantity = smallestQuantityToSell;
+
+            for (ImportItem batch : batches) {
+                if (batch.getRemainingQuantity() > 0) {
+                    int quantityFromBatch = Math.min(batch.getRemainingQuantity(), remainingQuantity);
+
+                    // Cập nhật số lượng còn lại trong lô
+                    batch.setRemainingQuantity(batch.getRemainingQuantity() - quantityFromBatch);
+                    importItemRepository.save(batch);
+
+                    remainingQuantity -= quantityFromBatch;
+                    if (remainingQuantity <= 0) break;
+                }
+            }
+
+            if (remainingQuantity > 0) {
+                throw new BadRequestException(Message.OUT_OF_STOCK);
+            }
+
+            // Tạo một SaleOrderItem duy nhất cho mỗi productId với tổng quantity
+            SaleOrderItem saleOrderItem = new SaleOrderItem();
+            saleOrderItem.setSaleOrder(saleOrder);
+            saleOrderItem.setProduct(product);
+            saleOrderItem.setQuantity(quantityToSell);  // Sử dụng tổng quantity
+            saleOrderItem.setUnitPrice(unitPrice);
+            saleOrderItem.setDiscount(itemRequestDto.getDiscount());
+            saleOrderItem.setTotalAmount((unitPrice * quantityToSell) -
+                    (itemRequestDto.getDiscount() != null ? itemRequestDto.getDiscount() : 0.0));
+            saleOrderItem.setDosage(itemRequestDto.getDosage());
+            saleOrderItem.setUnit(itemRequestDto.getUnit());
+
+            // Lưu SaleOrderItem vào cơ sở dữ liệu
+            saleOrderItemRepository.save(saleOrderItem);
+
+            // Cập nhật tổng tiền đơn hàng
+            totalOrderAmount += saleOrderItem.getTotalAmount();
+
+            // Cập nhật lại tổng tồn kho của sản phẩm sau khi trừ số lượng bán ra
+            int updatedTotalQuantity = product.getTotalQuantity() - smallestQuantityToSell;
+            product.setTotalQuantity(updatedTotalQuantity);
+            productRepository.save(product);
+        }
+
+        // 6. Cập nhật tổng số tiền của SaleOrder và lưu lại
+        saleOrder.setTotalAmount(totalOrderAmount - saleOrder.getDiscount());
+        saleOrderRepository.save(saleOrder);
+    }
+
+    public SaleOrderResponseDto getSaleOrderById(Long saleOrderId) {
+        // 1. Truy vấn SaleOrder từ cơ sở dữ liệu
+        SaleOrder saleOrder = saleOrderRepository.findById(saleOrderId)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.SALE_ORDER_NOT_FOUND));
+
+        // 2. Lấy danh sách SaleOrderItem từ SaleOrder và chuyển đổi thành SaleOrderItemResponseDto
+        List<SaleOrderItemResponseDto> saleOrderItemsDto = saleOrder.getSaleOrderItemList().stream().map(SaleOrderItemResponseDto::new).collect(Collectors.toList());
+
+        // 3. Tạo SaleOrderResponseDto với thông tin của SaleOrder và danh sách SaleOrderItemResponseDto
+        SaleOrderResponseDto responseDto = new SaleOrderResponseDto(
+                saleOrder.getInvoiceNumber(),
+                saleOrder.getSaleDate(),
+                saleOrder.getOrderType(),
+                saleOrder.getPaymentMethod(),
+                saleOrder.getDiscount(),
+                saleOrder.getTotalAmount(),
+                saleOrder.getCustomer().getId(),
+                saleOrder.getDoctor() != null ? saleOrder.getDoctor().getId() : null,
+                saleOrder.getUser().getId(),
+                saleOrder.getDiagnosis(),
+                saleOrderItemsDto
+        );
+
+        return responseDto;
+    }
 
 }
+

@@ -5,6 +5,7 @@ import com.fu.pha.entity.ImportItem;
 import java.util.stream.Collectors;
 import com.fu.pha.enums.PaymentMethod;
 
+import com.fu.pha.exception.Message;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -18,20 +19,20 @@ import java.util.List;
 public class ImportDto {
     private Long id;
     private String invoiceNumber;
-    @NotNull(message = "Ngày nhập không đươc để trống")
+    @NotNull(message = Message.DATE_NOT_NULL)
     private Instant importDate;
     private PaymentMethod paymentMethod;
     private Double tax;
     private Double discount;
-    @NotNull(message = "Tổng tiền không được để trống")
-    @DecimalMin(value = "0.0", message = "Tổng tiền phải lớn hơn 0")
+    @NotNull(message = Message.TOTAL_AMOUNT_NOT_NULL)
+    @DecimalMin(value = "0.0", message = Message.TOTAL_AMOUNT_VALID)
     private Double totalAmount;
     private String note;
-    @NotNull(message = "Danh sách sản phẩm nhập không được để trống")
+    @NotNull(message = Message.LIST_ITEM_NOT_NULL)
     private List<ImportItemRequestDto> importItems;
-    @NotNull(message = "Người dùng không được để trống")
+    @NotNull(message = Message.USER_NOT_NULL)
     private Long userId;
-    @NotNull(message = "Nhà cung cấp không được để trống")
+    @NotNull(message = Message.SUPPLIER_NOT_NULL)
     private Long supplierId;
     private String supplierName;
     private Instant createDate;
