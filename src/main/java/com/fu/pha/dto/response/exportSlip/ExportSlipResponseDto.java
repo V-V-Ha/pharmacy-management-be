@@ -1,6 +1,8 @@
 package com.fu.pha.dto.response.exportSlip;
 
+import com.fu.pha.dto.request.SupplierDto;
 import com.fu.pha.dto.request.exportSlip.ExportSlipItemRequestDto;
+import com.fu.pha.dto.response.SupplierResponseDto;
 import com.fu.pha.entity.ExportSlip;
 import com.fu.pha.enums.ExportType;
 import com.fu.pha.entity.ExportSlipItem;
@@ -24,7 +26,7 @@ public class ExportSlipResponseDto {
     private Double totalAmount;
     private String note;
     private Long userId;
-    private Long supplierId;
+    private SupplierResponseDto supplier;
     private List<ExportSlipItemResponseDto> exportSlipItems;
     private Long productCount;
 
@@ -38,7 +40,7 @@ public class ExportSlipResponseDto {
         this.totalAmount = exportSlip.getTotalAmount();
         this.note = exportSlip.getNote();
         this.userId = exportSlip.getUser().getId();
-        this.supplierId = exportSlip.getSupplier() != null ? exportSlip.getSupplier().getId() : null;
+        this.supplier = new SupplierResponseDto(exportSlip.getSupplier().getId(), exportSlip.getSupplier().getSupplierName());
         this.exportSlipItems = exportSlip.getExportSlipItemList().stream()
                 .map(ExportSlipItemResponseDto::new)
                 .collect(Collectors.toList());
