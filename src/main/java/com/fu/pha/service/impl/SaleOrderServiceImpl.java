@@ -1,5 +1,6 @@
 package com.fu.pha.service.impl;
 
+import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.SaleOrder.SaleOrderItemRequestDto;
 import com.fu.pha.dto.request.SaleOrder.SaleOrderRequestDto;
 import com.fu.pha.dto.response.SaleOrder.SaleOrderItemResponseDto;
@@ -30,8 +31,6 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     @Autowired
     private SaleOrderItemRepository saleOrderItemRepository;
 
-    @Autowired
-    private ImportRepository importRepository;
 
     @Autowired
     private ImportItemRepository importItemRepository;
@@ -47,6 +46,9 @@ public class SaleOrderServiceImpl implements SaleOrderService {
 
     @Autowired
     private DoctorRepository doctorRepository;
+
+    @Autowired
+    private GenerateCode generateCode;
 
 
     @Override
@@ -71,7 +73,8 @@ public class SaleOrderServiceImpl implements SaleOrderService {
 
         // 2. Khởi tạo và thiết lập các thuộc tính cho SaleOrder từ SaleOrderRequestDto
         SaleOrder saleOrder = new SaleOrder();
-        saleOrder.setInvoiceNumber(saleOrderRequestDto.getInvoiceNumber());
+        String lastInvoiceNumber = saleOrderRepository.getLastInvoiceNumber();
+        saleOrder.setInvoiceNumber(lastInvoiceNumber == null ? "XB000001" : generateCode.generateNewProductCode(lastInvoiceNumber));
         saleOrder.setSaleDate(saleOrderRequestDto.getSaleDate() != null ? saleOrderRequestDto.getSaleDate() : Instant.now());
         saleOrder.setOrderType(saleOrderRequestDto.getOrderType());
         saleOrder.setPaymentMethod(saleOrderRequestDto.getPaymentMethod());
