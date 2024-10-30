@@ -3,6 +3,8 @@ package com.fu.pha.service.impl;
 import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.SaleOrder.SaleOrderItemRequestDto;
 import com.fu.pha.dto.request.SaleOrder.SaleOrderRequestDto;
+import com.fu.pha.dto.response.CustomerDTOResponse;
+import com.fu.pha.dto.response.DoctorDTOResponse;
 import com.fu.pha.dto.response.SaleOrder.SaleOrderItemResponseDto;
 import com.fu.pha.dto.response.SaleOrder.SaleOrderResponseDto;
 import com.fu.pha.entity.*;
@@ -293,8 +295,8 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                 saleOrder.getPaymentMethod(),
                 saleOrder.getDiscount(),
                 saleOrder.getTotalAmount(),
-                saleOrder.getCustomer().getId(),
-                saleOrder.getDoctor() != null ? saleOrder.getDoctor().getId() : null,
+                new CustomerDTOResponse(saleOrder.getCustomer().getId(), saleOrder.getCustomer().getCustomerName()),
+                saleOrder.getDoctor() != null ? new DoctorDTOResponse(saleOrder.getDoctor().getId(), saleOrder.getDoctor().getFullName()) : null,
                 saleOrder.getUser().getId(),
                 saleOrder.getDiagnosis(),
                 saleOrderItemsDto
