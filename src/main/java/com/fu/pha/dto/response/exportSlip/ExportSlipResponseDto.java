@@ -40,7 +40,14 @@ public class ExportSlipResponseDto {
         this.totalAmount = exportSlip.getTotalAmount();
         this.note = exportSlip.getNote();
         this.userId = exportSlip.getUser().getId();
-        this.supplier = new SupplierResponseDto(exportSlip.getSupplier().getId(), exportSlip.getSupplier().getSupplierName());
+        if (exportSlip.getSupplier() != null) {
+            this.supplier = new SupplierResponseDto(
+                    exportSlip.getSupplier().getId(),
+                    exportSlip.getSupplier().getSupplierName()
+            );
+        } else {
+            this.supplier = null;
+        }
         this.exportSlipItems = exportSlip.getExportSlipItemList().stream()
                 .map(ExportSlipItemResponseDto::new)
                 .collect(Collectors.toList());
