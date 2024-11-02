@@ -179,8 +179,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         userRepository.save(user);
     }
 
-
-
     private void validateRoles(Set<RoleDto> rolesDto) {
         boolean hasProductOwner = rolesDto.stream().anyMatch(role -> role.getName().equals(ERole.ROLE_PRODUCT_OWNER.name()));
         boolean hasSaleOrStock = rolesDto.stream().anyMatch(role -> role.getName().equals(ERole.ROLE_SALE.name()) || role.getName().equals(ERole.ROLE_STOCK.name()));
@@ -256,7 +254,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         // Save the updated user
         userRepository.save(user);
     }
-
 
     private void checkValidate(UserDto userDto) {
         if (userDto.getFullName().isEmpty() || userDto.getEmail().isEmpty() || userDto.getPhone().isEmpty() ||
@@ -355,6 +352,10 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     @Override
     public void forgotPassword(String email) {
+        if (email == null) {
+            throw new BadRequestException(Message.NULL_FILED);
+        }
+
         User user = userRepository.getUserByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
 
