@@ -26,6 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,7 +36,6 @@ import static org.mockito.Mockito.*;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -572,7 +572,7 @@ public class UserServiceTest {
     @BeforeEach
     void setUpUpdate() {
         userDto = new UserDto();
-        userDto.setId(1L);
+        userDto.setId(3L);
         userDto.setUsername("havv123");
         userDto.setEmail("vuha13052002@gmail.com");
         userDto.setFullName("Vũ Văn Hà");
@@ -582,9 +582,14 @@ public class UserServiceTest {
         userDto.setAddress("Ngõ 45 Đường Láng");
         userDto.setGender(Gender.MALE);
         userDto.setStatus(Status.ACTIVE);
+        Set<RoleDto> rolesDto = new HashSet<>();
+        RoleDto roleDto = new RoleDto();
+        roleDto.setName(ERole.ROLE_PRODUCT_OWNER.toString());
+        rolesDto.add(roleDto);
+        userDto.setRolesDto(rolesDto);
 
         user = new User();
-        user.setId(1L);
+        user.setId(3L);
         user.setUsername("havv123");
         user.setEmail("vuha13052002@gmail.com");
         user.setFullName("Vũ Văn Hà");
@@ -595,8 +600,14 @@ public class UserServiceTest {
         user.setGender(Gender.MALE);
         user.setRoles(new HashSet<>());
         user.setStatus(Status.ACTIVE);
+        Set<Role> roles = new HashSet<>();
+        Role role = new Role();
+        role.setName(ERole.ROLE_PRODUCT_OWNER);
+        roles.add(role);
+        user.setRoles(roles);
     }
 
+    // Test trường hợp cập nhật user thành công
     @Test
     void testUpdateUser_Success() {
         when(userRepository.getUserById(userDto.getId())).thenReturn(Optional.of(user));
@@ -605,14 +616,21 @@ public class UserServiceTest {
         when(userRepository.getUserByCic(userDto.getCic())).thenReturn(Optional.empty());
         when(userRepository.findByUsername(userDto.getUsername())).thenReturn(Optional.empty());
 
+        Role role = new Role();
+        role.setName(ERole.ROLE_PRODUCT_OWNER); // Use the same role as in setUpUpdate
+        when(roleRepository.findByName(ERole.ROLE_PRODUCT_OWNER)).thenReturn(Optional.of(role));
+
         userService.updateUser(userDto, null);
 
         verify(userRepository).save(any(User.class));
     }
 
+    // Test trường hợp cập nhật user với không tìm thâ user
     @Test
     void testUpdateUser_NotFoundUser() {
-        when(userRepository.getUserById(userDto.getId())).thenReturn(Optional.empty());
+        // Arrange
+        userDto.setId(123L); // Set the user ID to 123
+        when(userRepository.getUserById(123L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             userService.updateUser(userDto, null);
@@ -621,9 +639,10 @@ public class UserServiceTest {
         assertEquals(Message.USER_NOT_FOUND, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với full name không hợp lệ
     @Test
     void testUpdateUser_InvalidFullName() {
-        userDto.setFullName("Invalid@Name");
+        userDto.setFullName("Vũ Văn H123");
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             userService.updateUser(userDto, null);
@@ -632,9 +651,10 @@ public class UserServiceTest {
         assertEquals(Message.INVALID_NAME, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với full name là null
     @Test
     void testUpdateUser_NullFullName() {
-        userDto.setFullName(null);
+        userDto.setFullName("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             userService.updateUser(userDto, null);
@@ -643,9 +663,10 @@ public class UserServiceTest {
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với email không hợp lệ
     @Test
     void testUpdateUser_InvalidEmail() {
-        userDto.setEmail("invalidEmail");
+        userDto.setEmail("vuha2002@gmail.co");
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             userService.updateUser(userDto, null);
@@ -654,9 +675,10 @@ public class UserServiceTest {
         assertEquals(Message.INVALID_GMAIL, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với email là null
     @Test
     void testUpdateUser_NullEmail() {
-        userDto.setEmail(null);
+        userDto.setEmail("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             userService.updateUser(userDto, null);
@@ -665,9 +687,10 @@ public class UserServiceTest {
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với phone không hợp lệ
     @Test
     void testUpdateUser_InvalidPhone() {
-        userDto.setPhone("invalidPhone");
+        userDto.setPhone("098765432a");
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             userService.updateUser(userDto, null);
@@ -676,9 +699,10 @@ public class UserServiceTest {
         assertEquals(Message.INVALID_PHONE, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với phone là null
     @Test
     void testUpdateUser_NullPhone() {
-        userDto.setPhone(null);
+        userDto.setPhone("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             userService.updateUser(userDto, null);
@@ -687,6 +711,7 @@ public class UserServiceTest {
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với không đủ 18 tuổi
     @Test
     void testUpdateUser_UserUnderAge() {
         userDto.setDob(Instant.now().minus(Duration.ofDays(365 * 17)));
@@ -698,6 +723,7 @@ public class UserServiceTest {
         assertEquals(Message.INVALID_AGE, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với dob là null
     @Test
     void testUpdateUser_NullDob() {
         userDto.setDob(null);
@@ -709,9 +735,10 @@ public class UserServiceTest {
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với address không hợp lệ
     @Test
     void testUpdateUser_InvalidAddress() {
-        userDto.setAddress("Invalid@Address");
+        userDto.setAddress("Ngõ 5, Đường Láng");
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             userService.updateUser(userDto, null);
@@ -720,9 +747,10 @@ public class UserServiceTest {
         assertEquals(Message.INVALID_ADDRESS, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với address là null
     @Test
     void testUpdateUser_NullAddress() {
-        userDto.setAddress(null);
+        userDto.setAddress("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             userService.updateUser(userDto, null);
@@ -731,6 +759,7 @@ public class UserServiceTest {
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với gender là null
     @Test
     void testUpdateUser_NullGender() {
         userDto.setGender(null);
@@ -742,9 +771,10 @@ public class UserServiceTest {
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với cic không hợp lệ
     @Test
     void testUpdateUser_InvalidCic() {
-        userDto.setCic("invalidCic");
+        userDto.setCic("1234567890123");
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             userService.updateUser(userDto, null);
@@ -753,9 +783,10 @@ public class UserServiceTest {
         assertEquals(Message.INVALID_CCCD, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với cic là null
     @Test
     void testUpdateUser_NullCic() {
-        userDto.setCic(null);
+        userDto.setCic("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             userService.updateUser(userDto, null);
@@ -764,9 +795,10 @@ public class UserServiceTest {
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với username không hợp lệ
     @Test
     void testUpdateUser_InvalidUsername() {
-        userDto.setUsername("Invalid@Username");
+        userDto.setUsername("havv");
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             userService.updateUser(userDto, null);
@@ -775,9 +807,10 @@ public class UserServiceTest {
         assertEquals(Message.INVALID_USERNAME_C, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với username là null
     @Test
     void testUpdateUser_NullUsername() {
-        userDto.setUsername(null);
+        userDto.setUsername("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             userService.updateUser(userDto, null);
@@ -786,9 +819,10 @@ public class UserServiceTest {
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
+    // Test trường hợp cập nhật user với role là null
     @Test
     void testUpdateUser_NullRole() {
-        userDto.setRolesDto(null);
+        userDto.setRolesDto(new HashSet<>());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             userService.updateUser(userDto, null);
@@ -797,6 +831,103 @@ public class UserServiceTest {
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
+    // Test trường hợp view user detail thành công
+    @Test
+    void testViewUserDetail_Success() {
+        Long userId = 3L;
+        User user = new User();
+        user.setId(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        UserDto userDto = userService.viewDetailUser(userId);
+        assertNotNull(userDto);
+        assertEquals(userId, userDto.getId());
+    }
 
+    // Test trường hợp view user detail với không tìm thấy user
+    @Test
+    void testViewUserDetail_NotFoundUser() {
+        Long userId = 200L;
 
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            userService.viewDetailUser(userId);
+        });
+
+        assertEquals(Message.USER_NOT_FOUND, exception.getMessage());
+    }
+
+    // Test trường hợp active user thành công
+    @Test
+    void testActiveUser_Success() {
+        Long userId = 3L;
+        User user = new User();
+        user.setId(userId);
+        user.setStatus(Status.INACTIVE);
+
+        when(userRepository.getUserById(userId)).thenReturn(Optional.of(user));
+
+        UserDto userDto = new UserDto();
+        userDto.setId(userId);
+
+        userService.activeUser(userDto);
+
+        verify(userRepository).save(user);
+        assertEquals(Status.ACTIVE, user.getStatus());
+        assertEquals(Message.UPDATE_SUCCESS, "Cập nhật thành công");
+    }
+
+    // Test trường hợp active user với không tìm thấy user
+    @Test
+    void testActiveUser_NotFoundUser() {
+        Long userId = 200L;
+
+        when(userRepository.getUserById(userId)).thenReturn(Optional.empty());
+
+        UserDto userDto = new UserDto();
+        userDto.setId(userId);
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            userService.activeUser(userDto);
+        });
+
+        assertEquals(Message.USER_NOT_FOUND, exception.getMessage());
+    }
+
+    // Test trường hợp deActive user thành công
+    @Test
+    void testDeActiveUser_Success() {
+        Long userId = 3L;
+        User user = new User();
+        user.setId(userId);
+        user.setStatus(Status.ACTIVE);
+
+        when(userRepository.getUserById(userId)).thenReturn(Optional.of(user));
+
+        UserDto userDto = new UserDto();
+        userDto.setId(userId);
+
+        userService.deActiveUser(userDto);
+
+        verify(userRepository).save(user);
+        assertEquals(Status.INACTIVE, user.getStatus());
+        assertEquals(Message.UPDATE_SUCCESS, "Cập nhật thành công");
+    }
+
+    // Test trường hợp deActive user với không tìm thấy user
+    @Test
+    void testDeActiveUser_NotFoundUser() {
+        Long userId = 200L;
+
+        when(userRepository.getUserById(userId)).thenReturn(Optional.empty());
+
+        UserDto userDto = new UserDto();
+        userDto.setId(userId);
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            userService.deActiveUser(userDto);
+        });
+
+        assertEquals(Message.USER_NOT_FOUND, exception.getMessage());
+    }
 }
