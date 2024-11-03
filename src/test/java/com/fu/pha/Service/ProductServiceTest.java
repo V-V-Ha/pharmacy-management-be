@@ -5,28 +5,17 @@ import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.Category;
 import com.fu.pha.entity.Product;
 import com.fu.pha.exception.BadRequestException;
+import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.CategoryRepository;
 import com.fu.pha.repository.ProductRepository;
 import com.fu.pha.service.impl.ProductServiceImpl;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -50,120 +39,450 @@ public class ProductServiceTest {
     private Product product;
     private Category category;
 
-    @Mock
-    private SecurityContext securityContext;
-
-    @Mock
-    private Authentication authentication;
-
-    private MockedStatic<SecurityContextHolder> securityContextHolderMockedStatic;
-
     @BeforeEach
-    void setUp() {
-        securityContextHolderMockedStatic = mockStatic(SecurityContextHolder.class);
-        when(SecurityContextHolder.getContext()).thenReturn(securityContext);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("minhhieu");
+    void setUpCreate() {
+        productDTORequest = new ProductDTORequest();
+        productDTORequest.setProductName("thuốc ho bổ phế Nam Hà");
+        productDTORequest.setCategoryId(1L);
+        productDTORequest.setRegistrationNumber("TCT-00092-22");
+        productDTORequest.setActiveIngredient("Bạch phàn, Xạ can, Bạc hà");
+        productDTORequest.setDosageConcentration("125ml");
+        productDTORequest.setPackingMethod("Chai x 125ml");
+        productDTORequest.setManufacturer("Nam Hà");
+        productDTORequest.setCountryOfOrigin("Việt Nam");
+        productDTORequest.setDosageForms("Siro");
+        productDTORequest.setProductUnitListDTO(Collections.emptyList());
 
+        product = new Product();
+        product.setProductName("thuốc ho bổ phế Nam Hà");
+        product.setCategoryId(category);
+        product.setRegistrationNumber("TCT-00092-22");
+        product.setActiveIngredient("Bạch phàn, Xạ can, Bạc hà");
+        product.setDosageConcentration("125ml");
+        product.setPackingMethod("Chai x 125ml");
+        product.setManufacturer("Nam Hà");
+        product.setCountryOfOrigin("Việt Nam");
+        product.setDosageForms("Siro");
 
         category = new Category();
-        category.setCategoryName("Thuốc ho");
+        category.setId(1L);
+    }
+
+    //test trường hợp tạo sản phẩm thành công
+    @Test
+    void testCreateProduct_Success() {
+        when(productRepository.findByRegistrationNumber(productDTORequest.getRegistrationNumber())).thenReturn(Optional.empty());
+        when(categoryRepository.findById(productDTORequest.getCategoryId())).thenReturn(Optional.of(category));
+        when(productRepository.getLastProductCode()).thenReturn(null);
+
+        productService.createProduct(productDTORequest, null);
+
+        verify(productRepository).save(any(Product.class));
+    }
+
+    //test trường hợp tạo sản phẩm không thành công do trường productName null
+    @Test
+    void testCreateProduct_NullProductName() {
+        productDTORequest.setProductName("");
+
+         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.createProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    //test trường hợp tạo sản phẩm không thành công do không tìm thấy category
+   @Test
+    void testCreateProduct_NotFoundCategory() {
+        productDTORequest.setCategoryId(123L);
+        when(categoryRepository.findById(productDTORequest.getCategoryId())).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.createProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.CATEGORY_NOT_FOUND, exception.getMessage());
+    }
+
+    //test trường hợp tạo sản phẩm không thành công do trường categoryId null
+    @Test
+    void testCreateProduct_NullCategory() {
+        productDTORequest.setCategoryId(null);
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.createProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    //test trường hợp tạo sản phẩm không thành công do trường registrationNumber trùng
+    @Test
+    void testCreateProduct_DuplicateRegistrationNumber() {
+        when(productRepository.findByRegistrationNumber(productDTORequest.getRegistrationNumber())).thenReturn(Optional.of(product));
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            productService.createProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.EXIST_REGISTRATION_NUMBER, exception.getMessage());
+    }
+
+    //test trường hợp tạo sản phẩm không thành công do trường registrationNumber null
+    @Test
+    void testCreateProduct_NullRegistrationNumber() {
+        productDTORequest.setRegistrationNumber("");
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.createProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    //test trường hợp tạo sản phẩm không thành công do trường activeIngredient null
+    @Test
+    void testCreateProduct_NullActiveIngredient() {
+        productDTORequest.setActiveIngredient("");
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.createProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    //test trường hợp tạo sản phẩm không thành công do trường dosageConcentration null
+    @Test
+    void testCreateProduct_NullDosageConcentration() {
+        productDTORequest.setDosageConcentration("");
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.createProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    //test trường hợp tạo sản phẩm không thành công do trường packingMethod null
+    @Test
+    void testCreateProduct_NullPackingMethod() {
+        productDTORequest.setPackingMethod("");
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.createProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    //test trường hợp tạo sản phẩm không thành công do trường manufacturer null
+    @Test
+    void testCreateProduct_NullManufacturer() {
+        productDTORequest.setManufacturer("");
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.createProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    //test trường hợp tạo sản phẩm không thành công do trường countryOfOrigin null
+    @Test
+    void testCreateProduct_NullCountryOfOrigin() {
+        productDTORequest.setCountryOfOrigin("");
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.createProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    //test trường hợp tạo sản phẩm không thành công do trường dosageForms null
+    @Test
+    void testCreateProduct_NullDosageForms() {
+        productDTORequest.setDosageForms("");
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.createProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    @BeforeEach
+    void setUpUpdate() {
+        productDTORequest = new ProductDTORequest();
+        productDTORequest.setId(1L);
+        productDTORequest.setProductName("thuốc ho bổ phế Nam Hà");
+        productDTORequest.setCategoryId(1L);
+        productDTORequest.setRegistrationNumber("TCT-00092-22");
+        productDTORequest.setActiveIngredient("Bạch phàn, Xạ can, Bạc hà");
+        productDTORequest.setDosageConcentration("125ml");
+        productDTORequest.setPackingMethod("Chai x 125ml");
+        productDTORequest.setManufacturer("Nam Hà");
+        productDTORequest.setCountryOfOrigin("Việt Nam");
+        productDTORequest.setDosageForms("Siro");
+        productDTORequest.setProductUnitListDTO(Collections.emptyList());
 
         product = new Product();
         product.setId(1L);
-        product.setProductName("Paracetamol");
+        product.setProductName("thuốc ho bổ phế Nam Hà");
         product.setCategoryId(category);
-        product.setRegistrationNumber("REG12345");
-        product.setActiveIngredient("Paracetamol");
-        product.setDosageConcentration("10mg");
-        product.setPackingMethod("Hộp 10 vỉ");
-        product.setManufacturer("Bayer AG");
+        product.setRegistrationNumber("TCT-00092-22");
+        product.setActiveIngredient("Bạch phàn, Xạ can, Bạc hà");
+        product.setDosageConcentration("125ml");
+        product.setPackingMethod("Chai x 125ml");
+        product.setManufacturer("Nam Hà");
         product.setCountryOfOrigin("Việt Nam");
-        product.setProductCode("PCT12345");
-        product.setIndication("Giảm đau");
-        product.setContraindication("Bệnh gan");
-        product.setSideEffect("Buồn nôn");
-        product.setDosageForms("nước, bột");
-        product.setDescription("thuốc giảm đau đầu");
-        product.setImageProduct("Image1");
-        product.setCreateDate(Instant.now());
-        product.setCreateBy("minhhieu");
-        product.setLastModifiedDate(Instant.now());
-        product.setLastModifiedBy("minhhieu");
+        product.setDosageForms("Siro");
 
-        productDTORequest = new ProductDTORequest(product);
+        category = new Category();
+        category.setId(1L);
     }
 
-    @AfterEach
-    void tearDown() {
-        if (securityContextHolderMockedStatic != null) {
-            securityContextHolderMockedStatic.close();
-        }
-    }
-
+    //test trường hợp cập nhật sản phẩm thành công
     @Test
-    void testCreateProduct() {
-        when(productRepository.findByProductCode(anyString())).thenReturn(Optional.empty());
-        when(productRepository.findByRegistrationNumber(anyString())).thenReturn(Optional.empty());
-        when(categoryRepository.getCategoryByCategoryName(anyString())).thenReturn(Optional.ofNullable(category));
+    void testUpdateProduct_Success() {
+        when(productRepository.getProductById(productDTORequest.getId())).thenReturn(Optional.of(product));
+        when(productRepository.findByRegistrationNumber(productDTORequest.getRegistrationNumber())).thenReturn(Optional.of(product));
+        when(categoryRepository.findById(productDTORequest.getCategoryId())).thenReturn(Optional.of(category));
 
-        productService.createProduct(productDTORequest, null);
+        productService.updateProduct(productDTORequest, null);
 
-        verify(productRepository, times(1)).save(any(Product.class));
+        verify(productRepository, times(2)).save(any(Product.class));
     }
 
+    //test trường hợp cập nhật sản phẩm không thành công do không tìm thấy sản phẩm
     @Test
-    void testUpdateProduct() {
-        when(productRepository.getProductById(anyLong())).thenReturn(Optional.ofNullable(product));
-        when(productRepository.findByProductCode(anyString())).thenReturn(null);
-        when(productRepository.findByRegistrationNumber(anyString())).thenReturn(null);
-        when(categoryRepository.getCategoryByCategoryName(anyString())).thenReturn(Optional.ofNullable(category));
+    void testUpdateProduct_NotFoundProduct() {
+        productDTORequest.setId(123L);
+        when(productRepository.getProductById(productDTORequest.getId())).thenReturn(Optional.empty());
 
-        productService.createProduct(productDTORequest, null);
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.updateProduct(productDTORequest, null);
+        });
 
-        verify(productRepository, times(1)).save(any(Product.class));
+        assertEquals(Message.PRODUCT_NOT_FOUND, exception.getMessage());
     }
 
+    //test trường hợp cập nhật sản phẩm không thành công do trường productName null
     @Test
-    void testGetAllProductPaging() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<ProductDTOResponse> page = new PageImpl<>(Collections.singletonList(new ProductDTOResponse(product)));
+    void testUpdateProduct_NullProductName() {
+        productDTORequest.setProductName("");
 
-        when(productRepository.getListProductPaging(anyString(), anyString(), any(Pageable.class))).thenReturn(page);
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.updateProduct(productDTORequest, null);
+        });
 
-        Page<ProductDTOResponse> result = productService.getAllProductPaging(0, 10, "Product1", "Category1");
-
-        assertEquals(1, result.getTotalElements());
+        assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
+    //test trường hợp cập nhật sản phẩm không thành công do không tìm thấy category
     @Test
-    void testGetProductById() {
-        when(productRepository.getProductById(anyLong())).thenReturn(Optional.ofNullable(product));
+    void testUpdateProduct_NotFoundCategory() {
+        // Thiết lập ID của danh mục không tồn tại
+        productDTORequest.setCategoryId(123L);
 
-        ProductDTOResponse result = productService.getProductById(1L);
+        // Giả lập hành vi để xác định rằng sản phẩm tồn tại, nhưng danh mục thì không
+        when(productRepository.getProductById(productDTORequest.getId())).thenReturn(Optional.of(product));
+        when(categoryRepository.findById(productDTORequest.getCategoryId())).thenReturn(Optional.empty());
 
-        assertNotNull(result);
-        assertEquals("Paracetamol", result.getProductName());
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.updateProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.CATEGORY_NOT_FOUND, exception.getMessage());
     }
 
+    //test trường hợp cập nhật sản phẩm không thành công do trường categoryId null
     @Test
-    void testCreateProductWithExistingProductCode() {
-        when(productRepository.findByProductCode(anyString())).thenReturn(Optional.of(new Product()));
+    void testUpdateProduct_NullCategory() {
+        productDTORequest.setCategoryId(null);
 
-        assertThrows(BadRequestException.class, () -> productService.createProduct(productDTORequest, null));
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.updateProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
+    //test trường hợp cập nhật sản phẩm không thành công do trường registrationNumber trùng
     @Test
-    void testCreateProductWithExistingRegistrationNumber() {
-        when(productRepository.findByRegistrationNumber(anyString())).thenReturn(Optional.of(new Product()));
+    void testUpdateProduct_DuplicateRegistrationNumber() {
+        // Giả lập rằng sản phẩm cần cập nhật đã tồn tại
+        when(productRepository.getProductById(productDTORequest.getId())).thenReturn(Optional.of(product));
 
-        assertThrows(BadRequestException.class, () -> productService.createProduct(productDTORequest, null));
+        // Giả lập rằng một sản phẩm khác có cùng số đăng ký đã tồn tại
+        Product duplicateProduct = new Product();
+        duplicateProduct.setId(2L); // Đảm bảo đây là một sản phẩm khác với productDTORequest
+        duplicateProduct.setRegistrationNumber(productDTORequest.getRegistrationNumber());
+        when(productRepository.findByRegistrationNumber(productDTORequest.getRegistrationNumber())).thenReturn(Optional.of(duplicateProduct));
+
+        // Kiểm tra ngoại lệ BadRequestException được ném ra do trùng số đăng ký
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            productService.updateProduct(productDTORequest, null);
+        });
+
+        // Kiểm tra thông báo lỗi
+        assertEquals(Message.EXIST_REGISTRATION_NUMBER, exception.getMessage());
     }
 
+    //test trường hợp cập nhật sản phẩm không thành công do trường registrationNumber null
     @Test
-    void testUpdateProductNotFound() {
-        when(productRepository.getProductById(anyLong())).thenReturn(null);
+    void testUpdateProduct_NullRegistrationNumber() {
+        productDTORequest.setRegistrationNumber("");
 
-        assertThrows(ResourceNotFoundException.class, () -> productService.updateProduct(productDTORequest, null));
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.updateProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    //test trường hợp cập nhật sản phẩm không thành công do trường activeIngredient null
+    @Test
+    void testUpdateProduct_NullActiveIngredient() {
+        productDTORequest.setActiveIngredient("");
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.updateProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    //test trường hợp cập nhật sản phẩm không thành công do trường dosageConcentration null
+    @Test
+    void testUpdateProduct_NullDosageConcentration() {
+        productDTORequest.setDosageConcentration("");
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.updateProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    //test trường hợp cập nhật sản phẩm không thành công do trường packingMethod null
+    @Test
+    void testUpdateProduct_NullPackingMethod() {
+        productDTORequest.setPackingMethod("");
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.updateProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    //test trường hợp cập nhật sản phẩm không thành công do trường manufacturer null
+    @Test
+    void testUpdateProduct_NullManufacturer() {
+        productDTORequest.setManufacturer("");
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.updateProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    //test trường hợp cập nhật sản phẩm không thành công do trường countryOfOrigin null
+    @Test
+    void testUpdateProduct_NullCountryOfOrigin() {
+        productDTORequest.setCountryOfOrigin("");
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.updateProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    //test trường hợp cập nhật sản phẩm không thành công do trường dosageForms null
+    @Test
+    void testUpdateProduct_NullDosageForms() {
+        productDTORequest.setDosageForms("");
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.updateProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.NULL_FILED, exception.getMessage());
+    }
+
+    //test trường hợp lấy sản phẩm theo id thành công
+    @Test
+    void testGetProductById_Success() {
+        // Tạo đối tượng Product và Category để giả lập dữ liệu
+        Long productId = 3L;
+        Product product = new Product();
+        product.setId(productId);
+
+        Category category = new Category();
+        category.setId(1L);
+        category.setCategoryName("Thuốc Ho");
+
+        product.setCategoryId(category); // Thiết lập Category cho Product
+        product.setProductUnitList(Collections.emptyList()); // Đảm bảo không bị NullPointerException
+
+        // Giả lập repository để trả về product khi gọi `getProductById`
+        when(productRepository.getProductById(productId)).thenReturn(Optional.of(product));
+
+        // Gọi phương thức và kiểm tra kết quả
+        ProductDTOResponse productDTOResponse = productService.getProductById(productId);
+
+        assertNotNull(productDTOResponse);
+        assertEquals(productId, productDTOResponse.getId());
+        assertEquals("Thuốc Ho", productDTOResponse.getCategoryName());
+    }
+
+    //test trường hợp lấy sản phẩm theo id không thành công do không tìm thấy sản phẩm
+    @Test
+    void testGetProductById_NotFoundProduct() {
+        Long productId = 200L;
+
+        // Giả lập repository để trả về Optional.empty() khi gọi getProductById
+        when(productRepository.getProductById(productId)).thenReturn(Optional.empty());
+
+        // Kiểm tra xem ngoại lệ ResourceNotFoundException có được ném ra hay không
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.getProductById(productId);
+        });
+
+        assertEquals(Message.PRODUCT_NOT_FOUND, exception.getMessage());
+    }
+
+    //test trường hợp xóa sản phẩm thành công
+    @Test
+    void testDeleteProduct_Success() {
+        Long productId = 3L;
+        Product product = new Product();
+        product.setId(productId);
+
+        when(productRepository.getProductById(productId)).thenReturn(Optional.of(product));
+
+        productService.deleteProduct(productId);
+
+        assertTrue(product.getDeleted());
+        verify(productRepository).save(product);
+    }
+
+    //test trường hợp xóa sản phẩm không thành công do không tìm thấy sản phẩm
+    @Test
+    void testDeleteProduct_NotFoundProduct() {
+        Long productId = 200L;
+
+        when(productRepository.getProductById(productId)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.deleteProduct(productId);
+        });
+
+        assertEquals(Message.PRODUCT_NOT_FOUND, exception.getMessage());
     }
 }

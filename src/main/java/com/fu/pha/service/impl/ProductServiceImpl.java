@@ -202,7 +202,7 @@ public class ProductServiceImpl implements ProductService {
                 productDTORequest.getDosageConcentration().isEmpty() || productDTORequest.getPackingMethod().isEmpty() ||
                 productDTORequest.getManufacturer().isEmpty() || productDTORequest.getCountryOfOrigin().isEmpty() ||
                 productDTORequest.getDosageForms().isEmpty()){
-            throw new BadRequestException(Message.NULL_FILED);
+            throw new ResourceNotFoundException(Message.NULL_FILED);
         }
 
     }
