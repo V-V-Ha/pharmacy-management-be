@@ -3,26 +3,27 @@ package com.fu.pha.service.impl;
 import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.SaleOrder.SaleOrderItemRequestDto;
 import com.fu.pha.dto.request.SaleOrder.SaleOrderRequestDto;
-import com.fu.pha.dto.response.CustomerDTOResponse;
-import com.fu.pha.dto.response.DoctorDTOResponse;
-import com.fu.pha.dto.response.SaleOrder.SaleOrderItemResponseDto;
 import com.fu.pha.dto.response.SaleOrder.SaleOrderResponseDto;
 import com.fu.pha.entity.*;
 import com.fu.pha.enums.OrderType;
+import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.*;
 import com.fu.pha.service.SaleOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class SaleOrderServiceImpl implements SaleOrderService {
@@ -284,26 +285,31 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         SaleOrder saleOrder = saleOrderRepository.findById(saleOrderId)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.SALE_ORDER_NOT_FOUND));
 
-        // 2. Lấy danh sách SaleOrderItem từ SaleOrder và chuyển đổi thành SaleOrderItemResponseDto
-        List<SaleOrderItemResponseDto> saleOrderItemsDto = saleOrder.getSaleOrderItemList().stream().map(SaleOrderItemResponseDto::new).collect(Collectors.toList());
-
-        // 3. Tạo SaleOrderResponseDto với thông tin của SaleOrder và danh sách SaleOrderItemResponseDto
-        SaleOrderResponseDto responseDto = new SaleOrderResponseDto(
-                saleOrder.getInvoiceNumber(),
-                saleOrder.getSaleDate(),
-                saleOrder.getOrderType(),
-                saleOrder.getPaymentMethod(),
-                saleOrder.getDiscount(),
-                saleOrder.getTotalAmount(),
-                new CustomerDTOResponse(saleOrder.getCustomer().getId(), saleOrder.getCustomer().getCustomerName()),
-                saleOrder.getDoctor() != null ? new DoctorDTOResponse(saleOrder.getDoctor().getId(), saleOrder.getDoctor().getFullName()) : null,
-                saleOrder.getUser().getId(),
-                saleOrder.getDiagnosis(),
-                saleOrderItemsDto
-        );
-
-        return responseDto;
+        return new SaleOrderResponseDto(saleOrder);
     }
 
+    @Override
+    public Page<SaleOrderResponseDto> getAllSaleOrderPaging(int page, int size, OrderType orderType, PaymentMethod paymentMethod, String phoneNumber, Instant fromDate, Instant toDate) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        //Nếu không có ngày bắt đầu và ngày kết thúc
+        if (fromDate == null && toDate == null) {
+            Instant startOfDay = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant();
+            Instant endOfDay = LocalDate.now().atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant();
+            return saleOrderRepository.getListSaleOrderPagingWithoutDate(orderType, paymentMethod, phoneNumber, startOfDay, endOfDay, pageable);
+        }
+        //Nếu chỉ có ngày bắt đầu
+        else if (fromDate != null && toDate == null) {
+            return saleOrderRepository.getListSaleOrderPagingFromDate(orderType, paymentMethod, phoneNumber, fromDate, pageable);
+        }
+        //Nếu chỉ có ngày kết thúc
+        else if (fromDate == null) {
+            return saleOrderRepository.getListSaleOrderPagingToDate(orderType, paymentMethod, phoneNumber, toDate, pageable);
+        }
+        //Nếu có cả ngày bắt đầu và ngày kết thúc
+        else {
+            return saleOrderRepository.getListSaleOrderPaging(orderType, paymentMethod, phoneNumber, fromDate, toDate, pageable);
+        }
+    }
 }
 
