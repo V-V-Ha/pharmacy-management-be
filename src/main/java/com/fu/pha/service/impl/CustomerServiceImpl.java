@@ -16,7 +16,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
@@ -97,22 +99,26 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public CustomerDTOResponse getCustomerByCustomerName(String customerName) {
-        Optional<Customer> customerOptional = customerRepository.findByCustomerName(customerName);
-        if (customerOptional.isEmpty()) {
+    public List<CustomerDTOResponse> getCustomerByCustomerName(String customerName) {
+        List<Customer> customers = customerRepository.findByCustomerName(customerName);
+        if (customers.isEmpty()) {
             throw new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND);
         }
 
-        CustomerDTOResponse customerDTOResponse = new CustomerDTOResponse();
-        customerDTOResponse.setId(customerOptional.get().getId());
-        customerDTOResponse.setCustomerName(customerOptional.get().getCustomerName());
-        customerDTOResponse.setAddress(customerOptional.get().getAddress());
-        customerDTOResponse.setPhoneNumber(customerOptional.get().getPhoneNumber());
-        customerDTOResponse.setYob(customerOptional.get().getYob());
-        customerDTOResponse.setGender(customerOptional.get().getGender());
-        customerDTOResponse.setTotalAmount(customerOptional.get().getSaleOrderList().stream()
-                .mapToDouble(SaleOrder::getTotalAmount).sum());
-        return customerDTOResponse;
+        List<CustomerDTOResponse> customerDTOResponses = customers.stream().map(customer -> {
+            CustomerDTOResponse customerDTOResponse = new CustomerDTOResponse();
+            customerDTOResponse.setId(customer.getId());
+            customerDTOResponse.setCustomerName(customer.getCustomerName());
+            customerDTOResponse.setAddress(customer.getAddress());
+            customerDTOResponse.setPhoneNumber(customer.getPhoneNumber());
+            customerDTOResponse.setYob(customer.getYob());
+            customerDTOResponse.setGender(customer.getGender());
+            customerDTOResponse.setTotalAmount(customer.getSaleOrderList().stream()
+                    .mapToDouble(SaleOrder::getTotalAmount).sum());
+            return customerDTOResponse;
+        }).collect(Collectors.toList());
+
+        return customerDTOResponses;
     }
 
     @Override

@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("api/sale")
 public class SaleController {
@@ -19,6 +21,7 @@ public class SaleController {
     @Autowired
     private SaleOrderService saleOrderService;
 
+    @Autowired
     private CustomerService customerService;
 
     @PostMapping("/create-sale-order")
@@ -39,7 +42,7 @@ public class SaleController {
     }
 
     @GetMapping("/get-customer-by-customer-name")
-    public ResponseEntity<CustomerDTOResponse> getCustomerByCustomerName(@RequestParam String customerName) {
+    public ResponseEntity<List<CustomerDTOResponse>> getCustomerByCustomerName(@RequestParam String customerName) {
         return ResponseEntity.ok(customerService.getCustomerByCustomerName(customerName));
     }
 
