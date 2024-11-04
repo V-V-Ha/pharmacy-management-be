@@ -1,9 +1,18 @@
 package com.fu.pha.controller;
 
+import com.fu.pha.dto.request.CustomerDto;
+import com.fu.pha.dto.request.SaleOrder.SaleOrderRequestDto;
+import com.fu.pha.dto.response.CustomerDTOResponse;
+import com.fu.pha.dto.response.SaleOrder.SaleOrderResponseDto;
+import com.fu.pha.exception.Message;
+import com.fu.pha.service.CustomerService;
 import com.fu.pha.service.SaleOrderService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("api/sale")
@@ -11,4 +20,33 @@ public class SaleController {
 
     @Autowired
     private SaleOrderService saleOrderService;
+
+    @Autowired
+    private CustomerService customerService;
+
+    @PostMapping("/create-sale-order")
+    public ResponseEntity<String> createSaleOrder(@Valid @RequestBody SaleOrderRequestDto saleOrderRequestDto) {
+        saleOrderService.createSaleOrder(saleOrderRequestDto);
+        return ResponseEntity.ok(Message.CREATE_SUCCESS);
+    }
+
+    @PutMapping("/update-sale-order")
+    public ResponseEntity<String> updateSaleOrder(@RequestParam Long saleOrderId, @Valid @RequestBody SaleOrderRequestDto saleOrderRequestDto) {
+        saleOrderService.updateSaleOrder(saleOrderId, saleOrderRequestDto);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    }
+
+    @GetMapping("/get-sale-order")
+    public ResponseEntity<SaleOrderResponseDto> getSaleOrderById(@RequestParam Long saleOrderId) {
+        return ResponseEntity.ok(saleOrderService.getSaleOrderById(saleOrderId));
+    }
+
+    @GetMapping("/get-customer-by-customer-name")
+    public ResponseEntity<List<CustomerDTOResponse>> getCustomerByCustomerName(@RequestParam String customerName) {
+        return ResponseEntity.ok(customerService.getCustomerByCustomerName(customerName));
+    }
+
+
+
+
 }

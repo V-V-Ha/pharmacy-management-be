@@ -51,7 +51,7 @@ public class ExportSlip extends BaseEntity{
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "supplier_id", nullable = true)
+    @JoinColumn(name = "supplier_id")
     private Supplier supplier;
 
     @Column(name = "is_deleted")

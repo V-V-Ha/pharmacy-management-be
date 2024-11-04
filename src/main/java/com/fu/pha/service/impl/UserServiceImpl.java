@@ -179,8 +179,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         userRepository.save(user);
     }
 
-
-
     private void validateRoles(Set<RoleDto> rolesDto) {
         boolean hasProductOwner = rolesDto.stream().anyMatch(role -> role.getName().equals(ERole.ROLE_PRODUCT_OWNER.name()));
         boolean hasSaleOrStock = rolesDto.stream().anyMatch(role -> role.getName().equals(ERole.ROLE_SALE.name()) || role.getName().equals(ERole.ROLE_STOCK.name()));
@@ -256,7 +254,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         // Save the updated user
         userRepository.save(user);
     }
-
 
     private void checkValidate(UserDto userDto) {
         if (userDto.getFullName().isEmpty() || userDto.getEmail().isEmpty() || userDto.getPhone().isEmpty() ||
@@ -355,6 +352,10 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     @Override
     public void forgotPassword(String email) {
+        if (email.isEmpty()) {
+            throw new BadRequestException(Message.NULL_FILED);
+        }
+
         User user = userRepository.getUserByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
 
@@ -387,12 +388,16 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
 
-        Optional.ofNullable(request.getNewPassword())
-                .orElseThrow(() -> new BadRequestException(Message.NULL_FILED));
-        Optional.ofNullable(request.getConfirmPassword())
-                .orElseThrow(() -> new BadRequestException(Message.NULL_FILED));
-        Optional.ofNullable(request.getOldPassword())
-                .orElseThrow(() -> new BadRequestException(Message.NULL_FILED));
+        if (request.getOldPassword() == null || request.getOldPassword().trim().isEmpty()) {
+            throw new BadRequestException(Message.NULL_FILED);
+        }
+        if (request.getNewPassword() == null || request.getNewPassword().trim().isEmpty()) {
+            throw new BadRequestException(Message.NULL_FILED);
+        }
+        if (request.getConfirmPassword() == null || request.getConfirmPassword().trim().isEmpty()) {
+            throw new BadRequestException(Message.NULL_FILED);
+        }
+
 
         if (!encoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new BadRequestException(Message.INVALID_OLD_PASSWORD);

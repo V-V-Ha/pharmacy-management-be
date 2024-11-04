@@ -33,4 +33,9 @@ public class CustomerDTOResponse {
                 .mapToDouble(SaleOrder::getTotalAmount).sum();
         this.gender = customer.getGender();
     }
+
+    public CustomerDTOResponse(Long id,String customerName){
+        this.id = id;
+        this.customerName = customerName;
+    }
 }

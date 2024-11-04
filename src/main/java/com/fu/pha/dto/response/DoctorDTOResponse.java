@@ -25,4 +25,9 @@ public class DoctorDTOResponse {
         this.phoneNumber = doctor.getPhoneNumber();
         this.note = doctor.getNote();
     }
+
+    public DoctorDTOResponse(Long id,String fullName){
+        this.id = id;
+        this.fullName = fullName;
+    }
 }

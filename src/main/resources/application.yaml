@@ -17,7 +17,7 @@ spring:
 
    #DB Postgres SQL
   datasource:
-    url: jdbc:postgresql://139.180.155.250:5432/fu_pha
+    url: jdbc:postgresql://139.180.155.250:5432/pha
     username: postgres
     password: 12345
     driver-class-name: org.postgresql.Driver

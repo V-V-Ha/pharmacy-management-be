@@ -1,7 +1,11 @@
 package com.fu.pha.dto.request.SaleOrder;
 
 import com.fu.pha.enums.OrderType;
+import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.enums.PaymentStatus;
+import com.fu.pha.exception.Message;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,13 +16,20 @@ import java.util.List;
 @NoArgsConstructor
 public class SaleOrderRequestDto {
     private String invoiceNumber;
+    @NotNull(message = Message.DATE_NOT_NULL)
     private Instant saleDate;
     private OrderType orderType;
-    private PaymentStatus paymentMethod;
+    private PaymentMethod paymentMethod;
     private Double discount;
+    @NotNull(message = Message.TOTAL_AMOUNT_NOT_NULL)
+    @DecimalMin(value = "0.0", message = Message.TOTAL_AMOUNT_VALID)
     private Double totalAmount;
+    @NotNull(message = Message.CUSTOMER_NOT_NULL)
     private Long customerId;
     private Long doctorId;
+    @NotNull(message = Message.USER_NOT_NULL)
     private Long userId;
+    private String diagnosis;
+    @NotNull(message = Message.LIST_ITEM_NOT_NULL)
     private List<SaleOrderItemRequestDto> saleOrderItems;
 }

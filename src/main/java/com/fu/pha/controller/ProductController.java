@@ -77,13 +77,6 @@ public class ProductController {
         return ResponseEntity.ok(productService.getAllUnit());
     }
 
-    @GetMapping("/get-all-countries")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<List<String>> getAllCountries() {
-        List<String> countries = productService.getAllCountries();
-        return ResponseEntity.ok(countries);
-    }
-
     @GetMapping("/export-excel")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<byte[]> exportToExcel() throws IOException {

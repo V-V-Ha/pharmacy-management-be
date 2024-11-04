@@ -1,6 +1,7 @@
 package com.fu.pha.entity;
 
 import com.fu.pha.enums.OrderType;
+import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -34,9 +35,9 @@ public class SaleOrder extends BaseEntity{
     @Enumerated(EnumType.STRING)
     private OrderType orderType;
 
-    @Column(name = "status")
+    @Column(name = "payment_method", nullable = false)
     @Enumerated(EnumType.STRING)
-    private PaymentStatus paymentMethod;
+    private PaymentMethod paymentMethod;
 
     @Column(name = "discount")
     private Double discount;
@@ -51,6 +52,9 @@ public class SaleOrder extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id")
     private Doctor doctor;
+
+    @Column(name = "diagnosis", columnDefinition = "TEXT")
+    private String diagnosis;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

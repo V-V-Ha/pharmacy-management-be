@@ -9,6 +9,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 public class ProductDtoResponseForExport {
+    private String productCode;
     private String productName;
     private List<ProductUnitDTOResponse> productUnits;
     private String registrationNumber;
@@ -17,8 +18,9 @@ public class ProductDtoResponseForExport {
     private List<ImportItemResponseForExport> importItems;
     private Integer totalQuantity;
 
-    public ProductDtoResponseForExport(String productName, List<ProductUnitDTOResponse> productUnits, String registrationNumber,
+    public ProductDtoResponseForExport(String productCode,String productName, List<ProductUnitDTOResponse> productUnits, String registrationNumber,
                                        String manufacturer, String countryOfOrigin, List<ImportItemResponseForExport> importItems , Integer totalQuantity) {
+        this.productCode = productCode;
         this.productName = productName;
         this.productUnits = productUnits;
         this.registrationNumber = registrationNumber;
@@ -27,5 +29,6 @@ public class ProductDtoResponseForExport {
         this.importItems = importItems;
         this.totalQuantity = totalQuantity;
     }
+
 
 }

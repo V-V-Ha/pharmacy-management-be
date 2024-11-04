@@ -46,94 +46,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
     @Autowired
     private ProductRepository productRepository;
 
-//    @Transactional
-//    @Override
-//    public void createExport(ExportSlipRequestDto exportDto) {
-//        // Tìm user
-//        User user = userRepository.findById(exportDto.getUserId())
-//                .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
-//
-//        ExportSlip exportSlip = new ExportSlip();
-//        String lastInvoiceNumber = exportSlipRepository.getLastInvoiceNumber();
-//        exportSlip.setInvoiceNumber(lastInvoiceNumber == null ? "EX000001" : generateCode.generateNewProductCode(lastInvoiceNumber));
-//
-//        exportSlip.setExportDate(Instant.now());
-//        exportSlip.setTypeDelivery(exportDto.getTypeDelivery());
-//        exportSlip.setDiscount(exportDto.getDiscount());
-//        exportSlip.setNote(exportDto.getNote());
-//        exportSlip.setUser(user);
-//
-//        // Kiểm tra loại phiếu xuất kho
-//        if (exportDto.getTypeDelivery() == ExportType.RETURN_TO_SUPPLIER) {
-//            Supplier supplier = supplierRepository.findById(exportDto.getSupplierId())
-//                    .orElseThrow(() -> new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND));
-//            exportSlip.setSupplier(supplier);
-//        } else if (exportDto.getTypeDelivery() == ExportType.DESTROY) {
-//            exportSlip.setSupplier(null);
-//        } else {
-//            throw new BadRequestException(Message.INVALID_EXPORT_TYPE);
-//        }
-//
-//        // Lưu Export entity trước
-//        exportSlipRepository.save(exportSlip);
-//
-//        // Kiểm tra danh sách exportSlipItems không rỗng
-//        if (exportDto.getExportSlipItems() == null || exportDto.getExportSlipItems().isEmpty()) {
-//            throw new BadRequestException(Message.EXPORT_ITEMS_EMPTY);
-//        }
-//
-//        double totalAmount = 0.0;
-//
-//        for (ExportSlipItemRequestDto itemDto : exportDto.getExportSlipItems()) {
-//            ExportSlipItem exportSlipItem = new ExportSlipItem();
-//            exportSlipItem.setExportSlip(exportSlip);
-//
-//            Product product = productRepository.findById(itemDto.getProductId())
-//                    .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
-//
-//            // Kiểm tra số lượng tồn kho
-//            Integer currentTotalQuantity = product.getTotalQuantity();
-//            if (currentTotalQuantity == null || currentTotalQuantity < itemDto.getQuantity()) {
-//                throw new BadRequestException(Message.NOT_ENOUGH_STOCK);
-//            }
-//
-//            // Tìm ImportItem theo importItemId
-//            ImportItem importItem = importItemRepository.findById(itemDto.getImportItemId())
-//                    .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
-//
-//            // Cập nhật số lượng remainingQuantity trong ImportItem
-//            if (importItem.getRemainingQuantity() < itemDto.getQuantity()) {
-//                throw new BadRequestException(Message.NOT_ENOUGH_STOCK_IN_BATCH);
-//            }
-//            importItem.setRemainingQuantity(importItem.getRemainingQuantity() - itemDto.getQuantity());
-//            importItemRepository.save(importItem);
-//
-//            // Cập nhật lại số lượng sản phẩm trong Product
-//            product.setTotalQuantity(currentTotalQuantity - itemDto.getQuantity());
-//            productRepository.save(product);
-//
-//            // Gán các thông tin cho ExportSlipItem
-//            exportSlipItem.setProduct(product);
-//            exportSlipItem.setQuantity(itemDto.getQuantity());
-//            exportSlipItem.setUnit(itemDto.getUnit());
-//            exportSlipItem.setUnitPrice(itemDto.getUnitPrice());
-//            exportSlipItem.setDiscount(itemDto.getDiscount());
-//            exportSlipItem.setTotalAmount(itemDto.getTotalAmount());
-//            exportSlipItem.setImportItem(importItem);  // Gán ImportItem cho ExportSlipItem
-//
-//            totalAmount += itemDto.getTotalAmount();
-//            exportSlipItemRepository.save(exportSlipItem);
-//        }
-//
-//        // Kiểm tra sự khác biệt giữa totalAmount được tính và totalAmount trong DTO
-//        if (exportDto.getTotalAmount() != null && !exportDto.getTotalAmount().equals(totalAmount)) {
-//            throw new BadRequestException(Message.TOTAL_AMOUNT_NOT_MATCH);
-//        }
-//
-//        // Cập nhật tổng số tiền vào ExportSlip
-//        exportSlip.setTotalAmount(totalAmount);
-//        exportSlipRepository.save(exportSlip);
-//    }
 
 
     @Transactional
@@ -340,7 +252,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
             // Gán các thông tin cho ExportSlipItem
             exportSlipItem.setProduct(product);
-            exportSlipItem.setQuantity(itemDto.getQuantity());  // Lưu nguyên số lượng nhập vào
+            exportSlipItem.setQuantity(itemDto.getQuantity());
             exportSlipItem.setImportItem(importItem);  // Gán ImportItem cho ExportSlipItem
             exportSlipItem.setUnit(itemDto.getUnit());
             exportSlipItem.setBatch_number(itemDto.getBatchNumber());

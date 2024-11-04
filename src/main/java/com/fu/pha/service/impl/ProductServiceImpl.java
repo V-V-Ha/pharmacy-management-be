@@ -31,7 +31,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
@@ -58,8 +57,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     CloudinaryService cloudinaryService;
-
-    private static final String COUNTRY_API_URL = "https://restcountries.com/v3.1/all";
 
     @Transactional
     @Override
@@ -205,7 +202,7 @@ public class ProductServiceImpl implements ProductService {
                 productDTORequest.getDosageConcentration().isEmpty() || productDTORequest.getPackingMethod().isEmpty() ||
                 productDTORequest.getManufacturer().isEmpty() || productDTORequest.getCountryOfOrigin().isEmpty() ||
                 productDTORequest.getDosageForms().isEmpty()){
-            throw new BadRequestException(Message.NULL_FILED);
+            throw new ResourceNotFoundException(Message.NULL_FILED);
         }
 
     }
@@ -269,19 +266,6 @@ public class ProductServiceImpl implements ProductService {
             unitDtos.add(unitDto);
         }
         return unitDtos;
-    }
-
-    @Override
-    public List<String> getAllCountries() {
-        RestTemplate restTemplate = new RestTemplate();
-        List<Map<String, Object>> response = restTemplate.getForObject(COUNTRY_API_URL, List.class);
-        List<String> countryNames = new ArrayList<>();
-
-        for (Map<String, Object> country : response) {
-            Map<String, String> name = (Map<String, String>) country.get("name");
-            countryNames.add(name.get("common")); // Lấy tên phổ biến của quốc gia
-        }
-        return countryNames;
     }
 
     @Override
