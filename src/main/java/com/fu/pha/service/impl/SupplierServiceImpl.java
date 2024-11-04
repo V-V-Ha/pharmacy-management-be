@@ -75,6 +75,12 @@ public class SupplierServiceImpl implements SupplierService {
             throw new BadRequestException(Message.SUPPLIER_EXIST);
         }
 
+        // Kiểm tra số điện thoại trùng lặp
+        Optional<Supplier> supplierWithSamePhone = supplierRepository.findByPhoneNumber(supplierDto.getPhoneNumber());
+        if (supplierWithSamePhone.isPresent() && !supplierWithSamePhone.get().getId().equals(supplierDto.getId())) {
+            throw new BadRequestException(Message.EXIST_PHONE);
+        }
+
         Supplier supplier = supplierExist.get();
         supplier.setSupplierName(supplierDto.getSupplierName());
         supplier.setTax(supplierDto.getTax());
