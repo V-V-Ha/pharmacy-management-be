@@ -97,6 +97,25 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    public CustomerDTOResponse getCustomerByCustomerName(String customerName) {
+        Optional<Customer> customerOptional = customerRepository.findByCustomerName(customerName);
+        if (customerOptional.isEmpty()) {
+            throw new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND);
+        }
+
+        CustomerDTOResponse customerDTOResponse = new CustomerDTOResponse();
+        customerDTOResponse.setId(customerOptional.get().getId());
+        customerDTOResponse.setCustomerName(customerOptional.get().getCustomerName());
+        customerDTOResponse.setAddress(customerOptional.get().getAddress());
+        customerDTOResponse.setPhoneNumber(customerOptional.get().getPhoneNumber());
+        customerDTOResponse.setYob(customerOptional.get().getYob());
+        customerDTOResponse.setGender(customerOptional.get().getGender());
+        customerDTOResponse.setTotalAmount(customerOptional.get().getSaleOrderList().stream()
+                .mapToDouble(SaleOrder::getTotalAmount).sum());
+        return customerDTOResponse;
+    }
+
+    @Override
     public Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String phoneNumber) {
         Pageable pageable = PageRequest.of(size, index);
         Page<CustomerDTOResponse> customerDTOResponses = customerRepository.getListCustomerPaging(phoneNumber, pageable);

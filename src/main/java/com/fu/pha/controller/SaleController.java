@@ -1,8 +1,11 @@
 package com.fu.pha.controller;
 
+import com.fu.pha.dto.request.CustomerDto;
 import com.fu.pha.dto.request.SaleOrder.SaleOrderRequestDto;
+import com.fu.pha.dto.response.CustomerDTOResponse;
 import com.fu.pha.dto.response.SaleOrder.SaleOrderResponseDto;
 import com.fu.pha.exception.Message;
+import com.fu.pha.service.CustomerService;
 import com.fu.pha.service.SaleOrderService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +18,8 @@ public class SaleController {
 
     @Autowired
     private SaleOrderService saleOrderService;
+
+    private CustomerService customerService;
 
     @PostMapping("/create-sale-order")
     public ResponseEntity<String> createSaleOrder(@Valid @RequestBody SaleOrderRequestDto saleOrderRequestDto) {
@@ -32,6 +37,13 @@ public class SaleController {
     public ResponseEntity<SaleOrderResponseDto> getSaleOrderById(@RequestParam Long saleOrderId) {
         return ResponseEntity.ok(saleOrderService.getSaleOrderById(saleOrderId));
     }
+
+    @GetMapping("/get-customer-by-customer-name")
+    public ResponseEntity<CustomerDTOResponse> getCustomerByCustomerName(@RequestParam String customerName) {
+        return ResponseEntity.ok(customerService.getCustomerByCustomerName(customerName));
+    }
+
+
 
 
 }

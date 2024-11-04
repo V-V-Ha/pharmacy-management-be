@@ -352,7 +352,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
     @Override
     public void forgotPassword(String email) {
-        if (email == null) {
+        if (email.isEmpty()) {
             throw new BadRequestException(Message.NULL_FILED);
         }
 
