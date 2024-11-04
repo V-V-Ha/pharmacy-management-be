@@ -1,11 +1,16 @@
 package com.fu.pha.controller;
 
+import com.fu.pha.dto.request.CustomerDto;
 import com.fu.pha.dto.request.SaleOrder.SaleOrderRequestDto;
 import com.fu.pha.dto.response.PageResponseModel;
+import com.fu.pha.dto.response.CustomerDTOResponse;
+import com.fu.pha.dto.response.DoctorDTOResponse;
 import com.fu.pha.dto.response.SaleOrder.SaleOrderResponseDto;
 import com.fu.pha.enums.OrderType;
 import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.exception.Message;
+import com.fu.pha.service.CustomerService;
+import com.fu.pha.service.DoctorService;
 import com.fu.pha.service.SaleOrderService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +24,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.List;
 
 @RestController
 @RequestMapping("api/sale")
@@ -26,6 +32,12 @@ public class SaleController {
 
     @Autowired
     private SaleOrderService saleOrderService;
+
+    @Autowired
+    private CustomerService customerService;
+
+    @Autowired
+    private DoctorService doctorService;
 
     @PostMapping("/create-sale-order")
     public ResponseEntity<String> createSaleOrder(@Valid @RequestBody SaleOrderRequestDto saleOrderRequestDto) {
@@ -67,6 +79,18 @@ public class SaleController {
                 .build();
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/get-customer-by-customer-name")
+    public ResponseEntity<List<CustomerDTOResponse>> getCustomerByCustomerName(@RequestParam String customerName) {
+        return ResponseEntity.ok(customerService.getCustomerByCustomerName(customerName));
+    }
+
+    @GetMapping("/get-doctor-by-doctor-name")
+    public ResponseEntity<List<DoctorDTOResponse>> getDoctorByDoctorName(@RequestParam String doctorName) {
+        return ResponseEntity.ok(doctorService.getDoctorByDoctorName(doctorName));
+    }
+
+
 
 
 }
