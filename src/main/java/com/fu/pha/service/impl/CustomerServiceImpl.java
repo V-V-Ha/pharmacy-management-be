@@ -3,6 +3,7 @@ package com.fu.pha.service.impl;
 import com.fu.pha.dto.request.CustomerDTORequest;
 import com.fu.pha.dto.request.CustomerDto;
 import com.fu.pha.dto.response.CustomerDTOResponse;
+import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.Customer;
 import com.fu.pha.entity.SaleOrder;
 import com.fu.pha.exception.Message;
@@ -100,27 +101,14 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public List<CustomerDTOResponse> getCustomerByCustomerName(String customerName) {
-        List<Customer> customers = customerRepository.findByCustomerName(customerName);
+        Optional<List<CustomerDTOResponse>> customers = customerRepository.findByCustomerName(customerName);
         if (customers.isEmpty()) {
             throw new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND);
         }
 
-        List<CustomerDTOResponse> customerDTOResponses = customers.stream().map(customer -> {
-            CustomerDTOResponse customerDTOResponse = new CustomerDTOResponse();
-            customerDTOResponse.setId(customer.getId());
-            customerDTOResponse.setCustomerName(customer.getCustomerName());
-            customerDTOResponse.setAddress(customer.getAddress());
-            customerDTOResponse.setPhoneNumber(customer.getPhoneNumber());
-            customerDTOResponse.setYob(customer.getYob());
-            customerDTOResponse.setGender(customer.getGender());
-            customerDTOResponse.setTotalAmount(customer.getSaleOrderList().stream()
-                    .mapToDouble(SaleOrder::getTotalAmount).sum());
-            return customerDTOResponse;
-        }).collect(Collectors.toList());
-
-        return customerDTOResponses;
+        return customers.get();
     }
-
+    
     @Override
     public Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String phoneNumber) {
         Pageable pageable = PageRequest.of(size, index);
