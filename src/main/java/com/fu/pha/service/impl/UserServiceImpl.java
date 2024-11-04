@@ -437,8 +437,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
     }
 
 
-
-
     public boolean checkUserAge(UserDto userDto) {
         LocalDate birthDate = userDto.getDob().atZone(ZoneId.systemDefault()).toLocalDate();
         int age = Period.between(birthDate, LocalDate.now()).getYears();

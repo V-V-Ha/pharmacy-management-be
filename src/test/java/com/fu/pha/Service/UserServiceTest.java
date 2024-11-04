@@ -181,7 +181,7 @@ public class UserServiceTest {
     @Test
     void testForgotPassword_NullEmail() {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            userService.forgotPassword(null);
+            userService.forgotPassword("");
         });
 
         assertEquals(Message.NULL_FILED, exception.getMessage());

@@ -1,6 +1,7 @@
 package com.fu.pha.service.impl;
 
 import com.fu.pha.dto.request.DoctorDTORequest;
+import com.fu.pha.dto.response.CustomerDTOResponse;
 import com.fu.pha.dto.response.DoctorDTOResponse;
 import com.fu.pha.entity.Doctor;
 import com.fu.pha.exception.Message;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -83,5 +85,15 @@ public class DoctorServiceImpl implements DoctorService {
             throw new ResourceNotFoundException(Message.DOCTOR_NOT_FOUND);
         }
         return doctorDTOResponses;
+    }
+
+    @Override
+    public List<DoctorDTOResponse> getDoctorByDoctorName(String doctorName) {
+        Optional<List<DoctorDTOResponse>> doctors = doctorRepository.findByDoctorName(doctorName);
+        if (doctors.isEmpty()) {
+            throw new ResourceNotFoundException(Message.DOCTOR_NOT_FOUND);
+        }
+
+        return doctors.get();
     }
 }
