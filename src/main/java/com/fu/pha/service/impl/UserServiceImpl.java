@@ -388,12 +388,16 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
 
-        Optional.ofNullable(request.getNewPassword())
-                .orElseThrow(() -> new BadRequestException(Message.NULL_FILED));
-        Optional.ofNullable(request.getConfirmPassword())
-                .orElseThrow(() -> new BadRequestException(Message.NULL_FILED));
-        Optional.ofNullable(request.getOldPassword())
-                .orElseThrow(() -> new BadRequestException(Message.NULL_FILED));
+        if (request.getOldPassword() == null || request.getOldPassword().trim().isEmpty()) {
+            throw new BadRequestException(Message.NULL_FILED);
+        }
+        if (request.getNewPassword() == null || request.getNewPassword().trim().isEmpty()) {
+            throw new BadRequestException(Message.NULL_FILED);
+        }
+        if (request.getConfirmPassword() == null || request.getConfirmPassword().trim().isEmpty()) {
+            throw new BadRequestException(Message.NULL_FILED);
+        }
+
 
         if (!encoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new BadRequestException(Message.INVALID_OLD_PASSWORD);

@@ -108,7 +108,7 @@ public class CustomerServiceImpl implements CustomerService {
 
         return customers.get();
     }
-    
+
     @Override
     public Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String phoneNumber) {
         Pageable pageable = PageRequest.of(size, index);
