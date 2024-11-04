@@ -30,4 +30,7 @@ public interface ImportItemRepository extends JpaRepository<ImportItem, Long> {
 
 
     List<ImportItem> findByProductIdOrderByCreateDateAsc(Long productId);
+
+    @Query("SELECT ii.batchNumber FROM ImportItem ii WHERE ii.batchNumber LIKE 'SL%' ORDER BY ii.createDate DESC LIMIT 1")
+    Optional<String> getLastBatchNumber();
 }
