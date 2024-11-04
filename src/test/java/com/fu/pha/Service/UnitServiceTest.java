@@ -7,23 +7,16 @@ import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.UnitRepository;
 import com.fu.pha.service.impl.UnitServiceImpl;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -36,19 +29,8 @@ public class UnitServiceTest {
     @Mock
     private UnitRepository unitRepository;
 
-    @InjectMocks
-    private UnitServiceTest unitServiceTest;
-
-    @Mock
-    private SecurityContext securityContext;
-
-    @Mock
-    private Authentication authentication;
-
     private UnitDto unitDto;
     private Unit unit;
-
-    private MockedStatic<SecurityContextHolder> securityContextHolderMockedStatic;
 
     @BeforeEach
     void setUpCreate() {
@@ -171,5 +153,48 @@ public class UnitServiceTest {
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
+    //test trường hợp lấy unit theo id thành công
+    @Test
+    void testGetUnitById_Success() {
+        when(unitRepository.findById(1L)).thenReturn(Optional.of(unit));
 
+        assertEquals(unitService.getUnitById(1L).getUnitName(), "Hộp");
+    }
+
+    //test trường hợp lấy unit theo id không tồn tại
+    @Test
+    void testGetUnitById_UnitNotFound() {
+        when(unitRepository.findById(200L)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            unitService.getUnitById(200L);
+        });
+
+        assertEquals(Message.UNIT_NOT_FOUND, exception.getMessage());
+    }
+
+    //test trường hợp xóa unit thành công
+    @Test
+    void testDeleteUnit_Success() {
+        Long unitId = 1L;
+        Unit unit = new Unit();
+        unit.setId(unitId);
+
+        when(unitRepository.findById(unitId)).thenReturn(Optional.of(unit));
+
+        unitService.deleteUnit(unitId);
+
+        assertTrue(unit.isDeleted());
+        verify(unitRepository).save(unit);
+    }
+
+    //test trường hợp xóa unit không tồn tại
+    @Test
+    void testDeleteUnit_UnitNotFound() {
+        when(unitRepository.findById(200L)).thenReturn(Optional.empty());
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            unitService.deleteUnit(200L);
+        });
+        assertEquals(Message.UNIT_NOT_FOUND, exception.getMessage());
+    }
 }
