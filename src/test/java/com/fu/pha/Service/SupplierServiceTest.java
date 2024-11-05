@@ -323,11 +323,51 @@ public class SupplierServiceTest {
         assertEquals(Message.EXIST_PHONE, exception.getMessage());
     }
 
+    //Test trường hợp lấy nhà cung cấp theo ID thành công
+    @Test
+    void testGetSupplierById_Success() {
+        when(supplierRepository.findById(1L)).thenReturn(Optional.of(supplier));
 
+        SupplierDto result = supplierService.getSupplierById(1L);
 
+        assertEquals(supplier.getId(), result.getId());
+        assertEquals(supplier.getSupplierName(), result.getSupplierName());
+        assertEquals(supplier.getTax(), result.getTax());
+        assertEquals(supplier.getPhoneNumber(), result.getPhoneNumber());
+    }
 
+    //Test trường hợp nhà cung cấp không tồn tại
+    @Test
+    void testGetSupplierById_SupplierNotFound() {
+        when(supplierRepository.findById(200L)).thenReturn(Optional.empty());
 
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            supplierService.getSupplierById(200L);
+        });
 
+        assertEquals(Message.SUPPLIER_NOT_FOUND, exception.getMessage());
+    }
 
+    //Test trường hợp xóa nhà cung cấp thành công
+    @Test
+    void testDeleteSupplier_Success() {
+        when(supplierRepository.findById(1L)).thenReturn(Optional.of(supplier));
 
+        supplierService.deleteSupplier(1L);
+
+        assertTrue(supplier.isDeleted());
+        verify(supplierRepository).save(supplier);
+    }
+
+    //Test trường hợp xóa nhà cung cấp không tồn tại
+    @Test
+    void testDeleteSupplier_SupplierNotFound() {
+        when(supplierRepository.findById(200L)).thenReturn(Optional.empty());
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            supplierService.deleteSupplier(200L);
+        });
+
+        assertEquals(Message.SUPPLIER_NOT_FOUND, exception.getMessage());
+    }
 }
