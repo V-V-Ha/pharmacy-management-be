@@ -9,6 +9,7 @@ import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.CategoryRepository;
 import com.fu.pha.repository.ProductRepository;
+import com.fu.pha.repository.ProductUnitRepository;
 import com.fu.pha.service.impl.ProductServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,9 @@ public class ProductServiceTest {
 
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private ProductUnitRepository productUnitRepository;
 
     @InjectMocks
     private ProductServiceImpl productService;
@@ -78,6 +82,7 @@ public class ProductServiceTest {
         productService.createProduct(productDTORequest, null);
 
         verify(productRepository).save(any(Product.class));
+        verify(productUnitRepository).saveAll(anyIterable());
     }
 
     //test trường hợp tạo sản phẩm không thành công do trường productName null
