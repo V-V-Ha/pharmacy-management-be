@@ -92,14 +92,17 @@ public class CategoryServiceImpl implements CategoryService {
         Optional<Category> categoryOptional = categoryRepository.findById(request.getId());
         Category category = categoryOptional.orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
 
-        // Check for existing category with the same name
-        Optional<Category> categoryExist = categoryRepository.findByCategoryName(request.getName());
+        // Normalize the category name
+        String normalizedCategoryName = capitalizeWords(request.getName());
+
+        // Check for existing category with the same normalized name
+        Optional<Category> categoryExist = categoryRepository.findByCategoryName(normalizedCategoryName);
         if (categoryExist.isPresent() && !categoryExist.get().getId().equals(request.getId())) {
             throw new BadRequestException(Message.CATEGORY_EXIST);
         }
 
-        // Update the category entity
-        category.setCategoryName(request.getName());
+        // Update the category entity with the normalized name
+        category.setCategoryName(normalizedCategoryName);
         category.setDescription(request.getDescription());
         category.setLastModifiedDate(Instant.now());
         category.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -107,6 +110,7 @@ public class CategoryServiceImpl implements CategoryService {
         // Save the updated category to the database
         categoryRepository.save(category);
     }
+
 
 
     @Override

@@ -95,14 +95,17 @@ public class UnitServiceImpl implements UnitService {
             throw new ResourceNotFoundException(Message.UNIT_NOT_FOUND);
         }
 
+        // Normalize the unit name
+        String normalizedUnitName = capitalizeWords(unitDto.getUnitName());
+
         // Check if the unit name is already taken
-        Unit unit = unitRepository.findByUnitName(unitDto.getUnitName());
+        Unit unit = unitRepository.findByUnitName(normalizedUnitName);
         if (unit != null && !unit.getId().equals(unitDto.getId())) {
             throw new BadRequestException(Message.UNIT_EXIST);
         }
 
         // Update the unit fields
-        existingUnit.setUnitName(unitDto.getUnitName());
+        existingUnit.setUnitName(normalizedUnitName);
         existingUnit.setDescription(unitDto.getDescription());
 
         // Save the updated unit to the database
