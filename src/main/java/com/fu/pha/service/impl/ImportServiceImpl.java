@@ -19,14 +19,18 @@ import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.*;
 import com.fu.pha.service.ImportService;
+import com.fu.pha.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -56,6 +60,7 @@ public class ImportServiceImpl implements ImportService {
 
     @Autowired
     private GenerateCode generateCode;
+
 
     @Override
     public List<UnitDto> getUnitByProductId(Long productId) {
@@ -474,4 +479,5 @@ public class ImportServiceImpl implements ImportService {
         // Chuyển đổi Import sang ImportDto và trả về
         return new ImportResponseDto(importReceipt);
     }
+
 }

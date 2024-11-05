@@ -38,13 +38,14 @@ public class SaleOrderResponseDto {
         this.discount = saleOrder.getDiscount();
         this.totalAmount = saleOrder.getTotalAmount();
         this.customer = new CustomerDTOResponse(saleOrder.getCustomer());
-        this.doctor = new DoctorDTOResponse(saleOrder.getDoctor());
+        this.doctor = saleOrder.getDoctor() != null ? new DoctorDTOResponse(saleOrder.getDoctor()) : null;
         this.userId = saleOrder.getUser().getId();
         this.diagnosis = saleOrder.getDiagnosis();
         this.saleOrderItems = saleOrder.getSaleOrderItemList().stream()
                 .map(SaleOrderItemResponseDto::new)
                 .collect(Collectors.toList());
     }
+
 
 
 

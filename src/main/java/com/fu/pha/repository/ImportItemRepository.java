@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,4 +34,7 @@ public interface ImportItemRepository extends JpaRepository<ImportItem, Long> {
 
     @Query("SELECT ii.batchNumber FROM ImportItem ii WHERE ii.batchNumber LIKE 'SL%' ORDER BY ii.createDate DESC LIMIT 1")
     Optional<String> getLastBatchNumber();
+
+    @Query("SELECT i FROM ImportItem i WHERE i.expiryDate <= :warningThreshold")
+    List<ImportItem> findExpiringProducts(@Param("warningThreshold") Instant warningThreshold);
 }
