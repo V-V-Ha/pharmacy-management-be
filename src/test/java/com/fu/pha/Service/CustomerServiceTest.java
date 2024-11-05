@@ -37,7 +37,6 @@ public class CustomerServiceTest {
 
     @InjectMocks
     private CustomerServiceImpl customerService;
-
     private CustomerDTORequest customerDTORequest;
     private Customer customer;
     private Validator validator;
@@ -51,9 +50,6 @@ public class CustomerServiceTest {
         customerDTORequest.setCustomerName("Vũ Văn Hà");
         customerDTORequest.setPhoneNumber("0987654321");
 
-        customer = new Customer();
-        customer.setCustomerName("Vũ Văn Hà");
-        customer.setPhoneNumber("0987654321");
     }
 
     // Test trường hợp tạo khách hàng thành công
@@ -140,10 +136,6 @@ public class CustomerServiceTest {
         customerDTORequest.setCustomerName("Vũ Văn Hà");
         customerDTORequest.setPhoneNumber("0987654321");
 
-        customer = new Customer();
-        customer.setId(1L);
-        customer.setCustomerName("Vũ Văn Hà");
-        customer.setPhoneNumber("0987654321");
     }
 
     // Test trường hợp cập nhật khách hàng thành công
@@ -192,7 +184,7 @@ public class CustomerServiceTest {
     // Test trường hợp cập nhật khách hàng không thành công vì trường customerName bị null
     @Test
     void testUpdateCustomer_NullCustomerName() {
-        customerDTORequest.setCustomerName("");
+        customerDTORequest.setCustomerName(null);
 
         Set<ConstraintViolation<CustomerDTORequest>> violations = validator.validate(customerDTORequest);
 

@@ -108,7 +108,7 @@ public class SupplierServiceTest {
     //Test trường hợp thuế null
     @Test
     void testCreateSupplier_NullTax() {
-        supplierDto.setTax("");  // Đặt tax trống để kiểm thử
+        supplierDto.setTax(null);  // Đặt tax trống để kiểm thử
 
         // Xác thực SupplierDto
         Set<ConstraintViolation<SupplierDto>> violations = validator.validate(supplierDto);
@@ -124,7 +124,7 @@ public class SupplierServiceTest {
     //Test trường hợp số điện thoại null
     @Test
     void testCreateSupplier_NullPhoneNumber() {
-        supplierDto.setPhoneNumber("");  // Đặt phoneNumber thành chuỗi trống
+        supplierDto.setPhoneNumber(null);  // Đặt phoneNumber thành chuỗi trống
 
         // Xác thực SupplierDto
         Set<ConstraintViolation<SupplierDto>> violations = validator.validate(supplierDto);
