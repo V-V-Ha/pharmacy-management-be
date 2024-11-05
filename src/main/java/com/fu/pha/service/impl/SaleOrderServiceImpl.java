@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -182,7 +183,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         List<SaleOrderItem> existingItems = saleOrderItemRepository.findBySaleOrderId(saleOrderId);
         for (SaleOrderItem existingItem : existingItems) {
             Product product = existingItem.getProduct();
-            int quantityToRestore = existingItem.getQuantity() * 1; // Tổng số lượng cần khôi phục
+            int quantityToRestore = existingItem.getQuantity(); // Số lượng cần khôi phục
 
             // Khôi phục lại tồn kho trong các lô hàng (FIFO) đúng theo thứ tự đã trừ
             List<ImportItem> batches = importItemRepository.findByProductIdOrderByCreateDateAsc(product.getId());
@@ -201,46 +202,37 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             productRepository.save(product);
         }
 
-        // Xóa các SaleOrderItem hiện tại và xử lý lại danh sách mới
-        saleOrderItemRepository.deleteBySaleOrderId(saleOrderId);
+        // 4. Xóa các SaleOrderItem cũ không còn trong danh sách mới
+        Map<Long, SaleOrderItemRequestDto> requestItemMap = saleOrderRequestDto.getSaleOrderItems().stream()
+                .collect(Collectors.toMap(SaleOrderItemRequestDto::getProductId, item -> item));
 
-        // 4. Cập nhật các thuộc tính của SaleOrder từ SaleOrderRequestDto
-        saleOrder.setInvoiceNumber(saleOrderRequestDto.getInvoiceNumber());
-        saleOrder.setSaleDate(saleOrderRequestDto.getSaleDate() != null ? saleOrderRequestDto.getSaleDate() : Instant.now());
-        saleOrder.setOrderType(saleOrderRequestDto.getOrderType());
-        saleOrder.setPaymentMethod(saleOrderRequestDto.getPaymentMethod());
-        saleOrder.setDiscount(saleOrderRequestDto.getDiscount() != null ? saleOrderRequestDto.getDiscount() : 0.0);
-        saleOrder.setCustomer(customer);
-        saleOrder.setUser(user);
-        saleOrder.setDoctor(doctor);
-        saleOrder.setDiagnosis(saleOrderRequestDto.getDiagnosis());
+        for (SaleOrderItem existingItem : existingItems) {
+            if (!requestItemMap.containsKey(existingItem.getProduct().getId())) {
+                saleOrderItemRepository.delete(existingItem);
+            }
+        }
 
         double totalOrderAmount = 0.0;
 
-        // 5. Tạo và xử lý danh sách SaleOrderItem mới
+        // 5. Cập nhật hoặc tạo mới các SaleOrderItem từ request
         for (SaleOrderItemRequestDto itemRequestDto : saleOrderRequestDto.getSaleOrderItems()) {
             Long productId = itemRequestDto.getProductId();
             Integer quantityToSell = itemRequestDto.getQuantity();
             Double unitPrice = itemRequestDto.getUnitPrice();
 
-            // Lấy sản phẩm và conversion factor
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
             int smallestQuantityToSell = quantityToSell * itemRequestDto.getConversionFactor();
 
-            // Lấy danh sách lô hàng theo FIFO để trừ tồn kho cho các lô mới
             List<ImportItem> batches = importItemRepository.findByProductIdOrderByCreateDateAsc(productId);
             int remainingQuantity = smallestQuantityToSell;
 
             for (ImportItem batch : batches) {
                 if (batch.getRemainingQuantity() > 0) {
                     int quantityFromBatch = Math.min(batch.getRemainingQuantity(), remainingQuantity);
-
-                    // Cập nhật số lượng còn lại trong lô
                     batch.setRemainingQuantity(batch.getRemainingQuantity() - quantityFromBatch);
                     importItemRepository.save(batch);
-
                     remainingQuantity -= quantityFromBatch;
                     if (remainingQuantity <= 0) break;
                 }
@@ -250,34 +242,61 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                 throw new BadRequestException(Message.OUT_OF_STOCK);
             }
 
-            // Tạo một SaleOrderItem duy nhất cho mỗi productId với tổng quantity
-            SaleOrderItem saleOrderItem = new SaleOrderItem();
-            saleOrderItem.setSaleOrder(saleOrder);
-            saleOrderItem.setProduct(product);
-            saleOrderItem.setQuantity(quantityToSell);  // Sử dụng tổng quantity
-            saleOrderItem.setUnitPrice(unitPrice);
-            saleOrderItem.setDiscount(itemRequestDto.getDiscount());
-            saleOrderItem.setTotalAmount((unitPrice * quantityToSell) -
-                    (itemRequestDto.getDiscount() != null ? itemRequestDto.getDiscount() : 0.0));
-            saleOrderItem.setDosage(itemRequestDto.getDosage());
-            saleOrderItem.setUnit(itemRequestDto.getUnit());
+            SaleOrderItem saleOrderItem = existingItems.stream()
+                    .filter(item -> item.getProduct().getId().equals(productId))
+                    .findFirst()
+                    .orElse(null);
 
-            // Lưu SaleOrderItem vào cơ sở dữ liệu
+            if (saleOrderItem != null) {
+                // Cập nhật SaleOrderItem đã tồn tại
+                saleOrderItem.setQuantity(quantityToSell); // Ghi đè số lượng mới
+                saleOrderItem.setUnitPrice(unitPrice);
+                saleOrderItem.setDiscount(itemRequestDto.getDiscount());
+                saleOrderItem.setTotalAmount((unitPrice * quantityToSell) -
+                        (itemRequestDto.getDiscount() != null ? itemRequestDto.getDiscount() : 0.0));
+                saleOrderItem.setDosage(itemRequestDto.getDosage());
+                saleOrderItem.setUnit(itemRequestDto.getUnit());
+            } else {
+                // Tạo mới SaleOrderItem
+                saleOrderItem = new SaleOrderItem();
+                saleOrderItem.setSaleOrder(saleOrder);
+                saleOrderItem.setProduct(product);
+                saleOrderItem.setQuantity(quantityToSell); // Sử dụng số lượng từ request
+                saleOrderItem.setUnitPrice(unitPrice);
+                saleOrderItem.setDiscount(itemRequestDto.getDiscount());
+                saleOrderItem.setTotalAmount((unitPrice * quantityToSell) -
+                        (itemRequestDto.getDiscount() != null ? itemRequestDto.getDiscount() : 0.0));
+                saleOrderItem.setDosage(itemRequestDto.getDosage());
+                saleOrderItem.setUnit(itemRequestDto.getUnit());
+            }
+
             saleOrderItemRepository.save(saleOrderItem);
 
-            // Cập nhật tổng tiền đơn hàng
             totalOrderAmount += saleOrderItem.getTotalAmount();
-
+            
             // Cập nhật lại tổng tồn kho của sản phẩm sau khi trừ số lượng bán ra
             int updatedTotalQuantity = product.getTotalQuantity() - smallestQuantityToSell;
             product.setTotalQuantity(updatedTotalQuantity);
             productRepository.save(product);
+
         }
 
-        // 6. Cập nhật tổng số tiền của SaleOrder và lưu lại
+        // 6. Cập nhật các thông tin của SaleOrder và lưu lại
+        saleOrder.setInvoiceNumber(saleOrderRequestDto.getInvoiceNumber());
+        saleOrder.setSaleDate(saleOrderRequestDto.getSaleDate() != null ? saleOrderRequestDto.getSaleDate() : Instant.now());
+        saleOrder.setOrderType(saleOrderRequestDto.getOrderType());
+        saleOrder.setPaymentMethod(saleOrderRequestDto.getPaymentMethod());
+        saleOrder.setDiscount(saleOrderRequestDto.getDiscount() != null ? saleOrderRequestDto.getDiscount() : 0.0);
+        saleOrder.setCustomer(customer);
+        saleOrder.setUser(user);
+        saleOrder.setDoctor(doctor);
+        saleOrder.setDiagnosis(saleOrderRequestDto.getDiagnosis());
         saleOrder.setTotalAmount(totalOrderAmount - saleOrder.getDiscount());
+
         saleOrderRepository.save(saleOrder);
     }
+
+
 
     public SaleOrderResponseDto getSaleOrderById(Long saleOrderId) {
         // 1. Truy vấn SaleOrder từ cơ sở dữ liệu
