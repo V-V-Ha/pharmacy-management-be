@@ -211,7 +211,7 @@ public class UserCreateTest {
     }
 
     @Test
-    void UTCCUR010() {
+    void UTCCUR10() {
         userDto.setAddress("Ngõ 5, Đường Láng");
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
@@ -223,7 +223,7 @@ public class UserCreateTest {
 
     // Test trường hợp tạo user với address là null
     @Test
-    void UTCCUR011() {
+    void UTCCUR11() {
         userDto.setAddress("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -235,7 +235,7 @@ public class UserCreateTest {
 
     // Test trường hợp tạo user với gender là null
     @Test
-    void UTCCUR012() {
+    void UTCCUR12() {
         userDto.setGender(null);
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -247,7 +247,7 @@ public class UserCreateTest {
 
     // Test trường hợp tạo user với cic không hợp lệ
     @Test
-    void UTCCUR013() {
+    void UTCCUR13() {
         userDto.setCic("1234567890123");
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
@@ -259,7 +259,7 @@ public class UserCreateTest {
 
     // Test trường hợp tạo user với cic là null
     @Test
-    void UTCCUR014() {
+    void UTCCUR14() {
         userDto.setCic("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -271,7 +271,7 @@ public class UserCreateTest {
 
     // Test trường hợp tạo user với username không hợp lệ
     @Test
-    void UTCCUR015() {
+    void UTCCUR15() {
         userDto.setUsername("havv");
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
@@ -283,7 +283,7 @@ public class UserCreateTest {
 
     // Test trường hợp tạo user với username là null
     @Test
-    void UTCCUR016() {
+    void UTCCUR16() {
         userDto.setUsername("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -295,7 +295,7 @@ public class UserCreateTest {
 
     // Test trường hợp tạo user với role là null
     @Test
-    void UTCCUR017() {
+    void UTCCUR17() {
         userDto.setRolesDto(new HashSet<>());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {

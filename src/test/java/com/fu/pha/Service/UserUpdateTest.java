@@ -203,7 +203,7 @@ public class UserUpdateTest {
 
     // Test trường hợp cập nhật user với dob là null
     @Test
-    void UTCUUR010() {
+    void UTCUUR10() {
         userDto.setDob(null);
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -215,7 +215,7 @@ public class UserUpdateTest {
 
     // Test trường hợp cập nhật user với address không hợp lệ
     @Test
-    void UTCUUR011() {
+    void UTCUUR11() {
         userDto.setAddress("Ngõ 5, Đường Láng");
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
@@ -227,7 +227,7 @@ public class UserUpdateTest {
 
     // Test trường hợp cập nhật user với address là null
     @Test
-    void UTCUUR012() {
+    void UTCUUR12() {
         userDto.setAddress("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -239,7 +239,7 @@ public class UserUpdateTest {
 
     // Test trường hợp cập nhật user với gender là null
     @Test
-    void UTCUUR013() {
+    void UTCUUR13() {
         userDto.setGender(null);
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -251,7 +251,7 @@ public class UserUpdateTest {
 
     // Test trường hợp cập nhật user với cic không hợp lệ
     @Test
-    void UTCUUR014() {
+    void UTCUUR14() {
         userDto.setCic("1234567890123");
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
@@ -263,7 +263,7 @@ public class UserUpdateTest {
 
     // Test trường hợp cập nhật user với cic là null
     @Test
-    void UTCUUR015() {
+    void UTCUUR15() {
         userDto.setCic("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -275,7 +275,7 @@ public class UserUpdateTest {
 
     // Test trường hợp cập nhật user với username không hợp lệ
     @Test
-    void UTCUUR016() {
+    void UTCUUR16() {
         userDto.setUsername("havv");
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
@@ -287,7 +287,7 @@ public class UserUpdateTest {
 
     // Test trường hợp cập nhật user với username là null
     @Test
-    void UTCUUR017() {
+    void UTCUUR17() {
         userDto.setUsername("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -299,7 +299,7 @@ public class UserUpdateTest {
 
     // Test trường hợp cập nhật user với role là null
     @Test
-    void UTCUUR018() {
+    void UTCUUR18() {
         userDto.setRolesDto(new HashSet<>());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
