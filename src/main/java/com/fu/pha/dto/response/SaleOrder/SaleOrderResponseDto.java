@@ -31,6 +31,7 @@ public class SaleOrderResponseDto {
     private List<SaleOrderItemResponseDto> saleOrderItems;
 
     public SaleOrderResponseDto(SaleOrder saleOrder) {
+        this.id = saleOrder.getId();
         this.invoiceNumber = saleOrder.getInvoiceNumber();
         this.saleDate = saleOrder.getSaleDate();
         this.orderType = saleOrder.getOrderType();

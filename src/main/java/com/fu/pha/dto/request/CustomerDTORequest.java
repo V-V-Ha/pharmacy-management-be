@@ -24,7 +24,6 @@ public class CustomerDTORequest {
 
     private String address;
 
-    @NotBlank(message = Message.NULL_FILED)
     @Pattern(regexp = Constants.REGEX_PHONE, message = Message.INVALID_PHONE)
     private String phoneNumber;
     private Integer yob;
