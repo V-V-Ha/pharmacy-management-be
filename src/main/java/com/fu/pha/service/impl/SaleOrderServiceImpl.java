@@ -285,7 +285,6 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         }
 
         // 6. Cập nhật các thông tin của SaleOrder và lưu lại
-        saleOrder.setInvoiceNumber(saleOrderRequestDto.getInvoiceNumber());
         saleOrder.setSaleDate(saleOrderRequestDto.getSaleDate() != null ? saleOrderRequestDto.getSaleDate() : Instant.now());
         saleOrder.setOrderType(saleOrderRequestDto.getOrderType());
         saleOrder.setPaymentMethod(saleOrderRequestDto.getPaymentMethod());
