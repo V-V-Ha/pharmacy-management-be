@@ -1,4 +1,4 @@
-package com.fu.pha.Service;
+package com.fu.pha.Service.User;
 
 import com.fu.pha.dto.request.LoginDtoRequest;
 import com.fu.pha.dto.response.JwtResponse;

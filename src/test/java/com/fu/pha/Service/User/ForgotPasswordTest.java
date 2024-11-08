@@ -1,4 +1,4 @@
-package com.fu.pha.Service;
+package com.fu.pha.Service.User;
 
 import com.fu.pha.entity.User;
 import com.fu.pha.exception.BadRequestException;

@@ -1,8 +1,7 @@
-package com.fu.pha.Service;
+package com.fu.pha.Service.User;
 
 import com.fu.pha.dto.request.UserDto;
 import com.fu.pha.entity.User;
-import com.fu.pha.enums.Status;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.UserRepository;
@@ -15,13 +14,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class UserActiveTest {
+public class UserViewDetailTest {
 
     @Mock
     private UserRepository userRepository;
@@ -29,38 +27,27 @@ public class UserActiveTest {
     @InjectMocks
     private UserServiceImpl userService;
 
-    // Test trường hợp active user thành công
+    // Test trường hợp view user detail thành công
     @Test
-    void UTCURA01() {
+    void UTCURVD01() {
         Long userId = 3L;
         User user = new User();
         user.setId(userId);
-        user.setStatus(Status.INACTIVE);
-
-        when(userRepository.getUserById(userId)).thenReturn(Optional.of(user));
-
-        UserDto userDto = new UserDto();
-        userDto.setId(userId);
-
-        userService.activeUser(userDto);
-
-        verify(userRepository).save(user);
-        assertEquals(Status.ACTIVE, user.getStatus());
-        assertEquals(Message.UPDATE_SUCCESS, "Cập nhật thành công");
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        UserDto userDto = userService.viewDetailUser(userId);
+        assertNotNull(userDto);
+        assertEquals(userId, userDto.getId());
     }
 
-    // Test trường hợp active user với không tìm thấy user
+    // Test trường hợp view user detail với không tìm thấy user
     @Test
-    void UTCURA02() {
+    void UTCURVD02() {
         Long userId = 200L;
 
-        when(userRepository.getUserById(userId)).thenReturn(Optional.empty());
-
-        UserDto userDto = new UserDto();
-        userDto.setId(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            userService.activeUser(userDto);
+            userService.viewDetailUser(userId);
         });
 
         assertEquals(Message.USER_NOT_FOUND, exception.getMessage());

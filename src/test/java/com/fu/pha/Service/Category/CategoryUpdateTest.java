@@ -1,9 +1,10 @@
-package com.fu.pha.Service;
+package com.fu.pha.Service.Category;
 
 import com.fu.pha.dto.request.CategoryDto;
 import com.fu.pha.entity.Category;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
+import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.CategoryRepository;
 import com.fu.pha.service.impl.CategoryServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,11 +21,11 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class CategoryCreateTest {
+public class CategoryUpdateTest {
 
     @Mock
     private CategoryRepository categoryRepository;
@@ -36,53 +37,81 @@ public class CategoryCreateTest {
     private Category category;
 
     @BeforeEach
-    void setUpCreate() {
+    void setUpUpdate() {
         categoryDto = new CategoryDto();
+        categoryDto.setId(1L);
         categoryDto.setName("Thuốc ho");
 
         category = new Category();
-        category.setCategoryName("Thuốc Ho");
+        category.setId(1L);
+        category.setCategoryName("Thuốc ho");
 
-        // Thiết lập SecurityContext giả lập
+        // Mock SecurityContext and Authentication
         SecurityContext securityContext = mock(SecurityContext.class);
         Authentication authentication = mock(Authentication.class);
+
+        // Set up SecurityContextHolder
         lenient().when(securityContext.getAuthentication()).thenReturn(authentication);
         lenient().when(authentication.getName()).thenReturn("minhhieu");
         SecurityContextHolder.setContext(securityContext);
     }
 
-    //test trường hợp tạo category thành công
+    //test trường hợp update category thành công
     @Test
-    void UTCCCR01() {
+    void UTCCU01() {
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(categoryRepository.findByCategoryName("Thuốc Ho")).thenReturn(Optional.empty());
 
-        categoryService.createCategory(categoryDto);
+        categoryService.updateCategory(categoryDto);
 
-        verify(categoryRepository).save(any(Category.class));
+        verify(categoryRepository).save(category);
+        assertEquals("Thuốc Ho", category.getCategoryName());
+        assertEquals("minhhieu", category.getLastModifiedBy());
     }
 
-    //test trường hợp tạo category với tên null
+    //test trường hợp update category không tìm thấy category
     @Test
-    void UTCCCR02() {
+    void UTCCU02() {
+
+        categoryDto.setId(123L);
+        when(categoryRepository.findById(categoryDto.getId())).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            categoryService.updateCategory(categoryDto);
+        });
+
+        assertEquals(Message.CATEGORY_NOT_FOUND, exception.getMessage());
+    }
+
+    //test trường hợp update category với tên null
+    @Test
+    void UTCCU03() {
         categoryDto.setName("");
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            categoryService.createCategory(categoryDto);
+            categoryService.updateCategory(categoryDto);
         });
 
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
-    //test trường hợp tạo category đã tồn tại
+
+    //test trường hợp update category đã tồn tại
     @Test
-    void UTCCCR03() {
-        when(categoryRepository.findByCategoryName("Thuốc Ho")).thenReturn(Optional.of(category));
+    void UTCCU04() {
+        Category anotherCategory = new Category();
+        anotherCategory.setId(2L);
+        anotherCategory.setCategoryName("Thuốc Ho");
+
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(categoryRepository.findByCategoryName("Thuốc Ho")).thenReturn(Optional.of(anotherCategory));
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            categoryService.createCategory(categoryDto);
+            categoryService.updateCategory(categoryDto);
         });
 
         assertEquals(Message.CATEGORY_EXIST, exception.getMessage());
     }
+
 
 }

@@ -1,4 +1,4 @@
-package com.fu.pha.Service;
+package com.fu.pha.Service.Product;
 
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.Category;

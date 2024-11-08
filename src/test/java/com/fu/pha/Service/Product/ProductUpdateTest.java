@@ -1,4 +1,4 @@
-package com.fu.pha.Service;
+package com.fu.pha.Service.Product;
 
 import com.fu.pha.dto.request.ProductDTORequest;
 import com.fu.pha.entity.Category;
@@ -8,7 +8,6 @@ import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.CategoryRepository;
 import com.fu.pha.repository.ProductRepository;
-import com.fu.pha.repository.ProductUnitRepository;
 import com.fu.pha.service.impl.ProductServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,21 +22,17 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyIterable;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class ProductCreateTest {
+public class ProductUpdateTest {
 
     @Mock
     private ProductRepository productRepository;
 
     @Mock
     private CategoryRepository categoryRepository;
-
-    @Mock
-    private ProductUnitRepository productUnitRepository;
 
     @InjectMocks
     private ProductServiceImpl productService;
@@ -47,8 +42,9 @@ public class ProductCreateTest {
     private Category category;
 
     @BeforeEach
-    void setUpCreate() {
+    void setUpUpdate() {
         productDTORequest = new ProductDTORequest();
+        productDTORequest.setId(1L);
         productDTORequest.setProductName("thuốc ho bổ phế Nam Hà");
         productDTORequest.setCategoryId(1L);
         productDTORequest.setRegistrationNumber("TCT-00092-22");
@@ -61,6 +57,7 @@ public class ProductCreateTest {
         productDTORequest.setProductUnitListDTO(Collections.emptyList());
 
         product = new Product();
+        product.setId(1L);
         product.setProductName("thuốc ho bổ phế Nam Hà");
         product.setCategoryId(category);
         product.setRegistrationNumber("TCT-00092-22");
@@ -75,156 +72,179 @@ public class ProductCreateTest {
         category.setId(1L);
     }
 
-    //test trường hợp tạo sản phẩm thành công
+    //test trường hợp cập nhật sản phẩm thành công
     @Test
-    void UTCPC01() {
-        when(productRepository.findByRegistrationNumber(productDTORequest.getRegistrationNumber())).thenReturn(Optional.empty());
+    void UTCPU01() {
+        when(productRepository.getProductById(productDTORequest.getId())).thenReturn(Optional.of(product));
+        when(productRepository.findByRegistrationNumber(productDTORequest.getRegistrationNumber())).thenReturn(Optional.of(product));
         when(categoryRepository.findById(productDTORequest.getCategoryId())).thenReturn(Optional.of(category));
-        when(productRepository.getLastProductCode()).thenReturn(null);
 
-        productService.createProduct(productDTORequest, null);
+        productService.updateProduct(productDTORequest, null);
 
-        verify(productRepository).save(any(Product.class));
-        verify(productUnitRepository).saveAll(anyIterable());
+        verify(productRepository, times(2)).save(any(Product.class));
     }
 
-    //test trường hợp tạo sản phẩm không thành công do trường productName null
+    //test trường hợp cập nhật sản phẩm không thành công do không tìm thấy sản phẩm
     @Test
-    void UTCPC02() {
+    void UTCPU02() {
+        productDTORequest.setId(123L);
+        when(productRepository.getProductById(productDTORequest.getId())).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            productService.updateProduct(productDTORequest, null);
+        });
+
+        assertEquals(Message.PRODUCT_NOT_FOUND, exception.getMessage());
+    }
+
+    //test trường hợp cập nhật sản phẩm không thành công do trường productName null
+    @Test
+    void UTCPU03() {
         productDTORequest.setProductName("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.createProduct(productDTORequest, null);
+            productService.updateProduct(productDTORequest, null);
         });
 
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
-    //test trường hợp tạo sản phẩm không thành công do không tìm thấy category
+    //test trường hợp cập nhật sản phẩm không thành công do không tìm thấy category
     @Test
-    void UTCPC03() {
+    void UTCPU04() {
+        // Thiết lập ID của danh mục không tồn tại
         productDTORequest.setCategoryId(123L);
+
+        // Giả lập hành vi để xác định rằng sản phẩm tồn tại, nhưng danh mục thì không
+        when(productRepository.getProductById(productDTORequest.getId())).thenReturn(Optional.of(product));
         when(categoryRepository.findById(productDTORequest.getCategoryId())).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.createProduct(productDTORequest, null);
+            productService.updateProduct(productDTORequest, null);
         });
 
         assertEquals(Message.CATEGORY_NOT_FOUND, exception.getMessage());
     }
 
-    //test trường hợp tạo sản phẩm không thành công do trường categoryId null
+    //test trường hợp cập nhật sản phẩm không thành công do trường categoryId null
     @Test
-    void UTCPC04() {
+    void UTCPU05() {
         productDTORequest.setCategoryId(null);
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.createProduct(productDTORequest, null);
+            productService.updateProduct(productDTORequest, null);
         });
 
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
-    //test trường hợp tạo sản phẩm không thành công do trường registrationNumber null
+    //test trường hợp cập nhật sản phẩm không thành công do trường registrationNumber null
     @Test
-    void UTCPC05() {
+    void UTCPU06() {
         productDTORequest.setRegistrationNumber("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.createProduct(productDTORequest, null);
+            productService.updateProduct(productDTORequest, null);
         });
 
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
-    //test trường hợp tạo sản phẩm không thành công do trường activeIngredient null
+    //test trường hợp cập nhật sản phẩm không thành công do trường activeIngredient null
     @Test
-    void UTCPC06() {
+    void UTCPU07() {
         productDTORequest.setActiveIngredient("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.createProduct(productDTORequest, null);
+            productService.updateProduct(productDTORequest, null);
         });
 
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
-    //test trường hợp tạo sản phẩm không thành công do trường dosageConcentration null
+    //test trường hợp cập nhật sản phẩm không thành công do trường dosageConcentration null
     @Test
-    void UTCPC07() {
+    void UTCPU08() {
         productDTORequest.setDosageConcentration("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.createProduct(productDTORequest, null);
+            productService.updateProduct(productDTORequest, null);
         });
 
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
-    //test trường hợp tạo sản phẩm không thành công do trường packingMethod null
+    //test trường hợp cập nhật sản phẩm không thành công do trường packingMethod null
     @Test
-    void UTCPC08() {
+    void UTCPU09() {
         productDTORequest.setPackingMethod("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.createProduct(productDTORequest, null);
+            productService.updateProduct(productDTORequest, null);
         });
 
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
-    //test trường hợp tạo sản phẩm không thành công do trường manufacturer null
+    //test trường hợp cập nhật sản phẩm không thành công do trường manufacturer null
     @Test
-    void UTCPC09() {
+    void UTCPU10() {
         productDTORequest.setManufacturer("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.createProduct(productDTORequest, null);
+            productService.updateProduct(productDTORequest, null);
         });
 
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
-    //test trường hợp tạo sản phẩm không thành công do trường countryOfOrigin null
+    //test trường hợp cập nhật sản phẩm không thành công do trường countryOfOrigin null
     @Test
-    void UTCPC10() {
+    void UTCPU11() {
         productDTORequest.setCountryOfOrigin("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.createProduct(productDTORequest, null);
+            productService.updateProduct(productDTORequest, null);
         });
 
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
-    //test trường hợp tạo sản phẩm không thành công do trường dosageForms null
+    //test trường hợp cập nhật sản phẩm không thành công do trường dosageForms null
     @Test
-    void UTCPC11() {
+    void UTCPU12() {
         productDTORequest.setDosageForms("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.createProduct(productDTORequest, null);
+            productService.updateProduct(productDTORequest, null);
         });
 
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
-    //test trường hợp tạo sản phẩm không thành công do trường registrationNumber trùng
+    //test trường hợp cập nhật sản phẩm không thành công do trường registrationNumber trùng
     @Test
-    void UTCPC12() {
+    void UTCPU13() {
         // Thiết lập số đăng ký cho productDTORequest
         productDTORequest.setRegistrationNumber("TCT-00092-22");
 
-        // Giả lập kết quả trả về của productRepository khi tìm kiếm số đăng ký đã tồn tại
-        when(productRepository.findByRegistrationNumber("TCT-00092-22")).thenReturn(Optional.of(product));
+        // Giả lập rằng sản phẩm cần cập nhật đã tồn tại
+        when(productRepository.getProductById(productDTORequest.getId())).thenReturn(Optional.of(product));
 
-        // Kiểm tra xem phương thức createProduct có ném ra BadRequestException khi số đăng ký đã tồn tại
+        // Giả lập rằng một sản phẩm khác có cùng số đăng ký đã tồn tại
+        Product duplicateProduct = new Product();
+        duplicateProduct.setId(2L); // Đảm bảo đây là một sản phẩm khác với productDTORequest
+        duplicateProduct.setRegistrationNumber("TCT-00092-22");
+        when(productRepository.findByRegistrationNumber("TCT-00092-22")).thenReturn(Optional.of(duplicateProduct));
+
+        // Kiểm tra ngoại lệ BadRequestException được ném ra do trùng số đăng ký
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            productService.createProduct(productDTORequest, null);
+            productService.updateProduct(productDTORequest, null);
         });
 
-        // Kiểm tra thông điệp lỗi có khớp với thông điệp mong muốn
+        // Kiểm tra thông báo lỗi
         assertEquals(Message.EXIST_REGISTRATION_NUMBER, exception.getMessage());
     }
+
 
 }

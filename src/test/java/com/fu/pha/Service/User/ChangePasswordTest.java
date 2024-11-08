@@ -1,11 +1,9 @@
-package com.fu.pha.Service;
+package com.fu.pha.Service.User;
 
 import com.fu.pha.dto.request.ChangePasswordDto;
-import com.fu.pha.dto.request.UserDto;
 import com.fu.pha.entity.User;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
-import com.fu.pha.repository.RoleRepository;
 import com.fu.pha.repository.UserRepository;
 import com.fu.pha.security.jwt.JwtUtils;
 import com.fu.pha.service.EmailService;

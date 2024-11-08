@@ -1,4 +1,4 @@
-package com.fu.pha.Service;
+package com.fu.pha.Service.Product;
 
 import com.fu.pha.entity.Product;
 import com.fu.pha.exception.Message;
