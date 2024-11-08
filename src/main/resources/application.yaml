@@ -77,6 +77,17 @@ expiry:
   warning:
     days: 90
 
+# Payment
+payment:
+  vnPay:
+    url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+    tmnCode: N1QO9F2B
+    secretKey: X5AJNC69WUUIIQS4GO2MOZFKLM8VP5DX
+    returnUrl: http://localhost:8080/api/v1/payment/vn-pay-callback
+    version: 2.1.0
+    command: pay
+    orderType: other
+
 
 
 

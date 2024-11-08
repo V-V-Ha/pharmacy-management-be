@@ -107,8 +107,8 @@ public class ProductServiceImpl implements ProductService {
         for (ProductUnitDTORequest productUnitDTORequest : productDTORequest.getProductUnitListDTO()) {
             Unit unit = unitRepository.findUnitById(productUnitDTORequest.getUnitId());
             ProductUnit productUnit = new ProductUnit();
-            productUnit.setProductId(product);
-            productUnit.setUnitId(unit);
+            productUnit.setProduct(product);
+            productUnit.setUnit(unit);
             productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
             productUnit.setImportPrice(productUnitDTORequest.getImportPrice());
             productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
@@ -169,7 +169,7 @@ public class ProductServiceImpl implements ProductService {
 
                 if (productUnit != null) {
                     // Update product unit
-                    productUnit.setUnitId(unitRepository.findUnitById(productUnitDTORequest.getUnitId()));
+                    productUnit.setUnit(unitRepository.findUnitById(productUnitDTORequest.getUnitId()));
                     productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
                     productUnit.setImportPrice(productUnitDTORequest.getImportPrice());
                     productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
@@ -179,8 +179,8 @@ public class ProductServiceImpl implements ProductService {
                     productUnit = new ProductUnit();
                     Unit unit = unitRepository.findUnitById(productUnitDTORequest.getUnitId());
                     product = productRepository.findProductById(productDTORequest.getId());
-                    productUnit.setUnitId(unit);
-                    productUnit.setProductId(product);
+                    productUnit.setUnit(unit);
+                    productUnit.setProduct(product);
                     productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
                     productUnit.setImportPrice(productUnitDTORequest.getImportPrice());
                     productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());

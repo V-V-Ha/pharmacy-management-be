@@ -66,12 +66,12 @@ public class ProductDTOResponse {
         this.productUnitList = product.getProductUnitList().stream()
                 .map(productUnit -> new ProductUnitDTOResponse(
                         productUnit.getId(),
-                        new UnitDto(productUnit.getUnitId().getId(), productUnit.getUnitId().getUnitName()),
-                        productUnit.getProductId().getId(),
+                        new UnitDto(productUnit.getUnit().getId(), productUnit.getUnit().getUnitName()),
+                        productUnit.getProduct().getId(),
                         productUnit.getConversionFactor(),
                         productUnit.getImportPrice(),
                         productUnit.getRetailPrice(),
-                        productUnit.getUnitId().getUnitName()
+                        productUnit.getUnit().getUnitName()
                 ))
                 .collect(Collectors.toList());
         this.createBy = product.getCreateBy();

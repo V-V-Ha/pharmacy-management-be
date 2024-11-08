@@ -75,7 +75,7 @@ public class Product extends BaseEntity{
     @JsonBackReference
     private Category categoryId;
 
-    @OneToMany(mappedBy = "productId",cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,orphanRemoval = true)
     @JsonManagedReference
     private List<ProductUnit> productUnitList;
 

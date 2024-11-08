@@ -1,28 +1,30 @@
 package com.fu.pha.controller;
 
-import com.fu.pha.dto.request.CustomerDto;
 import com.fu.pha.dto.request.SaleOrder.SaleOrderRequestDto;
 import com.fu.pha.dto.response.PageResponseModel;
 import com.fu.pha.dto.response.CustomerDTOResponse;
 import com.fu.pha.dto.response.DoctorDTOResponse;
 import com.fu.pha.dto.response.SaleOrder.SaleOrderResponseDto;
+import com.fu.pha.entity.SaleOrder;
 import com.fu.pha.enums.OrderType;
 import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.exception.Message;
+import com.fu.pha.exception.ResourceNotFoundException;
+import com.fu.pha.repository.SaleOrderRepository;
 import com.fu.pha.service.CustomerService;
 import com.fu.pha.service.DoctorService;
+import com.fu.pha.service.InvoiceService;
 import com.fu.pha.service.SaleOrderService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.List;
 
@@ -38,6 +40,14 @@ public class SaleController {
 
     @Autowired
     private DoctorService doctorService;
+
+    @Autowired
+    private SaleOrderRepository saleOrderRepository;
+
+    @Autowired
+    private InvoiceService invoiceService;
+
+
 
     @PostMapping("/create-sale-order")
     public ResponseEntity<String> createSaleOrder(@Valid @RequestBody SaleOrderRequestDto saleOrderRequestDto) {
@@ -89,6 +99,20 @@ public class SaleController {
     public ResponseEntity<List<DoctorDTOResponse>> getDoctorByDoctorName(@RequestParam String doctorName) {
         return ResponseEntity.ok(doctorService.getDoctorByDoctorName(doctorName));
     }
+
+    @GetMapping("/invoice/pdf/{saleOrderId}")
+    public ResponseEntity<byte[]> downloadInvoicePdf(@PathVariable Long saleOrderId, @RequestParam String paperSize) {
+        SaleOrder saleOrder = saleOrderRepository.findById(saleOrderId)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.SALE_ORDER_NOT_FOUND));
+
+        byte[] pdfBytes = invoiceService.generateInvoicePdf(saleOrder, paperSize);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.inline().filename("invoice.pdf").build());
+
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    }
+
 
 
 

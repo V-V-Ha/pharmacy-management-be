@@ -30,7 +30,7 @@ public class Unit extends BaseEntity{
     @Column(name = "description")
     private String description;
 
-    @OneToMany(mappedBy = "unitId",cascade = CascadeType.ALL ,orphanRemoval = true)
+    @OneToMany(mappedBy = "unit",cascade = CascadeType.ALL ,orphanRemoval = true)
     @JsonManagedReference
     private List<ProductUnit> productUnitList;
 

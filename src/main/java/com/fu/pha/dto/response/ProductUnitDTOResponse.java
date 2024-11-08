@@ -21,11 +21,11 @@ public class ProductUnitDTOResponse {
     private String unitName;
 
     public ProductUnitDTOResponse(ProductUnit productUnit) {
-        this.unit = new UnitDto(productUnit.getUnitId().getId(), productUnit.getUnitId().getUnitName());
-        this.productId = productUnit.getProductId().getId();
+        this.unit = new UnitDto(productUnit.getUnit().getId(), productUnit.getUnit().getUnitName());
+        this.productId = productUnit.getProduct().getId();
         this.conversionFactor = productUnit.getConversionFactor();
         this.importPrice = productUnit.getImportPrice();
         this.retailPrice = productUnit.getRetailPrice();
-        this.unitName = productUnit.getUnitId().getUnitName();
+        this.unitName = productUnit.getUnit().getUnitName();
     }
 }

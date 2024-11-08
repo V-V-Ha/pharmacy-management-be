@@ -156,6 +156,7 @@ public class ImportServiceImpl implements ImportService {
                                         importItem.getBatchNumber(),
                                         importItem.getImportReceipt().getId(),
                                         importItem.getExpiryDate(),
+                                        importItem.getCreateDate(),
                                         importItem.getRemainingQuantity(),
                                         supplierId
                                 );
@@ -245,23 +246,7 @@ public class ImportServiceImpl implements ImportService {
             importItem.setUnitPrice(itemDto.getUnitPrice());
             importItem.setDiscount(itemDto.getDiscount());
             importItem.setTax(itemDto.getTax());
-            String lastBatchNumber = importItemRepository.getLastBatchNumber().orElse(null);
-
-            int newSequence;
-            if (lastBatchNumber != null && lastBatchNumber.startsWith("SL")) {
-                String numericPart = lastBatchNumber.substring(2).split("-")[0];
-                try {
-                    newSequence = Integer.parseInt(numericPart) + 1;
-                } catch (NumberFormatException e) {
-                    newSequence = 1;
-                }
-            } else {
-                newSequence = 1;
-            }
-            String autoGenPart = String.format("SL%06d", newSequence);
-            String userEnteredPart = itemDto.getBatchNumber();
-            String completeBatchNumber = autoGenPart + "-" + userEnteredPart;
-            importItem.setBatchNumber(completeBatchNumber);
+            importItem.setBatchNumber(itemDto.getBatchNumber());
             importItem.setExpiryDate(itemDto.getExpiryDate());
             importItem.setTotalAmount(itemDto.getTotalAmount());
             importItem.setRemainingQuantity(smallestQuantity);  // Cập nhật số lượng còn lại theo đơn vị nhỏ nhất
@@ -384,26 +369,7 @@ public class ImportServiceImpl implements ImportService {
                 importItem.setUnitPrice(itemDto.getUnitPrice());
                 importItem.setDiscount(itemDto.getDiscount());
                 importItem.setTax(itemDto.getTax());
-                String lastBatchNumber = importItemRepository.getLastBatchNumber().orElse(null);
-
-                int newSequence;
-                if (lastBatchNumber != null && lastBatchNumber.startsWith("SL")) {
-                    String numericPart = lastBatchNumber.substring(2).split("-")[0];
-                    try {
-                        newSequence = Integer.parseInt(numericPart) + 1;
-                    } catch (NumberFormatException e) {
-                        newSequence = 1;
-                    }
-                } else {
-                    newSequence = 1;
-                }
-                String autoGenPart = String.format("SL%06d", newSequence);
-                String userEnteredPart = itemDto.getBatchNumber();
-                String completeBatchNumber = autoGenPart + "-" + userEnteredPart;
-
-
-
-                importItem.setBatchNumber(completeBatchNumber);
+                importItem.setBatchNumber(itemDto.getBatchNumber());
                 importItem.setExpiryDate(itemDto.getExpiryDate());
                 importItem.setTotalAmount(itemDto.getTotalAmount());
                 importItem.setRemainingQuantity(smallestQuantity);  // Cập nhật số lượng còn lại theo đơn vị nhỏ nhất
