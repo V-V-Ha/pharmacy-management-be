@@ -66,24 +66,20 @@ public class InvoiceServiceImpl implements InvoiceService {
             document.add(new Paragraph("Số điện thoại: " + saleOrder.getCustomer().getPhoneNumber(), boldFont));
             document.add(new Paragraph("NV Bán hàng: " + saleOrder.getUser().getFullName(), boldFont));
 
-            document.add(new Paragraph("\n--------------------------------------------------\n", font));
+            document.add(new Paragraph("\n"));
 
             // Bảng sản phẩm
-            PdfPTable table = new PdfPTable(6);
+            PdfPTable table = new PdfPTable(5);
             table.setWidthPercentage(100);
             table.getDefaultCell().setBorder(PdfPCell.NO_BORDER);
 
             table.getDefaultCell().setBorderWidth(0.02f);
-            table.setWidths(new float[]{1f, 2.4f, 1.3f, 1.1f, 2.0f, 2.0f});  // Điều chỉnh kích thước các cột
+            table.setWidths(new float[]{ 3f, 1.3f, 1.1f, 2.5f, 2.5f});  // Điều chỉnh kích thước các cột
 
 
             // Thêm tiêu đề cột và ngăn xuống dòng
-            PdfPCell cell = new PdfPCell(new Phrase("TT", boldFont));
-            cell.setNoWrap(true);
-            cell.setBorderWidth(0.02f);
-            table.addCell(cell);
 
-            cell = new PdfPCell(new Phrase("Tên hàng", boldFont));
+            PdfPCell cell = new PdfPCell(new Phrase("Tên hàng", boldFont));
             cell.setNoWrap(true);
             cell.setBorderWidth(0.02f);
             table.addCell(cell);
@@ -110,7 +106,6 @@ public class InvoiceServiceImpl implements InvoiceService {
 
             int index = 1;
             for (SaleOrderItem item : saleOrder.getSaleOrderItemList()) {
-                table.addCell(new PdfPCell(new Phrase(String.valueOf(index++), font)));
                 table.addCell(new PdfPCell(new Phrase(item.getProduct().getProductName(), font)));
                 table.addCell(new PdfPCell(new Phrase(item.getUnit(), font)));
                 table.addCell(new PdfPCell(new Phrase(String.valueOf(item.getQuantity()), font)));
@@ -121,8 +116,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 
             document.add(table);
 
+
+            document.add(new Paragraph("Tổng tiền: " + df.format(saleOrder.getTotalAmount()) + " VND", boldFont));
             document.add(new Paragraph("--------------------------------------------------", font));
-            document.add(new Paragraph("Cộng tiền: " + df.format(saleOrder.getTotalAmount()) + " VND", boldFont));
             document.add(new Paragraph("\nCảm ơn quý khách đã mua hàng", boldFont));
 
             document.close();
@@ -137,4 +133,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 
 
 }
+
+
+
+
+
 
