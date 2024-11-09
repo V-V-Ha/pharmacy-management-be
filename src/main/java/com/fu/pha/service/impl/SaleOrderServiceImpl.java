@@ -1,7 +1,6 @@
 package com.fu.pha.service.impl;
 
 import com.fu.pha.convert.GenerateCode;
-import com.fu.pha.dto.request.PaymentDTO;
 import com.fu.pha.dto.request.SaleOrder.SaleOrderItemRequestDto;
 import com.fu.pha.dto.request.SaleOrder.SaleOrderRequestDto;
 import com.fu.pha.dto.response.SaleOrder.SaleOrderResponseDto;
@@ -12,7 +11,6 @@ import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.*;
-import com.fu.pha.service.PaymentService;
 import com.fu.pha.service.SaleOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,15 +19,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,8 +55,6 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     @Autowired
     private GenerateCode generateCode;
 
-    @Autowired
-    private PaymentService paymentService;
 
 
 

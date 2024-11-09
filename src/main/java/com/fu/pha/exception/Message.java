@@ -13,6 +13,8 @@ public class Message {
 
     public static final String CREATE_SUCCESS = "Tạo thành công";
 
+    public static final String CREATE_FAILED = "Tạo thất bại";
+
     public static final String INVALID_PASSWORD = "Mật khẩu không hợp lệ, mật khẩu phải có ít nhất 8 ký tự, " +
             "và phải có 1 ký tự hoa và 1 ký tự thường";
     public static final String INVALID_CCCD = "Số căn cước công dân không hợp lệ. Yêu cầu 12 chữ số";
@@ -87,5 +89,5 @@ public class Message {
     public static final String SUPPLIER_NOT_NULL = "Nhà cung cấp không được trống";
     public static final String TOTAL_AMOUNT_VALID = "Tổng tiền phải lớn hơn 0";
     public static final String LIST_ITEM_NOT_NULL = "Danh sách sản phẩm không được trống";
-    public static final String DOCTOR_REQUIRED = "Bác sĩ không được trống";
+    public static final String DOCTOR_REQUIRED = "Bác sĩ không được trống";;
 }

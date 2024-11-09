@@ -79,16 +79,10 @@ expiry:
 
 # Payment
 payment:
-  vnPay:
-    url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-    tmnCode: N1QO9F2B
-    secretKey: X5AJNC69WUUIIQS4GO2MOZFKLM8VP5DX
-    returnUrl: http://localhost:8080/api/v1/payment/vn-pay-callback
-    version: 2.1.0
-    command: pay
-    orderType: other
-
-
+  payOS:
+    client_id: 26876906-65fd-4d08-afd2-c19fcada6857
+    api_key: 4fe2a0c9-5986-4150-be96-263684e0014f
+    checkSum_key: ee3386799b1e49366fb904e05b8cf21ce13b682e188b805513c0c305696293e3
 
 
 
