@@ -7,7 +7,6 @@ import com.fu.pha.exception.Message;
 import com.fu.pha.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -56,7 +55,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-
     @GetMapping("/view-detail-user")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<UserDto> viewDetailUser(@RequestParam Long id) {
@@ -69,8 +67,6 @@ public class UserController {
         return ResponseEntity.ok(Message.CHANGE_PASS_SUCCESS);
     }
 
-
-
     @PostMapping("/create-user")
     public ResponseEntity<?> createUser(
             @RequestPart("userDto") UserDto userDto,
@@ -81,8 +77,6 @@ public class UserController {
 
     }
 
-
-
     @PutMapping("/update-user")
     public ResponseEntity<?> updateUser(
             @RequestPart("userDto") UserDto userDto,
@@ -91,8 +85,5 @@ public class UserController {
             // Gọi service để cập nhật user và upload avatar
             userService.updateUser(userDto, file);
             return ResponseEntity.ok(Message.UPDATE_SUCCESS);
-
     }
-
 }
-

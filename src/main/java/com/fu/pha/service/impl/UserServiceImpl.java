@@ -92,8 +92,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDtoRequest.getUsername(), loginDtoRequest.getPassword()));
 
-
-
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
@@ -153,9 +151,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
                         .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND)))
                 .collect(Collectors.toSet());
         user.setRoles(roles);
-
-
-
 
         if (file != null && !file.isEmpty()) {
             String avatar = uploadImage(file);
@@ -435,7 +430,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
         return cloudinaryResponse.getUrl();
     }
-
 
     public boolean checkUserAge(UserDto userDto) {
         LocalDate birthDate = userDto.getDob().atZone(ZoneId.systemDefault()).toLocalDate();

@@ -180,12 +180,6 @@ public class ImportServiceImpl implements ImportService {
         return productDtoResponses;
     }
 
-
-
-
-
-
-
     public List<SupplierDto> getSuppplierBySupplierName(String supplierName) {
         Optional<List<SupplierDto>> supplier = supplierRepository.findSupplierBySupplierName(supplierName);
         if (supplier.isEmpty()) {
@@ -193,7 +187,6 @@ public class ImportServiceImpl implements ImportService {
         }
         return supplier.get();
     }
-
 
     @Transactional
     @Override
@@ -288,9 +281,6 @@ public class ImportServiceImpl implements ImportService {
         importRepository.save(importReceipt);
     }
 
-
-
-
     @Override
     public Page<ImportViewListDto> getAllImportPaging(int page, int size, String supplierName, Instant fromDate, Instant toDate) {
         Pageable pageable = PageRequest.of(page, size);
@@ -312,7 +302,6 @@ public class ImportServiceImpl implements ImportService {
             return importRepository.getListImportPaging(supplierName, fromDate, toDate, pageable);
         }
     }
-
 
     @Transactional
     @Override
@@ -435,7 +424,6 @@ public class ImportServiceImpl implements ImportService {
             }
         }
     }
-
 
     @Override
     public ImportResponseDto getImportById(Long importId) {
