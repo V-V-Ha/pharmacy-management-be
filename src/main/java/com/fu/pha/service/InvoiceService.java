@@ -4,6 +4,6 @@ import com.fu.pha.entity.SaleOrder;
 
 public interface InvoiceService {
 
-    byte[] generateInvoicePdf(SaleOrder saleOrder, String paperSize);
+    String generateInvoicePdf(SaleOrder saleOrder, String paperSize);
 
 }
