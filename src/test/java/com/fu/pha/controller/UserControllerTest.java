@@ -45,7 +45,7 @@ class UserControllerTest {
         ResponseEntity<String> response = userController.activeUser(userDto);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(Message.ACTIVE_SUCCESS, response.getBody());
+        assertEquals(Message.UPDATE_SUCCESS, response.getBody());
     }
 
     @Test
@@ -56,7 +56,7 @@ class UserControllerTest {
         ResponseEntity<String> response = userController.deActiveUser(userDto);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(Message.DEACTIVE_SUCCESS, response.getBody());
+        assertEquals(Message.UPDATE_SUCCESS, response.getBody());
     }
 
     @Test

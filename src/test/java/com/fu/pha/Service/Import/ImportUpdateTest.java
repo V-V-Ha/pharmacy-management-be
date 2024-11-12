@@ -196,17 +196,12 @@ public class ImportUpdateTest {
     //Test trường hợp cập nhật phiếu nhập không thành công do không tìm thấy phiếu nhập
     @Test
     void UTCIU07() {
-        when(importRepository.findById(1L)).thenReturn(Optional.empty());
+        when(importRepository.findById(200L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            importService.updateImport(1L, importDto);
+            importService.updateImport(200L, importDto);
         });
 
         assertEquals(Message.IMPORT_NOT_FOUND, exception.getMessage());
     }
-
-
-
-
-
 }

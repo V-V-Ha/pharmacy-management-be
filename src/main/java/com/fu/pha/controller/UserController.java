@@ -24,14 +24,14 @@ public class UserController {
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<String> activeUser(@RequestBody UserDto request) {
         userService.activeUser(request);
-        return ResponseEntity.ok(Message.ACTIVE_SUCCESS);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
     @PutMapping("/in-active-user")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<String> deActiveUser(@RequestBody UserDto request) {
          userService.deActiveUser(request);
-        return ResponseEntity.ok(Message.DEACTIVE_SUCCESS);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
     @GetMapping("/get-all-user-paging")
