@@ -47,4 +47,10 @@ public class SaleOrderItem extends BaseEntity{
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    @Column(name = "conversion_factor")
+    private Integer conversionFactor;
+
+    @Column(name = "returned_quantity")
+    private Integer returnedQuantity;
+
 }
