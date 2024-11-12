@@ -100,17 +100,23 @@ public class SaleController {
         return ResponseEntity.ok(doctorService.getDoctorByDoctorName(doctorName));
     }
 
-    @GetMapping("/invoice/pdf/{saleOrderId}")
-    public ResponseEntity<byte[]> downloadInvoicePdf(@PathVariable Long saleOrderId, @RequestParam String paperSize) {
+    @GetMapping("/pdf/{saleOrderId}")
+    public ResponseEntity<String> generateAndDownloadInvoicePdf(
+            @PathVariable Long saleOrderId,
+            @RequestParam String paperSize) {
+
+        // Tìm SaleOrder theo ID
         SaleOrder saleOrder = saleOrderRepository.findById(saleOrderId)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.SALE_ORDER_NOT_FOUND));
 
-        byte[] pdfBytes = invoiceService.generateInvoicePdf(saleOrder, paperSize);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDisposition(ContentDisposition.inline().filename("invoice.pdf").build());
+        // Tạo file PDF và upload lên Cloudinary, trả về URL
+        String pdfUrl = invoiceService.generateInvoicePdf(saleOrder, paperSize);
 
-        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+        if (pdfUrl != null) {
+            return new ResponseEntity<>(pdfUrl, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Lỗi khi tải file", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 

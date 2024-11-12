@@ -23,8 +23,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,6 +54,8 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     @Autowired
     private GenerateCode generateCode;
 
+    @Autowired
+    private SaleOrderItemBatchRepository saleOrderItemBatchRepository;
 
 
 
@@ -105,11 +106,15 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
-            int smallestQuantityToSell = quantityToSell * itemRequestDto.getConversionFactor();
+            int conversionFactor = itemRequestDto.getConversionFactor();
+            int smallestQuantityToSell = quantityToSell * conversionFactor;
 
             // Lấy danh sách lô hàng theo FIFO
             List<ImportItem> batches = importItemRepository.findByProductIdOrderByCreateDateAsc(productId);
             int remainingQuantity = smallestQuantityToSell;
+
+            // Danh sách để lưu các SaleOrderItemBatch
+            List<SaleOrderItemBatch> saleOrderItemBatches = new ArrayList<>();
 
             for (ImportItem batch : batches) {
                 if (batch.getRemainingQuantity() > 0) {
@@ -118,6 +123,12 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                     // Cập nhật số lượng còn lại trong lô
                     batch.setRemainingQuantity(batch.getRemainingQuantity() - quantityFromBatch);
                     importItemRepository.save(batch);
+
+                    // Tạo và lưu SaleOrderItemBatch
+                    SaleOrderItemBatch saleOrderItemBatch = new SaleOrderItemBatch();
+                    saleOrderItemBatch.setImportItem(batch);
+                    saleOrderItemBatch.setQuantity(quantityFromBatch);
+                    saleOrderItemBatches.add(saleOrderItemBatch);
 
                     remainingQuantity -= quantityFromBatch;
                     if (remainingQuantity <= 0) break;
@@ -129,7 +140,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                 throw new BadRequestException(Message.OUT_OF_STOCK);
             }
 
-            // Tạo một bản ghi SaleOrderItem duy nhất với tổng quantity
+            // Tạo một bản ghi SaleOrderItem với tổng quantity
             SaleOrderItem saleOrderItem = new SaleOrderItem();
             saleOrderItem.setSaleOrder(saleOrder);
             saleOrderItem.setProduct(product);
@@ -139,10 +150,18 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             saleOrderItem.setTotalAmount((unitPrice * quantityToSell) -
                     (itemRequestDto.getDiscount() != null ? itemRequestDto.getDiscount() : 0.0));
             saleOrderItem.setDosage(itemRequestDto.getDosage());
+            saleOrderItem.setConversionFactor(conversionFactor);
             saleOrderItem.setUnit(itemRequestDto.getUnit());
+            saleOrderItem.setReturnedQuantity(0);
 
             // Lưu SaleOrderItem vào cơ sở dữ liệu
             saleOrderItemRepository.save(saleOrderItem);
+
+            // Lưu các SaleOrderItemBatch với liên kết đến SaleOrderItem vừa tạo
+            for (SaleOrderItemBatch saleOrderItemBatch : saleOrderItemBatches) {
+                saleOrderItemBatch.setSaleOrderItem(saleOrderItem);
+                saleOrderItemBatchRepository.save(saleOrderItemBatch);
+            }
 
             // Cập nhật tổng tiền đơn hàng
             totalOrderAmount += saleOrderItem.getTotalAmount();
@@ -153,13 +172,10 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             productRepository.save(product);
         }
 
-
         // 4. Cập nhật tổng số tiền của SaleOrder và lưu lại
         saleOrder.setTotalAmount(totalOrderAmount - saleOrder.getDiscount());
         saleOrderRepository.save(saleOrder);
     }
-
-    //code invoice printing sale order with normal invooice
 
 
     @Override
@@ -186,43 +202,18 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                     .orElseThrow(() -> new ResourceNotFoundException(Message.DOCTOR_NOT_FOUND));
         }
 
-        // 3. Khôi phục lại tồn kho từ các SaleOrderItem hiện tại trước khi cập nhật
+        // 3. Lấy các SaleOrderItem hiện tại từ cơ sở dữ liệu
         List<SaleOrderItem> existingItems = saleOrderItemRepository.findBySaleOrderId(saleOrderId);
-        for (SaleOrderItem existingItem : existingItems) {
-            Product product = existingItem.getProduct();
-            int quantityToRestore = existingItem.getQuantity(); // Số lượng cần khôi phục
+        Map<Long, SaleOrderItem> existingItemsMap = existingItems.stream()
+                .collect(Collectors.toMap(item -> item.getProduct().getId(), item -> item));
 
-            // Khôi phục lại tồn kho trong các lô hàng (FIFO) đúng theo thứ tự đã trừ
-            List<ImportItem> batches = importItemRepository.findByProductIdOrderByCreateDateAsc(product.getId());
-            for (ImportItem batch : batches) {
-                if (batch.getRemainingQuantity() < batch.getQuantity()) {
-                    int restoreAmount = Math.min(batch.getQuantity() - batch.getRemainingQuantity(), quantityToRestore);
-                    batch.setRemainingQuantity(batch.getRemainingQuantity() + restoreAmount);
-                    importItemRepository.save(batch);
-                    quantityToRestore -= restoreAmount;
-                    if (quantityToRestore <= 0) break;
-                }
-            }
-
-            // Khôi phục lại tổng tồn kho của sản phẩm
-            product.setTotalQuantity(product.getTotalQuantity() + existingItem.getQuantity());
-            productRepository.save(product);
-        }
-
-        // 4. Xóa các SaleOrderItem cũ không còn trong danh sách mới
-        Map<Long, SaleOrderItemRequestDto> requestItemMap = saleOrderRequestDto.getSaleOrderItems().stream()
-                .collect(Collectors.toMap(SaleOrderItemRequestDto::getProductId, item -> item));
-
-        for (SaleOrderItem existingItem : existingItems) {
-            if (!requestItemMap.containsKey(existingItem.getProduct().getId())) {
-                saleOrderItemRepository.delete(existingItem);
-            }
-        }
+        // Danh sách các sản phẩm trong yêu cầu
+        List<SaleOrderItemRequestDto> requestedItems = saleOrderRequestDto.getSaleOrderItems();
 
         double totalOrderAmount = 0.0;
 
-        // 5. Cập nhật hoặc tạo mới các SaleOrderItem từ request
-        for (SaleOrderItemRequestDto itemRequestDto : saleOrderRequestDto.getSaleOrderItems()) {
+        // 4. Cập nhật hoặc thêm mới các SaleOrderItem từ request
+        for (SaleOrderItemRequestDto itemRequestDto : requestedItems) {
             Long productId = itemRequestDto.getProductId();
             Integer quantityToSell = itemRequestDto.getQuantity();
             Double unitPrice = itemRequestDto.getUnitPrice();
@@ -230,62 +221,89 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
-            int smallestQuantityToSell = quantityToSell * itemRequestDto.getConversionFactor();
+            int conversionFactor = itemRequestDto.getConversionFactor();
+            int smallestQuantityToSell = quantityToSell * conversionFactor;
 
-            List<ImportItem> batches = importItemRepository.findByProductIdOrderByCreateDateAsc(productId);
-            int remainingQuantity = smallestQuantityToSell;
-
-            for (ImportItem batch : batches) {
-                if (batch.getRemainingQuantity() > 0) {
-                    int quantityFromBatch = Math.min(batch.getRemainingQuantity(), remainingQuantity);
-                    batch.setRemainingQuantity(batch.getRemainingQuantity() - quantityFromBatch);
-                    importItemRepository.save(batch);
-                    remainingQuantity -= quantityFromBatch;
-                    if (remainingQuantity <= 0) break;
-                }
-            }
-
-            if (remainingQuantity > 0) {
-                throw new BadRequestException(Message.OUT_OF_STOCK);
-            }
-
-            SaleOrderItem saleOrderItem = existingItems.stream()
-                    .filter(item -> item.getProduct().getId().equals(productId))
-                    .findFirst()
-                    .orElse(null);
-
+            SaleOrderItem saleOrderItem = existingItemsMap.get(productId);
             if (saleOrderItem != null) {
-                // Cập nhật SaleOrderItem đã tồn tại
-                saleOrderItem.setQuantity(quantityToSell); // Ghi đè số lượng mới
+                // Cập nhật thông tin nếu sản phẩm đã tồn tại trong SaleOrder
+                // Tính toán sự khác biệt giữa số lượng mới và số lượng cũ
+                int oldSmallestQuantity = saleOrderItem.getQuantity() * saleOrderItem.getConversionFactor();
+                int difference = smallestQuantityToSell - oldSmallestQuantity;
+
+                if (difference > 0) {
+                    // Cần tăng số lượng đã phân bổ
+                    allocateAdditionalQuantity(saleOrderItem, difference, product);
+                } else if (difference < 0) {
+                    // Cần giảm số lượng đã phân bổ
+                    deallocateQuantity(saleOrderItem, -difference, product);
+                }
+                // Nếu difference == 0, không cần thay đổi gì về phân bổ
+
+                // Cập nhật các thuộc tính của SaleOrderItem
+                saleOrderItem.setQuantity(quantityToSell);
                 saleOrderItem.setUnitPrice(unitPrice);
                 saleOrderItem.setDiscount(itemRequestDto.getDiscount());
                 saleOrderItem.setTotalAmount((unitPrice * quantityToSell) -
                         (itemRequestDto.getDiscount() != null ? itemRequestDto.getDiscount() : 0.0));
                 saleOrderItem.setDosage(itemRequestDto.getDosage());
                 saleOrderItem.setUnit(itemRequestDto.getUnit());
+                saleOrderItem.setConversionFactor(conversionFactor);
+                // Không thay đổi returnedQuantity
+
+                saleOrderItemRepository.save(saleOrderItem);
+
+                totalOrderAmount += saleOrderItem.getTotalAmount();
+
+                // Loại bỏ khỏi map để xác định các item cần xóa sau này
+                existingItemsMap.remove(productId);
             } else {
-                // Tạo mới SaleOrderItem
-                saleOrderItem = new SaleOrderItem();
-                saleOrderItem.setSaleOrder(saleOrder);
-                saleOrderItem.setProduct(product);
-                saleOrderItem.setQuantity(quantityToSell); // Sử dụng số lượng từ request
-                saleOrderItem.setUnitPrice(unitPrice);
-                saleOrderItem.setDiscount(itemRequestDto.getDiscount());
-                saleOrderItem.setTotalAmount((unitPrice * quantityToSell) -
+                // Nếu không tồn tại, tạo mới SaleOrderItem
+                SaleOrderItem saleOrderItemNew = new SaleOrderItem();
+                saleOrderItemNew.setSaleOrder(saleOrder);
+                saleOrderItemNew.setProduct(product);
+                saleOrderItemNew.setQuantity(quantityToSell);
+                saleOrderItemNew.setUnitPrice(unitPrice);
+                saleOrderItemNew.setDiscount(itemRequestDto.getDiscount());
+                saleOrderItemNew.setTotalAmount((unitPrice * quantityToSell) -
                         (itemRequestDto.getDiscount() != null ? itemRequestDto.getDiscount() : 0.0));
-                saleOrderItem.setDosage(itemRequestDto.getDosage());
-                saleOrderItem.setUnit(itemRequestDto.getUnit());
+                saleOrderItemNew.setDosage(itemRequestDto.getDosage());
+                saleOrderItemNew.setUnit(itemRequestDto.getUnit());
+                saleOrderItemNew.setConversionFactor(conversionFactor);
+                saleOrderItemNew.setReturnedQuantity(0);
+
+                saleOrderItemRepository.save(saleOrderItemNew);
+
+                // Phân bổ số lượng từ các batches hiện có
+                allocateAdditionalQuantity(saleOrderItemNew, smallestQuantityToSell, product);
+
+                totalOrderAmount += saleOrderItemNew.getTotalAmount();
             }
+        }
 
-            saleOrderItemRepository.save(saleOrderItem);
+        // 5. Xóa các SaleOrderItem không còn trong yêu cầu
+        if (!existingItemsMap.isEmpty()) {
+            for (SaleOrderItem saleOrderItemToDelete : existingItemsMap.values()) {
+                // Khôi phục lại tồn kho từ các batch hiện tại
+                List<SaleOrderItemBatch> saleOrderItemBatches = saleOrderItemBatchRepository.findBySaleOrderItemId(saleOrderItemToDelete.getId());
+                for (SaleOrderItemBatch saleOrderItemBatch : saleOrderItemBatches) {
+                    ImportItem batch = saleOrderItemBatch.getImportItem();
+                    batch.setRemainingQuantity(batch.getRemainingQuantity() + saleOrderItemBatch.getQuantity());
+                    importItemRepository.save(batch);
+                }
 
-            totalOrderAmount += saleOrderItem.getTotalAmount();
-            
-            // Cập nhật lại tổng tồn kho của sản phẩm sau khi trừ số lượng bán ra
-            int updatedTotalQuantity = product.getTotalQuantity() - smallestQuantityToSell;
-            product.setTotalQuantity(updatedTotalQuantity);
-            productRepository.save(product);
+                // Cập nhật tổng tồn kho sản phẩm
+                Product product = saleOrderItemToDelete.getProduct();
+                int smallestQuantity = saleOrderItemToDelete.getQuantity() * saleOrderItemToDelete.getConversionFactor();
+                product.setTotalQuantity(product.getTotalQuantity() + smallestQuantity);
+                productRepository.save(product);
 
+                // Xóa các SaleOrderItemBatch
+                saleOrderItemBatchRepository.deleteAll(saleOrderItemBatches);
+
+                // Xóa SaleOrderItem
+                saleOrderItemRepository.delete(saleOrderItemToDelete);
+            }
         }
 
         // 6. Cập nhật các thông tin của SaleOrder và lưu lại
@@ -297,10 +315,112 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         saleOrder.setUser(user);
         saleOrder.setDoctor(doctor);
         saleOrder.setDiagnosis(saleOrderRequestDto.getDiagnosis());
-        saleOrder.setTotalAmount(totalOrderAmount - saleOrder.getDiscount());
+        saleOrder.setTotalAmount(totalOrderAmount - saleOrderRequestDto.getDiscount());
 
         saleOrderRepository.save(saleOrder);
     }
+
+    /**
+     * Phương thức để phân bổ thêm số lượng cần bán vào các batches hiện có.
+     */
+    private void allocateAdditionalQuantity(SaleOrderItem saleOrderItem, int additionalQuantity, Product product) {
+        List<ImportItem> batches = importItemRepository.findByProductIdOrderByCreateDateAsc(product.getId());
+        List<SaleOrderItemBatch> saleOrderItemBatchesToAdd = new ArrayList<>();
+        int totalAllocated = 0; // Biến để theo dõi tổng số lượng đã phân bổ
+
+        for (ImportItem batch : batches) {
+            if (batch.getRemainingQuantity() > 0 && additionalQuantity > 0) {
+                int quantityFromBatch = Math.min(batch.getRemainingQuantity(), additionalQuantity);
+
+                // Cập nhật số lượng còn lại trong lô
+                batch.setRemainingQuantity(batch.getRemainingQuantity() - quantityFromBatch);
+                importItemRepository.save(batch);
+
+                // Kiểm tra xem SaleOrderItemBatch đã tồn tại cho cặp importId và saleOrderItemId chưa
+                Optional<SaleOrderItemBatch> existingBatchOpt = saleOrderItemBatchRepository.findByImportItemIdAndSaleOrderItemId(batch.getId(), saleOrderItem.getId());
+
+                if (existingBatchOpt.isPresent()) {
+                    // Nếu tồn tại, cập nhật số lượng
+                    SaleOrderItemBatch existingBatch = existingBatchOpt.get();
+                    existingBatch.setQuantity(existingBatch.getQuantity() + quantityFromBatch);
+                    saleOrderItemBatchRepository.save(existingBatch);
+                } else {
+                    // Nếu không tồn tại, tạo mới
+                    SaleOrderItemBatch saleOrderItemBatch = new SaleOrderItemBatch();
+                    saleOrderItemBatch.setImportItem(batch);
+                    saleOrderItemBatch.setQuantity(quantityFromBatch);
+                    saleOrderItemBatch.setSaleOrderItem(saleOrderItem);
+                    saleOrderItemBatchesToAdd.add(saleOrderItemBatch);
+                }
+
+                totalAllocated += quantityFromBatch;
+                additionalQuantity -= quantityFromBatch;
+            }
+        }
+
+        if (additionalQuantity > 0) {
+            throw new BadRequestException(Message.OUT_OF_STOCK);
+        }
+
+        // Lưu các SaleOrderItemBatch mới nếu có
+        if (!saleOrderItemBatchesToAdd.isEmpty()) {
+            saleOrderItemBatchRepository.saveAll(saleOrderItemBatchesToAdd);
+        }
+
+        // Cập nhật tổng tồn kho của sản phẩm
+        product.setTotalQuantity(product.getTotalQuantity() - totalAllocated);
+        productRepository.save(product);
+    }
+
+    /**
+     * Phương thức để giảm số lượng đã phân bổ từ các SaleOrderItemBatch hiện có.
+     */
+    private void deallocateQuantity(SaleOrderItem saleOrderItem, int deallocateQuantity, Product product) {
+        List<SaleOrderItemBatch> existingBatches = saleOrderItemBatchRepository.findBySaleOrderItemId(saleOrderItem.getId())
+                .stream()
+                .sorted(Comparator.comparing(SaleOrderItemBatch::getId).reversed()) // Giảm dần theo ID để giảm từ các batches cuối
+                .collect(Collectors.toList());
+        int totalDeallocated = 0; // Biến để theo dõi tổng số lượng đã giải phóng
+
+        for (SaleOrderItemBatch batch : existingBatches) {
+            if (deallocateQuantity <= 0) break;
+
+            int batchQuantity = batch.getQuantity();
+            if (batchQuantity <= deallocateQuantity) {
+                // Khôi phục lại tồn kho
+                ImportItem importItem = batch.getImportItem();
+                importItem.setRemainingQuantity(importItem.getRemainingQuantity() + batchQuantity);
+                importItemRepository.save(importItem);
+
+                // Xóa SaleOrderItemBatch
+                saleOrderItemBatchRepository.delete(batch);
+
+                totalDeallocated += batchQuantity;
+                deallocateQuantity -= batchQuantity;
+            } else {
+                // Giảm số lượng trong batch
+                batch.setQuantity(batch.getQuantity() - deallocateQuantity);
+                saleOrderItemBatchRepository.save(batch);
+
+                // Khôi phục lại tồn kho
+                ImportItem importItem = batch.getImportItem();
+                importItem.setRemainingQuantity(importItem.getRemainingQuantity() + deallocateQuantity);
+                importItemRepository.save(importItem);
+
+                totalDeallocated += deallocateQuantity;
+                deallocateQuantity = 0;
+            }
+        }
+
+        // Cập nhật tổng tồn kho của sản phẩm
+        product.setTotalQuantity(product.getTotalQuantity() + totalDeallocated);
+        productRepository.save(product);
+    }
+
+
+
+
+
 
 
 
