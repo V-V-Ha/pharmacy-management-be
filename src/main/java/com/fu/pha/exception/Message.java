@@ -77,10 +77,11 @@ public class Message {
     public static final String SUPPLIER_NOT_NULL = "Nhà cung cấp không được trống";
     public static final String TOTAL_AMOUNT_VALID = "Tổng tiền phải lớn hơn 0";
     public static final String LIST_ITEM_NOT_NULL = "Danh sách sản phẩm không được trống";
-    public static final String DOCTOR_REQUIRED = "Bác sĩ không được trống";;
+    public static final String DOCTOR_REQUIRED = "Bác sĩ không được trống";
     public static final String INVALID_RETURN_QUANTITY = "Số lượng trả lại không hợp lệ";
     public static final String RETURN_ORDER_NOT_FOUND = "Không tìm thấy phiếu trả hàng";
     public static final String PRODUCT_NOT_IN_SALE_ORDER = "Sản phẩm không có trong đơn hàng";
     public static final String SALE_ORDER_NOT_NULL = "Thông tin đơn hàng không được trống";
     public static final String PAYMENT_METHOD_NOT_NULL = "Phương thức thanh toán không được trống";
+    public static final String INVALID_YOB = "Năm sinh phải lớn hơn 1900 và không phải là năm sau.";
 }

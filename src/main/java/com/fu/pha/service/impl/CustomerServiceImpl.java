@@ -6,6 +6,7 @@ import com.fu.pha.dto.response.CustomerDTOResponse;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.Customer;
 import com.fu.pha.entity.SaleOrder;
+import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.CustomerRepository;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Year;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,11 +39,18 @@ public class CustomerServiceImpl implements CustomerService {
             throw new ResourceNotFoundException(Message.EXIST_PHONE);
         }
 
+        int yob = customerDTORequest.getYob();
+
+        // Validate Year of Birth (should be greater than 1900 and not in the future)
+        if (yob <= 1900 || yob > Year.now().getValue()) {
+            throw new BadRequestException(Message.INVALID_YOB);
+        }
+
         Customer customer = new Customer();
         customer.setPhoneNumber(customerDTORequest.getPhoneNumber());
         customer.setCustomerName(customerDTORequest.getCustomerName());
         customer.setAddress(customerDTORequest.getAddress());
-        customer.setYob(customerDTORequest.getYob());
+        customer.setYob(yob);
         customer.setGender(customerDTORequest.getGender());
         customerRepository.save(customer);
     }
@@ -61,11 +70,18 @@ public class CustomerServiceImpl implements CustomerService {
             throw new ResourceNotFoundException(Message.EXIST_PHONE);
         }
 
+        int yob = customerDTORequest.getYob();
+
+        // Validate Year of Birth (should be greater than 1900 and not in the future)
+        if (yob <= 1900 || yob > Year.now().getValue()) {
+            throw new BadRequestException(Message.INVALID_YOB);
+        }
+
         Customer customer = customerOptional.get();
         customer.setPhoneNumber(customerDTORequest.getPhoneNumber());
         customer.setCustomerName(customerDTORequest.getCustomerName());
         customer.setAddress(customerDTORequest.getAddress());
-        customer.setYob(customerDTORequest.getYob());
+        customer.setYob(yob);
         customer.setGender(customerDTORequest.getGender());
         customerRepository.save(customer);
     }
