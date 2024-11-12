@@ -1,10 +1,14 @@
 package com.fu.pha.service.impl;
 
+import com.fu.pha.dto.response.CloudinaryResponse;
 import com.fu.pha.entity.SaleOrder;
 import com.fu.pha.entity.SaleOrderItem;
+import com.fu.pha.service.CloudinaryService;
 import com.fu.pha.service.InvoiceService;
+import com.fu.pha.util.CustomMultipartFile;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -12,11 +16,19 @@ import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.itextpdf.text.pdf.BaseFont;
+import org.springframework.web.multipart.MultipartFile;
+
 @Service
 public class InvoiceServiceImpl implements InvoiceService {
+
+    @Autowired
+    private CloudinaryService cloudinaryService;
     @Override
-    public byte[] generateInvoicePdf(SaleOrder saleOrder, String paperSize) {
+    public String generateInvoicePdf(SaleOrder saleOrder, String paperSize) {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
@@ -122,11 +134,18 @@ public class InvoiceServiceImpl implements InvoiceService {
             document.add(new Paragraph("\nCảm ơn quý khách đã mua hàng", boldFont));
 
             document.close();
+
+            // Chuyển ByteArrayOutputStream thành byte array
+            byte[] pdfBytes = baos.toByteArray();
+            MultipartFile pdfMultipartFile = new CustomMultipartFile(pdfBytes, "invoice.pdf", "application/pdf");
+            CloudinaryResponse response = cloudinaryService.upLoadFile(pdfMultipartFile, "invoice_" + saleOrder.getInvoiceNumber(),"raw");
+
+            return response.getUrl();
+
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
-
-        return baos.toByteArray();
     }
 
 
