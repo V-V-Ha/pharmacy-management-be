@@ -57,11 +57,9 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     @Autowired
     private SaleOrderItemBatchRepository saleOrderItemBatchRepository;
 
-
-
     @Override
     @Transactional
-    public void createSaleOrder(SaleOrderRequestDto saleOrderRequestDto) {
+    public int createSaleOrder(SaleOrderRequestDto saleOrderRequestDto) {
         // 1. Kiểm tra và lấy các đối tượng liên quan: Customer, User, Doctor (nếu có)
         Customer customer = customerRepository.findById(saleOrderRequestDto.getCustomerId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND));
@@ -175,6 +173,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         // 4. Cập nhật tổng số tiền của SaleOrder và lưu lại
         saleOrder.setTotalAmount(totalOrderAmount - saleOrder.getDiscount());
         saleOrderRepository.save(saleOrder);
+        return saleOrder.getId().intValue();
     }
 
 

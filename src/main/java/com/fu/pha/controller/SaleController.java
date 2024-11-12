@@ -50,9 +50,8 @@ public class SaleController {
 
 
     @PostMapping("/create-sale-order")
-    public ResponseEntity<String> createSaleOrder(@Valid @RequestBody SaleOrderRequestDto saleOrderRequestDto) {
-        saleOrderService.createSaleOrder(saleOrderRequestDto);
-        return ResponseEntity.ok(Message.CREATE_SUCCESS);
+    public ResponseEntity<Integer> createSaleOrder(@Valid @RequestBody SaleOrderRequestDto saleOrderRequestDto) {
+        return ResponseEntity.ok(saleOrderService.createSaleOrder(saleOrderRequestDto));
     }
 
     @PutMapping("/update-sale-order")

@@ -9,7 +9,7 @@ import org.springframework.data.domain.Page;
 import java.time.Instant;
 
 public interface SaleOrderService {
-    void createSaleOrder(SaleOrderRequestDto saleOrderRequestDto);
+    int createSaleOrder(SaleOrderRequestDto saleOrderRequestDto);
 
     void updateSaleOrder(Long saleOrderId, SaleOrderRequestDto saleOrderRequestDto);
 
