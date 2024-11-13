@@ -87,34 +87,6 @@ public class ImportServiceImpl implements ImportService {
         return product.get();
     }
 
-//    @Override
-//    public List<ImportItemResponseForExport> getImportItemByProductName(String productName) {
-//        List<ImportItem> importItems = importItemRepository.findImportItemsByProductName(productName);
-//
-//        return importItems.stream().map(importItem -> {
-//            List<ProductUnitDTOResponse> productUnits = importItem.getProduct().getProductUnitList()
-//                    .stream()
-//                    .map(ProductUnitDTOResponse::new)
-//                    .collect(Collectors.toList());
-//
-//            return new ImportItemResponseForExport(
-//                    importItem.getId(),
-//                    importItem.getQuantity(),
-//                    importItem.getUnitPrice(),
-//                    importItem.getUnit(),
-//                    importItem.getDiscount(),
-//                    importItem.getTax(),
-//                    importItem.getTotalAmount(),
-//                    importItem.getBatchNumber(),
-//                    importItem.getProduct().getProductName(),
-//                    importItem.getImportReceipt().getId(),
-//                    importItem.getExpiryDate(),
-//                    importItem.getRemainingQuantity(),
-//                    productUnits
-//
-//            );
-//        }).collect(Collectors.toList());
-//    }
 
 
     @Override
@@ -242,6 +214,7 @@ public class ImportServiceImpl implements ImportService {
             importItem.setBatchNumber(itemDto.getBatchNumber());
             importItem.setExpiryDate(itemDto.getExpiryDate());
             importItem.setTotalAmount(itemDto.getTotalAmount());
+            importItem.setConversionFactor(itemDto.getConversionFactor());
             importItem.setRemainingQuantity(smallestQuantity);  // Cập nhật số lượng còn lại theo đơn vị nhỏ nhất
 
             // Cập nhật totalQuantity của sản phẩm trong kho
@@ -361,6 +334,7 @@ public class ImportServiceImpl implements ImportService {
                 importItem.setBatchNumber(itemDto.getBatchNumber());
                 importItem.setExpiryDate(itemDto.getExpiryDate());
                 importItem.setTotalAmount(itemDto.getTotalAmount());
+                importItem.setConversionFactor(itemDto.getConversionFactor());
                 importItem.setRemainingQuantity(smallestQuantity);  // Cập nhật số lượng còn lại theo đơn vị nhỏ nhất
 
                 // Cập nhật giá nhập cho ProductUnit nếu cần
@@ -382,6 +356,7 @@ public class ImportServiceImpl implements ImportService {
                 importItem.setBatchNumber(itemDto.getBatchNumber());
                 importItem.setExpiryDate(itemDto.getExpiryDate());
                 importItem.setTotalAmount(itemDto.getTotalAmount());
+                importItem.setConversionFactor(itemDto.getConversionFactor());
                 importItem.setRemainingQuantity(smallestQuantity);  // Chuyển đổi số lượng còn lại theo đơn vị nhỏ nhất
 
                 // Cập nhật tổng số lượng sản phẩm trong Product khi thêm mới

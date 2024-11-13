@@ -58,5 +58,8 @@ public interface ExportSlipRepository extends JpaRepository<ExportSlip, Long> {
                                                               @Param("toDate") Instant toDate,
                                                               Pageable pageable);
 
+    @Query("SELECT SUM(e.totalAmount) FROM ExportSlip e WHERE e.exportDate BETWEEN :startDate AND :endDate AND e.typeDelivery = :typeDelivery")
+    Double sumTotalExportsByTypeBetweenDates(@Param("typeDelivery") ExportType typeDelivery, @Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+
 
 }

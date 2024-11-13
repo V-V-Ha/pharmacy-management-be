@@ -1,6 +1,7 @@
 package com.fu.pha.entity;
 
 import com.fu.pha.enums.ExportType;
+import com.fu.pha.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,7 +41,11 @@ public class ExportSlip extends BaseEntity{
     @Column(name = "total_amount")
     private Double totalAmount;
 
-    @Column(name = "note")
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
+
+    @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 
     @OneToMany(mappedBy = "exportSlip")

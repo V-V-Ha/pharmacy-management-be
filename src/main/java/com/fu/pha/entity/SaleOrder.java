@@ -53,6 +53,9 @@ public class SaleOrder extends BaseEntity{
     @JoinColumn(name = "doctor_id")
     private Doctor doctor;
 
+    @Column(name = "note", columnDefinition = "TEXT")
+    private String note;
+
     @Column(name = "diagnosis", columnDefinition = "TEXT")
     private String diagnosis;
 
@@ -62,5 +65,7 @@ public class SaleOrder extends BaseEntity{
 
     @OneToMany(mappedBy = "saleOrder")
     private List<SaleOrderItem> saleOrderItemList;
+
+
 
 }

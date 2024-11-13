@@ -40,7 +40,7 @@ public class CloudinaryService {
             final Map result = cloudinary.uploader().upload(file.getBytes(),
                     Map.of("public_id",
                             "pha/user/"
-                                    +raw));
+                                    +fileName + raw));
             final String url = (String) result.get("secure_url");
             final String publicId = (String) result.get("public_id");
             return CloudinaryResponse.builder().url(url).publicId(publicId).build();
