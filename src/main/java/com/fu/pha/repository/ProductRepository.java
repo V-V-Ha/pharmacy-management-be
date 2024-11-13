@@ -1,8 +1,7 @@
 package com.fu.pha.repository;
 
-import com.fu.pha.dto.request.ProductDTORequest;
 import com.fu.pha.dto.response.ProductDTOResponse;
-import com.fu.pha.dto.response.report.CurrentStockDTO;
+import com.fu.pha.dto.response.report.reportEntity.ProductReportDto;
 import com.fu.pha.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,7 +11,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -44,24 +42,20 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             " join p.productUnitList pu ")
     List<ProductDTOResponse> getListProduct();
 
-    @Query("SELECT COUNT(p) AS outOfStockQuantity " +
-            "FROM Product p " +
-            "WHERE p.totalQuantity = 0")
-    Integer findOutOfStock();
+    // report
+    @Query("SELECT new com.fu.pha.dto.response.report.reportEntity.ProductReportDto(p.id, p.productName, p.productCode, p.totalQuantity, (p.totalQuantity * p.importPrice)) " +
+            "FROM Product p WHERE p.totalQuantity = 0")
+    List<ProductReportDto> findOutOfStockProducts();
 
-    @Query("SELECT COUNT(p) AS lowStockQuantity " +
-            "FROM Product p " +
-            "WHERE p.totalQuantity < :minimumStockThreshold")
-    Integer findLowStock(@Param("minimumStockThreshold") Integer minimumStockThreshold);
+    @Query("SELECT new com.fu.pha.dto.response.report.reportEntity.ProductReportDto(p.id, p.productName, p.productCode, p.totalQuantity, (p.totalQuantity * p.importPrice)) " +
+            "FROM Product p WHERE p.totalQuantity <= :threshold")
+    List<ProductReportDto> findNearlyOutOfStockProducts(@Param("threshold") int threshold);
 
-    @Query("SELECT " +
-            "SUM(i.remainingQuantity) AS currentQuantity, " +
-            "SUM((i.remainingQuantity * 1.0 / pu.conversionFactor) * i.unitPrice) AS currentValue " +
-            "FROM ImportItem i " +
-            "JOIN i.unit u " +
-            "JOIN ProductUnit pu ON pu.unit.unitName = u AND pu.product = i.product " +
-            "WHERE i.remainingQuantity > 0")
-    Optional<CurrentStockDTO> findCurrentStock();
+    @Query("SELECT SUM(p.totalQuantity) FROM Product p")
+    Integer calculateCurrentInventoryQuantity();
+
+    @Query("SELECT SUM(p.totalQuantity * p.importPrice) FROM Product p")
+    Double calculateCurrentInventoryAmount();
 
 
 

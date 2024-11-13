@@ -1,6 +1,6 @@
 package com.fu.pha.controller;
 
-import com.fu.pha.dto.response.report.StockReportDto;
+import com.fu.pha.dto.response.report.*;
 import com.fu.pha.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -10,39 +10,62 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 
 @RestController
-@RequestMapping("/api/report")
+@RequestMapping("/api/reports")
 public class ReportController {
+
     @Autowired
     private ReportService reportService;
 
-    @GetMapping("/get-full-stock-report")
-    public ResponseEntity<StockReportDto> getFullStockReport(
-            @RequestParam(required = false, name = "fromDate")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+    // Báo cáo kho
+    @GetMapping("/inventory")
+    public ResponseEntity<InventoryReportDto> getInventoryReport(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-            @RequestParam(required = false, name = "toDate")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
-
-            @RequestParam Integer minimumStockThreshold) {
-
-        if (fromDate == null) {
-            fromDate = LocalDate.now().minusMonths(1); // mặc định từ 1 tháng trước
-        }
-        if (toDate == null) {
-            toDate = LocalDate.now(); // mặc định là ngày hiện tại
-        }
-        Instant startOfPeriod = fromDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        Instant endOfPeriod = toDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
-
-        // Gọi service với thời gian đã chuyển đổi
-        StockReportDto report = reportService.getFullStockReport(startOfPeriod, endOfPeriod, minimumStockThreshold);
-
+        InventoryReportDto report = reportService.getInventoryReport(startDate, endDate);
         return ResponseEntity.ok(report);
     }
 
+    // Báo cáo bán hàng
+    @GetMapping("/sales")
+    public ResponseEntity<SalesReportDto> getSalesReport(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        SalesReportDto report = reportService.getSalesReport(startDate, endDate);
+        return ResponseEntity.ok(report);
+    }
+
+    // Báo cáo nhà cung cấp
+    @GetMapping("/suppliers")
+    public ResponseEntity<SupplierReportDto> getSupplierReport(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        SupplierReportDto report = reportService.getSupplierReport(startDate, endDate);
+        return ResponseEntity.ok(report);
+    }
+
+    // Báo cáo khách hàng
+    @GetMapping("/customers")
+    public ResponseEntity<CustomerReportDto> getCustomerReport(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        CustomerReportDto report = reportService.getCustomerReport(startDate, endDate);
+        return ResponseEntity.ok(report);
+    }
+
+    // Báo cáo thu chi
+    @GetMapping("/financial")
+    public ResponseEntity<FinancialReportDto> getFinancialReport(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        FinancialReportDto report = reportService.getFinancialReport(startDate, endDate);
+        return ResponseEntity.ok(report);
+    }
 }

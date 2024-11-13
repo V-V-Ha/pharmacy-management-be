@@ -4,6 +4,7 @@ import com.fu.pha.enums.OrderType;
 import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.enums.PaymentStatus;
 import com.fu.pha.exception.Message;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -31,5 +32,6 @@ public class SaleOrderRequestDto {
     private Long userId;
     private String diagnosis;
     @NotNull(message = Message.LIST_ITEM_NOT_NULL)
+    @Valid
     private List<SaleOrderItemRequestDto> saleOrderItems;
 }

@@ -55,4 +55,10 @@ public interface ImportRepository extends JpaRepository<Import, Long> {
                                                       Pageable pageable);
 
 
+    @Query("SELECT COALESCE(SUM(i.totalAmount), 0) FROM Import i WHERE i.importDate BETWEEN :startDate AND :endDate")
+    Double sumTotalImportAmountBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+
+    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate")
+    Integer sumTotalImportQuantityBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+
 }
