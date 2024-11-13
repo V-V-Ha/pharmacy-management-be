@@ -10,4 +10,6 @@ public interface SaleOrderItemBatchRepository extends JpaRepository<SaleOrderIte
     List<SaleOrderItemBatch> findBySaleOrderItemId(Long saleOrderItemId);
 
     Optional<SaleOrderItemBatch> findByImportItemIdAndSaleOrderItemId(Long id, Long id1);
+
+    List<SaleOrderItemBatch> findBySaleOrderItemIdOrderByImportItemIdAsc(Long id);
 }

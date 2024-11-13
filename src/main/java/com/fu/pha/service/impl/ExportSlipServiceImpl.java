@@ -129,6 +129,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             exportSlipItem.setImportItem(importItem);  // Gán ImportItem cho ExportSlipItem
             exportSlipItem.setUnit(itemDto.getUnit());
             exportSlipItem.setBatch_number(itemDto.getBatchNumber());
+            exportSlipItem.setConversionFactor(itemDto.getConversionFactor());
             exportSlipItem.setExpiryDate(itemDto.getExpiryDate());
 
             // Nếu là phiếu hủy, không cần gán thông tin tài chính
@@ -187,18 +188,13 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             throw new BadRequestException(Message.INVALID_EXPORT_TYPE);
         }
 
-        // Xóa các ExportSlipItem hiện tại của ExportSlip
+        // Khôi phục lại tồn kho từ các ExportSlipItem hiện tại
         List<ExportSlipItem> existingItems = exportSlipItemRepository.findByExportSlipId(exportSlipId);
         for (ExportSlipItem existingItem : existingItems) {
             Product product = existingItem.getProduct();
 
-            // Chuyển đổi quantity về đơn vị nhỏ nhất (sử dụng conversionFactor từ DTO)
-            ExportSlipItemRequestDto correspondingDto = exportDto.getExportSlipItems().stream()
-                    .filter(dto -> dto.getProductId().equals(existingItem.getProduct().getId()))
-                    .findFirst()
-                    .orElseThrow(() -> new BadRequestException(Message.INVALID_CONVERSION_FACTOR));
-
-            int smallestQuantity = existingItem.getQuantity() * correspondingDto.getConversionFactor();
+            // Sử dụng conversionFactor từ existingItem
+            int smallestQuantity = existingItem.getQuantity() * existingItem.getConversionFactor();
 
             // Cộng lại số lượng vào kho
             product.setTotalQuantity(product.getTotalQuantity() + smallestQuantity);
@@ -213,7 +209,12 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             exportSlipItemRepository.delete(existingItem);
         }
 
-        // Cập nhật các ExportSlipItem mới
+        // Kiểm tra danh sách exportSlipItems không rỗng
+        if (exportDto.getExportSlipItems() == null || exportDto.getExportSlipItems().isEmpty()) {
+            throw new BadRequestException(Message.EXPORT_ITEMS_EMPTY);
+        }
+
+        // Xử lý các ExportSlipItem mới
         double totalAmount = 0.0;
         for (ExportSlipItemRequestDto itemDto : exportDto.getExportSlipItems()) {
             ExportSlipItem exportSlipItem = new ExportSlipItem();
@@ -256,6 +257,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             exportSlipItem.setImportItem(importItem);  // Gán ImportItem cho ExportSlipItem
             exportSlipItem.setUnit(itemDto.getUnit());
             exportSlipItem.setBatch_number(itemDto.getBatchNumber());
+            exportSlipItem.setConversionFactor(itemDto.getConversionFactor());
             exportSlipItem.setExpiryDate(itemDto.getExpiryDate());
 
             // Nếu là phiếu hủy, không cần gán thông tin tài chính
@@ -284,6 +286,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
         exportSlipRepository.save(exportSlip);
     }
+
 
     @Transactional
     @Override
