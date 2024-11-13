@@ -89,7 +89,6 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         saleOrder.setUser(user);
         saleOrder.setDoctor(doctor);
         saleOrder.setDiagnosis(saleOrderRequestDto.getDiagnosis());
-
         saleOrderRepository.save(saleOrder);
 
         double totalOrderAmount = 0.0;

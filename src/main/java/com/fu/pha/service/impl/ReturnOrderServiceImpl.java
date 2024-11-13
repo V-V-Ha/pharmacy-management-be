@@ -295,12 +295,6 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
 
 
 
-
-
-
-
-
-
     @Override
     public SaleOrderResponseDto getSaleOrderByInvoiceNumber(String invoiceNumber) {
         // 1. Truy vấn SaleOrder từ cơ sở dữ liệu
