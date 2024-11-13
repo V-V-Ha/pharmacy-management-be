@@ -3,6 +3,8 @@ package com.fu.pha.dto.request;
 import com.fu.pha.exception.Message;
 import com.fu.pha.util.OptionalEmail;
 import com.fu.pha.validate.Constants;
+import com.fu.pha.validate.anotation.ValidPhoneNumber;
+import com.fu.pha.validate.anotation.ValidTax;
 import jakarta.validation.Constraint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -20,15 +22,13 @@ public class SupplierDto {
 
     private String address;
 
-    @NotBlank(message = Message.NULL_FILED)
-    @Pattern(regexp = Constants.REGEX_PHONE, message = Message.INVALID_PHONE)
+    @ValidPhoneNumber
     private String phoneNumber;
 
     @OptionalEmail
     private String email;
 
-    @NotBlank(message = Message.NULL_FILED)
-    @Pattern(regexp = Constants.REGEX_TAX, message = Message.INVALID_TAX)
+    @ValidTax
     private String tax;
 
     private Double totalAmount;
@@ -41,7 +41,4 @@ public class SupplierDto {
         this.email = email;
         this.tax = tax;
     }
-
-
-
 }

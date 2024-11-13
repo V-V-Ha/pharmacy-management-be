@@ -4,6 +4,10 @@ import com.fu.pha.dto.request.ProductUnitDTORequest;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.ImportItem;
 import com.fu.pha.exception.Message;
+import com.fu.pha.validate.anotation.ValidDiscount;
+import com.fu.pha.validate.anotation.ValidQuantity;
+import com.fu.pha.validate.anotation.ValidTax;
+import com.fu.pha.validate.anotation.ValidUnitPrice;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -19,22 +23,18 @@ import java.util.List;
 public class ImportItemRequestDto {
     private Long id;
 
-    @NotNull(message = "Số lượng không được để trống")
-    @Min(value = 1, message = "Số lượng phải lớn hơn 0")
+    @ValidQuantity
     private Integer quantity;
 
-    @NotNull(message = "Đơn giá không được để trống")
-    @DecimalMin(value = "0.01", message = "Đơn giá phải lớn hơn 0")
+    @ValidUnitPrice
     private Double unitPrice;
 
     private String unit;
 
-    @DecimalMin(value = "0", message = "Chiết khấu phải lớn hơn hoặc bằng 0")
-    @DecimalMax(value = "100", message = "Chiết khấu phải nhỏ hơn hoặc bằng 100")
+    @ValidDiscount
     private Double discount;
 
-    @DecimalMin(value = "0", message = "Thuế phải lớn hơn hoặc bằng 0")
-    @DecimalMax(value = "100", message = "Thuế phải nhỏ hơn hoặc bằng 100")
+    @ValidTax
     private Double tax;
 
     private Double totalAmount;

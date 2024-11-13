@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import com.fu.pha.enums.PaymentMethod;
 
 import com.fu.pha.exception.Message;
+import com.fu.pha.validate.anotation.ValidTotalAmount;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -24,8 +25,7 @@ public class ImportDto {
     private PaymentMethod paymentMethod;
     private Double tax;
     private Double discount;
-    @NotNull(message = Message.TOTAL_AMOUNT_NOT_NULL)
-    @DecimalMin(value = "0.0", message = Message.TOTAL_AMOUNT_VALID)
+    @ValidTotalAmount
     private Double totalAmount;
     private String note;
     @NotNull(message = Message.LIST_ITEM_NOT_NULL)
