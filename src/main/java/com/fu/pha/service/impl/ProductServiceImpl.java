@@ -247,11 +247,20 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void deleteProduct(Long id) {
+    public void activeProduct(Long id) {
         Product product = productRepository.getProductById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
-        product.setDeleted(true);
+        product.setStatus(true);
+        productRepository.save(product);
+    }
+
+    @Override
+    public void deActiveProduct(Long id) {
+        Product product = productRepository.getProductById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
+
+        product.setStatus(false);
         productRepository.save(product);
     }
 

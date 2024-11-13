@@ -14,7 +14,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Table(name = "product")
-@Where(clause = "deleted = false")
 public class Product extends BaseEntity{
 
     @Id
@@ -89,8 +88,8 @@ public class Product extends BaseEntity{
     @OneToMany(mappedBy = "product")
     private List<SaleOrderItem> saleOrderItemList;
 
-    @Column(name = "deleted", nullable = false)
-    private Boolean deleted = false;
+    @Column(name = "status", nullable = false)
+    private Boolean status = true;
 
     @Column(name = "total_quantity")
     private Integer totalQuantity;

@@ -15,7 +15,8 @@ public interface ProductService {
     void updateProduct(ProductDTORequest request, MultipartFile file);
     Page<ProductDTOResponse> getAllProductPaging(int size, int index, String productName, String category);
     ProductDTOResponse getProductById(Long id);
-    void deleteProduct(Long id);
+    void activeProduct(Long id);
+    void deActiveProduct(Long id);
     List<UnitDto> getAllUnit();
     List<ProductDTOResponse> getAllProducts();
     ResponseEntity<byte[]> exportProductsToExcel() throws IOException;

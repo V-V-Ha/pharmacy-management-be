@@ -64,11 +64,18 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
-    @DeleteMapping("/delete-product")
+    @PutMapping("/active-product")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deleteProduct(@RequestParam Long id) {
-        productService.deleteProduct(id);
-        return ResponseEntity.ok(Message.DELETE_SUCCESS);
+    public ResponseEntity<String> activeProduct(@RequestParam Long id) {
+        productService.activeProduct(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    }
+
+    @PutMapping("/inactive-product")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> deActiveProduct(@RequestParam Long id) {
+        productService.deActiveProduct(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
     @GetMapping("/get-all-unit")

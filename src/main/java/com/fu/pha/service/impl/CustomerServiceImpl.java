@@ -135,4 +135,20 @@ public class CustomerServiceImpl implements CustomerService {
         return customerDTOResponses;
     }
 
+    private void checkValidateCustomer(CustomerDTORequest customerDTORequest) {
+
+        if(customerDTORequest.getCustomerName().isEmpty() || customerDTORequest.getPhoneNumber().isEmpty()) {
+            throw new BadRequestException(Message.NULL_FILED);
+        }
+
+       // if ()
+
+        int yob = customerDTORequest.getYob();
+
+        // Validate Year of Birth (should be greater than 1900 and not in the future)
+        if (yob <= 1900 || yob > Year.now().getValue()) {
+            throw new BadRequestException(Message.INVALID_YOB);
+        }
+    }
+
 }
