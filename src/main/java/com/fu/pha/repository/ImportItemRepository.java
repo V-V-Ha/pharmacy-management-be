@@ -1,9 +1,6 @@
 package com.fu.pha.repository;
 
-import com.fu.pha.dto.response.importPack.ImportItemResponseDto;
-import com.fu.pha.dto.response.importPack.ImportItemResponseForExport;
-import com.fu.pha.dto.response.report.ImportStockDTO;
-import com.fu.pha.dto.response.report.OpeningStockDTO;
+import com.fu.pha.dto.response.report.reportEntity.ImportItemReportDto;
 import com.fu.pha.entity.ImportItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -13,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -35,43 +31,34 @@ public interface ImportItemRepository extends JpaRepository<ImportItem, Long> {
 
     List<ImportItem> findByProductIdOrderByCreateDateAsc(Long productId);
 
-    @Query("SELECT i FROM ImportItem i WHERE i.expiryDate <= :warningThreshold")
-    List<ImportItem> findExpiringProducts(@Param("warningThreshold") Instant warningThreshold);
+    // Trong ImportItemRepository
+    @Query("SELECT sib.importItem FROM SaleOrderItemBatch sib WHERE sib.saleOrderItem.id = :saleOrderItemId")
+    List<ImportItem> findBatchesUsedInSaleOrderItem(@Param("saleOrderItemId") Long saleOrderItemId);
 
-    @Query("SELECT " +
-            "SUM(i.remainingQuantity) AS openingQuantity, " +
-            "SUM((i.remainingQuantity * 1.0 / pu.conversionFactor) * i.unitPrice) AS openingValue " +
-            "FROM ImportItem i " +
-            "JOIN i.unit u " +
-            "JOIN ProductUnit pu ON pu.unit.unitName = u AND pu.product = i.product " +
-            "JOIN i.importReceipt imp " +
-            "WHERE imp.importDate < :startOfPeriod AND i.remainingQuantity > 0")
-    Optional<OpeningStockDTO> findOpeningStock(@Param("startOfPeriod") Instant startOfPeriod);
+    // report
 
+    @Query("SELECT new com.fu.pha.dto.response.report.reportEntity.ImportItemReportDto(ii.id, ii.product.id, ii.product.productName, ii.remainingQuantity, (ii.remainingQuantity * ii.unitPrice / ii.conversionFactor), ii.expiryDate) " +
+            "FROM ImportItem ii WHERE ii.expiryDate <= :currentDate AND ii.remainingQuantity > 0")
+    List<ImportItemReportDto> findExpiredItems(@Param("currentDate") Instant currentDate);
 
+    @Query("SELECT new com.fu.pha.dto.response.report.reportEntity.ImportItemReportDto(ii.id, ii.product.id, ii.product.productName, ii.remainingQuantity, (ii.remainingQuantity * ii.unitPrice / ii.conversionFactor), ii.expiryDate) " +
+            "FROM ImportItem ii WHERE ii.expiryDate > :currentDate AND ii.expiryDate <= :nearExpiryDate AND ii.remainingQuantity > 0")
+    List<ImportItemReportDto> findNearlyExpiredItems(@Param("currentDate") Instant currentDate, @Param("nearExpiryDate") Instant nearExpiryDate);
 
-    @Query("SELECT " +
-            "SUM(i.quantity * pu.conversionFactor) AS importQuantity, " +
-            "SUM((i.quantity * 1.0 / pu.conversionFactor) * i.unitPrice) AS importValue " +
-            "FROM ImportItem i " +
-            "JOIN i.unit u " +
-            "JOIN ProductUnit pu ON pu.unit.unitName = u AND pu.product = i.product " +
-            "JOIN i.importReceipt imp " +
-            "WHERE imp.importDate BETWEEN :startOfPeriod AND :endOfPeriod")
-    Optional<ImportStockDTO> findImportStock(@Param("startOfPeriod") Instant startOfPeriod, @Param("endOfPeriod") Instant endOfPeriod);
+    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate < :startDate")
+    Integer sumQuantityBeforeDate(@Param("startDate") Instant startDate);
 
+    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor * ii.unitPrice), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate < :startDate")
+    Double sumAmountBeforeDate(@Param("startDate") Instant startDate);
 
+    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate")
+    Integer sumQuantityBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
-    @Query(value = "SELECT COUNT(*) AS expired_quantity " +
-            "FROM import_item i " +
-            "WHERE i.expiry_date < CURRENT_DATE AND i.remaining_quantity > 0",
-            nativeQuery = true)
-    Integer findExpiredStock();
+    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor * ii.unitPrice), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate")
+    Double sumAmountBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+
+    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate")
+    Integer sumTotalImportQuantityBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
 
-    @Query(value = "SELECT COUNT(*) AS near_expiry_quantity " +
-            "FROM import_item i " +
-            "WHERE i.expiry_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '90 days') AND i.remaining_quantity > 0",
-            nativeQuery = true)
-    Integer findNearExpiryStock();
 }
