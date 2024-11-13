@@ -3,6 +3,7 @@ package com.fu.pha.dto.response.importPack;
 import com.fu.pha.entity.Import;
 import com.fu.pha.entity.ImportItem;
 import com.fu.pha.enums.PaymentMethod;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
