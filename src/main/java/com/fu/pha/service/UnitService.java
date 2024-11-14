@@ -13,7 +13,7 @@ public interface UnitService {
     void updateUnit(UnitDto unitDto);
     void activeUnit(Long id);
     void deActiveUnit(Long id);
-    void updateUnitStatus(Long id, String status);
+    void updateUnitStatus(Long id);
 
     List<UnitDto> getAllUnit();
 }

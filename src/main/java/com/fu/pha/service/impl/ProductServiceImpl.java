@@ -8,6 +8,7 @@ import com.fu.pha.dto.response.CloudinaryResponse;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.dto.response.ProductUnitDTOResponse;
 import com.fu.pha.entity.*;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.MaxUploadSizeExceededException;
 import com.fu.pha.exception.Message;
@@ -96,7 +97,7 @@ public class ProductServiceImpl implements ProductService {
         product.setDosageForms(productDTORequest.getDosageForms());
         product.setDescription(productDTORequest.getDescription());
         product.setPrescriptionDrug(productDTORequest.getPrescriptionDrug());
-        product.setStatus(productDTORequest.getStatus());
+        product.setStatus(Status.ACTIVE);
         // Upload the image product if there is a file
         if (file != null && !file.isEmpty()) {
             String imageProduct = uploadImage(file);
@@ -151,7 +152,6 @@ public class ProductServiceImpl implements ProductService {
         product.setDosageForms(productDTORequest.getDosageForms());
         product.setDescription(productDTORequest.getDescription());
         product.setPrescriptionDrug(productDTORequest.getPrescriptionDrug());
-        product.setStatus(productDTORequest.getStatus());
 
         // Upload the image product if there is a file
         if (file != null && !file.isEmpty()) {
@@ -252,7 +252,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.getProductById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
-        product.setStatus(true);
+        product.setStatus(Status.ACTIVE);
         productRepository.save(product);
     }
 
@@ -261,7 +261,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.getProductById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
-        product.setStatus(false);
+        product.setStatus(Status.INACTIVE);
         productRepository.save(product);
     }
 
