@@ -39,6 +39,6 @@ public class Doctor extends BaseEntity{
     @JsonManagedReference
     private List<SaleOrder> saleOrders;
 
-    @Column(name = "deleted", nullable = false)
+    @Column(name = "deleted")
     private boolean deleted = false;
 }
