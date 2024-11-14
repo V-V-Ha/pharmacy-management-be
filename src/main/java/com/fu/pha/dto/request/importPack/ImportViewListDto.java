@@ -20,6 +20,7 @@ public class ImportViewListDto {
     private Double totalAmount;
     private Integer productCount;
     private String fullName;
+    private String status;
 
     public ImportViewListDto(Import importRequest) {
         this.id = importRequest.getId();
@@ -34,6 +35,7 @@ public class ImportViewListDto {
        this.supplierName = importRequest.getSupplier().getSupplierName();
        this.totalAmount = importRequest.getTotalAmount();
        this.fullName = importRequest.getUser().getFullName();
+       this.status = importRequest.getStatus().name();
     }
 
 }
