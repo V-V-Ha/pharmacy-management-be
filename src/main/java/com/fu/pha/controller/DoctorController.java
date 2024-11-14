@@ -23,8 +23,9 @@ public class DoctorController {
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<PageResponseModel<DoctorDTOResponse>> getAllDoctor(@RequestParam(defaultValue = "0") int page,
                                                                              @RequestParam(defaultValue = "10") int size,
-                                                                             @RequestParam(defaultValue = "", name = "doctorName") String doctorName) {
-        Page<DoctorDTOResponse> doctorDTOResponses = doctorService.getAllDoctorByPaging(page, size, doctorName);
+                                                                             @RequestParam(defaultValue = "", name = "doctorName") String doctorName,
+                                                                             @RequestParam(defaultValue = "") String status) {
+        Page<DoctorDTOResponse> doctorDTOResponses = doctorService.getAllDoctorByPaging(page, size, doctorName, status);
         PageResponseModel<DoctorDTOResponse> response = PageResponseModel.<DoctorDTOResponse>builder()
                 .page(page)
                 .size(size)
@@ -40,11 +41,18 @@ public class DoctorController {
         return ResponseEntity.ok(doctorService.getDoctorById(id));
     }
 
-    @DeleteMapping("/delete-doctor")
+    @PutMapping("/active-doctor")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deleteDoctor(@RequestParam Long id) {
-        doctorService.deleteDoctor(id);
-        return ResponseEntity.ok(Message.DELETE_SUCCESS);
+    public ResponseEntity<String> activeDoctor(@RequestParam Long id) {
+        doctorService.activeDoctor(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    }
+
+    @PutMapping("/inactive-doctor")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> deActiveDoctor(@RequestParam Long id) {
+        doctorService.deActiveDoctor(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
     @PostMapping("/create-doctor")

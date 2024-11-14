@@ -1,9 +1,9 @@
 package com.fu.pha.service.impl;
 
 import com.fu.pha.dto.request.DoctorDTORequest;
-import com.fu.pha.dto.response.CustomerDTOResponse;
 import com.fu.pha.dto.response.DoctorDTOResponse;
 import com.fu.pha.entity.Doctor;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.DoctorRepository;
@@ -32,6 +32,7 @@ public class DoctorServiceImpl implements DoctorService {
         doctor.setAddress(doctorDTORequest.getAddress());
         doctor.setPhoneNumber(doctorDTORequest.getPhoneNumber());
         doctor.setNote(doctorDTORequest.getNote());
+        doctor.setStatus(Status.ACTIVE);
         doctorRepository.save(doctor);
     }
 
@@ -52,12 +53,22 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
-    public void deleteDoctor(Long id) {
+    public void activeDoctor(Long id) {
         Optional<Doctor> doctor = doctorRepository.findById(id);
         if (doctor.isEmpty()) {
             throw new ResourceNotFoundException(Message.DOCTOR_NOT_FOUND);
         }
-        doctor.get().setDeleted(true);
+        doctor.get().setStatus(Status.ACTIVE);
+        doctorRepository.save(doctor.get());
+    }
+
+    @Override
+    public void deActiveDoctor(Long id) {
+        Optional<Doctor> doctor = doctorRepository.findById(id);
+        if (doctor.isEmpty()) {
+            throw new ResourceNotFoundException(Message.DOCTOR_NOT_FOUND);
+        }
+        doctor.get().setStatus(Status.INACTIVE);
         doctorRepository.save(doctor.get());
     }
 
@@ -67,20 +78,22 @@ public class DoctorServiceImpl implements DoctorService {
         if (doctor.isEmpty()) {
             throw new ResourceNotFoundException(Message.DOCTOR_NOT_FOUND);
         }
-
-        DoctorDTOResponse doctorDTOResponse = new DoctorDTOResponse();
-        doctorDTOResponse.setId(doctor.get().getId());
-        doctorDTOResponse.setFullName(doctor.get().getFullName());
-        doctorDTOResponse.setAddress(doctor.get().getAddress());
-        doctorDTOResponse.setPhoneNumber(doctor.get().getPhoneNumber());
-        doctorDTOResponse.setNote(doctor.get().getNote());
-        return doctorDTOResponse;
+        return new DoctorDTOResponse(doctor.get());
     }
 
     @Override
-    public Page<DoctorDTOResponse> getAllDoctorByPaging(int size, int index, String doctorName) {
+    public Page<DoctorDTOResponse> getAllDoctorByPaging(int size, int index, String doctorName, String status) {
         Pageable pageable = PageRequest.of(size, index);
-        Page<DoctorDTOResponse> doctorDTOResponses = doctorRepository.getListDoctorPaging(doctorName, pageable);
+        Status doctorStatus = null;
+        if (status != null) {
+            try {
+                doctorStatus = Status.valueOf(status.toUpperCase());
+            } catch (Exception e) {
+                throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
+            }
+        }
+
+        Page<DoctorDTOResponse> doctorDTOResponses = doctorRepository.getListDoctorPaging(doctorName, doctorStatus, pageable);
         if (doctorDTOResponses.isEmpty()) {
             throw new ResourceNotFoundException(Message.DOCTOR_NOT_FOUND);
         }

@@ -1,6 +1,7 @@
 package com.fu.pha.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fu.pha.enums.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,7 +16,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Where(clause = "deleted = false")
+@Table(name = "doctor")
 public class Doctor extends BaseEntity{
 
     @Id
@@ -39,6 +40,7 @@ public class Doctor extends BaseEntity{
     @JsonManagedReference
     private List<SaleOrder> saleOrders;
 
-    @Column(name = "deleted")
-    private boolean deleted = false;
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private Status status;
 }

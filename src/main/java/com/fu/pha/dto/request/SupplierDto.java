@@ -1,5 +1,6 @@
 package com.fu.pha.dto.request;
 
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.Message;
 import com.fu.pha.util.OptionalEmail;
 import com.fu.pha.validate.Constants;
@@ -31,14 +32,20 @@ public class SupplierDto {
     @ValidTax
     private String tax;
 
+    private Status status;
+
     private Double totalAmount;
 
-    public SupplierDto(Long id, String supplierName, String address, String phoneNumber, String email, String tax) {
+
+
+
+    public SupplierDto(Long id, String supplierName, String address, String phoneNumber, String email, String tax, Status status) {
         this.id = id;
         this.supplierName = supplierName;
         this.address = address;
         this.phoneNumber = phoneNumber;
         this.email = email;
         this.tax = tax;
+        this.status = status;
     }
 }
