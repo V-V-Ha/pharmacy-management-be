@@ -4,6 +4,7 @@ import com.fu.pha.enums.OrderType;
 import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.enums.PaymentStatus;
 import com.fu.pha.exception.Message;
+import com.fu.pha.validate.anotation.ValidDiscount;
 import com.fu.pha.validate.anotation.ValidTotalAmount;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
@@ -21,8 +22,11 @@ public class SaleOrderRequestDto {
 
     @NotNull(message = Message.DATE_NOT_NULL)
     private Instant saleDate;
+    @NotNull(message = "Loại đơn hàng không được để trống")
     private OrderType orderType;
+    @NotNull(message = Message.PAYMENT_METHOD_NOT_NULL)
     private PaymentMethod paymentMethod;
+    @ValidDiscount
     private Double discount;
 
     @ValidTotalAmount

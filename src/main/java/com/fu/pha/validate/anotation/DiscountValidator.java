@@ -14,7 +14,7 @@ public class DiscountValidator implements ConstraintValidator<ValidDiscount, Dou
     public boolean isValid(Double discount, ConstraintValidatorContext context) {
         // Kiểm tra nếu discount là null (cho phép null nếu trường hợp này hợp lệ)
         if (discount == null) {
-            return true;  // Nếu cho phép chiết khấu không bắt buộc, bạn có thể trả về true ở đây.
+            discount = 0.0;
         }
 
         // Kiểm tra nếu discount >= 0

@@ -5,6 +5,7 @@ import com.fu.pha.dto.request.exportSlip.ExportSlipRequestDto;
 import com.fu.pha.dto.response.PageResponseModel;
 import com.fu.pha.dto.response.exportSlip.ExportSlipResponseDto;
 import com.fu.pha.enums.ExportType;
+import com.fu.pha.enums.OrderStatus;
 import com.fu.pha.exception.Message;
 import com.fu.pha.service.ExportSlipService;
 import com.fu.pha.service.ImportService;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -22,6 +24,7 @@ import java.time.ZoneId;
 
 @RestController
 @RequestMapping("api/export-slip")
+@Validated
 public class ExportSlipController {
 
     @Autowired
@@ -40,6 +43,20 @@ public class ExportSlipController {
     public ResponseEntity<String> updateExportSlip(@Valid @PathVariable Long exportSlipId, @RequestBody ExportSlipRequestDto exportSlipRequestDto) {
         exportSlipService.updateExport(exportSlipId, exportSlipRequestDto);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    }
+
+    // Xác nhận phiếu xuất
+    @PostMapping("/{id}/confirm")
+    public ResponseEntity<?> confirmExport(@PathVariable Long id) {
+        exportSlipService.confirmExport(id);
+        return ResponseEntity.ok(Message.CONFIRM_SUCCESS);
+    }
+
+    // Từ chối phiếu xuất
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<?> rejectExport(@PathVariable Long id, @RequestBody String reason) {
+        exportSlipService.rejectExport(id, reason);
+        return ResponseEntity.ok(Message.REJECT_SUCCESS);
     }
 
     @DeleteMapping("/delete-export-slip/{exportSlipId}")
@@ -64,13 +81,14 @@ public class ExportSlipController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "", name = "exportType") ExportType exportType,
+            @RequestParam(required = false) OrderStatus status,
             @RequestParam(required = false, name = "fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false, name = "toDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
 
         Instant fromDateStart = fromDate != null ? fromDate.atStartOfDay(ZoneId.systemDefault()).toInstant() : null;
         Instant toDateEnd = toDate != null ? toDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant() : null;
 
-        Page<ExportSlipResponseDto> exportSlipResponseDtoPage = exportSlipService.getAllExportSlipPaging(page, size, exportType, fromDateStart, toDateEnd);
+        Page<ExportSlipResponseDto> exportSlipResponseDtoPage = exportSlipService.getAllExportSlipPaging(page, size, exportType,status, fromDateStart, toDateEnd);
 
         PageResponseModel<ExportSlipResponseDto> response = PageResponseModel.<ExportSlipResponseDto>builder()
                 .page(page)

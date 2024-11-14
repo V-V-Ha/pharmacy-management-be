@@ -9,7 +9,9 @@ import com.fu.pha.dto.response.importPack.ImportItemResponseDto;
 import com.fu.pha.dto.response.importPack.ImportItemResponseForExport;
 import com.fu.pha.dto.response.importPack.ImportResponseDto;
 import com.fu.pha.dto.response.ProductDTOResponse;
+import com.fu.pha.enums.OrderStatus;
 import org.springframework.data.domain.Page;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
@@ -28,10 +30,16 @@ public interface ImportService {
     List<ProductDTOResponse> getProductByProductName(String productName);
 
 
-    void createImport(ImportDto importDto);
+    void createImport(ImportDto importRequestDto, MultipartFile file);
 
-    Page<ImportViewListDto> getAllImportPaging(int size, int index, String supplierName, Instant fromDate, Instant toDate);
-    void updateImport(Long importId, ImportDto importDto);
+    void updateImport(Long importId, ImportDto importDto, MultipartFile file);
+
+    void confirmImport(Long importId);
+
+    void rejectImport(Long importId, String reason);
+
+    Page<ImportViewListDto> getAllImportPaging(int page, int size, String supplierName, OrderStatus status, Instant fromDate, Instant toDate);
+
 
     ImportResponseDto getImportById(Long importId);
 

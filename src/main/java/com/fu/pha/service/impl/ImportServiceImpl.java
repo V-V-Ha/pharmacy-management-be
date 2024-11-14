@@ -6,6 +6,7 @@ import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.dto.request.importPack.ImportItemRequestDto;
 import com.fu.pha.dto.request.importPack.ImportViewListDto;
+import com.fu.pha.dto.response.CloudinaryResponse;
 import com.fu.pha.dto.response.ProductDtoResponseForExport;
 import com.fu.pha.dto.response.ProductUnitDTOResponse;
 import com.fu.pha.dto.response.exportSlip.BatchInfo;
@@ -14,27 +15,29 @@ import com.fu.pha.dto.response.importPack.ImportItemResponseForExport;
 import com.fu.pha.dto.response.importPack.ImportResponseDto;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.*;
-import com.fu.pha.exception.BadRequestException;
-import com.fu.pha.exception.Message;
-import com.fu.pha.exception.ResourceNotFoundException;
+import com.fu.pha.enums.ERole;
+import com.fu.pha.enums.OrderStatus;
+import com.fu.pha.exception.*;
 import com.fu.pha.repository.*;
+import com.fu.pha.service.CloudinaryService;
 import com.fu.pha.service.ImportService;
 import com.fu.pha.service.NotificationService;
+import com.fu.pha.util.FileUploadUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,6 +64,9 @@ public class ImportServiceImpl implements ImportService {
     @Autowired
     private GenerateCode generateCode;
 
+    @Autowired
+    private CloudinaryService cloudinaryService;
+
 
     @Override
     public List<UnitDto> getUnitByProductId(Long productId) {
@@ -86,8 +92,6 @@ public class ImportServiceImpl implements ImportService {
         }
         return product.get();
     }
-
-
 
     @Override
     public List<ProductDtoResponseForExport> getProductImportByProductName(String productName) {
@@ -162,135 +166,111 @@ public class ImportServiceImpl implements ImportService {
 
     @Transactional
     @Override
-    public void createImport(ImportDto importDto) {
-        // Tìm user và supplier
-        User user = userRepository.findById(importDto.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
+    public void createImport(ImportDto importRequestDto, MultipartFile file) {
+        // Lấy người dùng hiện tại
+        User currentUser = getCurrentUser();
 
-        Supplier supplier = supplierRepository.findById(importDto.getSupplierId())
+
+        // Xác định trạng thái dựa trên vai trò
+        OrderStatus status = determineImportStatus(currentUser);
+
+        // Tìm nhà cung cấp
+        Supplier supplier = supplierRepository.findById(importRequestDto.getSupplierId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND));
 
-        // Tạo Import entity và gán các giá trị
-        Import importReceipt = new Import();
-        String lastInvoiceNumber = importRepository.getLastInvoiceNumber();
-        importReceipt.setInvoiceNumber(lastInvoiceNumber == null ? "PN000001" : generateCode.generateNewProductCode(lastInvoiceNumber));
+        // Tạo phiếu nhập
+        Import importReceipt = createImportReceipt(importRequestDto, currentUser, supplier, status);
 
-        importReceipt.setImportDate(Instant.now());
-        importReceipt.setPaymentMethod(importDto.getPaymentMethod());
-        importReceipt.setNote(importDto.getNote());
-        importReceipt.setUser(user);
-        importReceipt.setSupplier(supplier);
-        importReceipt.setTax(importDto.getTax());
-        importReceipt.setDiscount(importDto.getDiscount());
+        if (file != null && !file.isEmpty()) {
+            String imageUrl = uploadImage(file);
+            importReceipt.setImage(imageUrl);
+        }else{
+            throw new BadRequestException(Message.IMAGE_IMPORT_NOT_NULL);
+        }
 
-        // Lưu Import entity trước
+        // Lưu phiếu nhập
         importRepository.save(importReceipt);
 
-        // Kiểm tra danh sách importItems không rỗng
-        if (importDto.getImportItems() == null || importDto.getImportItems().isEmpty()) {
+        // Kiểm tra danh sách ImportItem
+        if (importRequestDto.getImportItems() == null || importRequestDto.getImportItems().isEmpty()) {
             throw new BadRequestException(Message.IMPORT_ITEMS_EMPTY);
         }
 
-        double totalAmount = 0.0;
+        double totalAmount = saveImportItems(importRequestDto, importReceipt, status);
 
-        // Lưu các ImportItem và tính tổng totalAmount
-        for (ImportItemRequestDto itemDto : importDto.getImportItems()) {
-            ImportItem importItem = new ImportItem();
-            importItem.setImportReceipt(importReceipt);
+        // So sánh tổng tiền giữa BE và FE
+        if (importRequestDto.getTotalAmount() != null) {
+            double feTotalAmount = importRequestDto.getTotalAmount();
 
-            // Lấy sản phẩm từ repository
-            Product product = productRepository.getProductById(itemDto.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
-
-            // Chuyển đổi quantity về đơn vị nhỏ nhất
-            int smallestQuantity = itemDto.getQuantity() * itemDto.getConversionFactor();
-
-            importItem.setProduct(product);
-            importItem.setQuantity(itemDto.getQuantity());
-            importItem.setUnit(itemDto.getUnit());
-            importItem.setUnitPrice(itemDto.getUnitPrice());
-            importItem.setDiscount(itemDto.getDiscount());
-            importItem.setTax(itemDto.getTax());
-            importItem.setBatchNumber(itemDto.getBatchNumber());
-            importItem.setExpiryDate(itemDto.getExpiryDate());
-            importItem.setTotalAmount(itemDto.getTotalAmount());
-            importItem.setConversionFactor(itemDto.getConversionFactor());
-            importItem.setRemainingQuantity(smallestQuantity);  // Cập nhật số lượng còn lại theo đơn vị nhỏ nhất
-
-            // Cập nhật totalQuantity của sản phẩm trong kho
-            Integer currentTotalQuantity = product.getTotalQuantity();
-            if (currentTotalQuantity == null) {
-                currentTotalQuantity = 0;  // Gán giá trị mặc định nếu null
+            if (Math.abs(totalAmount - feTotalAmount) > 0.01) { // Cho phép sai số nhỏ
+                throw new BadRequestException(Message.TOTAL_AMOUNT_NOT_MATCH);
             }
-            // Cập nhật tổng số lượng sản phẩm dựa trên đơn vị nhỏ nhất
-            product.setTotalQuantity(currentTotalQuantity + smallestQuantity);
-            productRepository.save(product);
-
-            // Cập nhật giá nhập cho từng ProductUnit
-            List<ProductUnit> productUnits = productUnitRepository.findByProductId(itemDto.getProductId());
-            for (ProductUnit productUnit : productUnits) {
-                if (itemDto.getConversionFactor() != 0) {
-                    double adjustedImportPrice = itemDto.getUnitPrice() / itemDto.getConversionFactor() * productUnit.getConversionFactor();
-                    if (!Objects.equals(productUnit.getImportPrice(), adjustedImportPrice)) {
-                        productUnit.setImportPrice(adjustedImportPrice);
-                        productUnitRepository.save(productUnit);
-                    }
-                } else {
-                    throw new BadRequestException(Message.INVALID_CONVERSION_FACTOR);
-                }
-            }
-
-            totalAmount += itemDto.getTotalAmount();
-            importItemRepository.save(importItem);
+        } else {
+            throw new BadRequestException(Message.TOTAL_AMOUNT_REQUIRED);
         }
 
-        // Kiểm tra sự khác biệt giữa totalAmount được tính và totalAmount trong DTO
-        if (importDto.getTotalAmount() != null && !importDto.getTotalAmount().equals(totalAmount)) {
-            throw new BadRequestException(Message.TOTAL_AMOUNT_NOT_MATCH);
-        }
-
-        // Cập nhật tổng số tiền vào Import
+        // Cập nhật tổng tiền và lưu lại
         importReceipt.setTotalAmount(totalAmount);
         importRepository.save(importReceipt);
     }
 
+
     @Override
-    public Page<ImportViewListDto> getAllImportPaging(int page, int size, String supplierName, Instant fromDate, Instant toDate) {
+    public Page<ImportViewListDto> getAllImportPaging(int page, int size, String supplierName, OrderStatus status, Instant fromDate, Instant toDate) {
         Pageable pageable = PageRequest.of(page, size);
 
         // Nếu cả fromDate và toDate đều null
         if (fromDate == null && toDate == null) {
-            return importRepository.getListImportPagingWithoutDate(supplierName, pageable);
+            return importRepository.getListImportPagingWithoutDate(supplierName, status, pageable);
         }
         // Nếu chỉ có fromDate
         else if (fromDate != null && toDate == null) {
-            return importRepository.getListImportPagingFromDate(supplierName, fromDate, pageable);
+            return importRepository.getListImportPagingFromDate(supplierName, status, fromDate, pageable);
         }
         // Nếu chỉ có toDate
         else if (fromDate == null) {
-            return importRepository.getListImportPagingToDate(supplierName, toDate, pageable);
+            return importRepository.getListImportPagingToDate(supplierName, status, toDate, pageable);
         }
         // Nếu cả fromDate và toDate đều có giá trị
         else {
-            return importRepository.getListImportPaging(supplierName, fromDate, toDate, pageable);
+            return importRepository.getListImportPaging(supplierName, status, fromDate, toDate, pageable);
         }
     }
 
     @Transactional
     @Override
-    public void updateImport(Long importId, ImportDto importDto) {
-        // Tìm Import hiện tại
+    public void updateImport(Long importId, ImportDto importDto, MultipartFile file) {
+        // Lấy người dùng hiện tại
+        User currentUser = getCurrentUser();
+
+        // Tìm phiếu nhập
         Import importReceipt = importRepository.findById(importId)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
 
-        // Tìm user và supplier
+        // Chỉ cho phép cập nhật khi trạng thái là PENDING hoặc REJECT
+        if (importReceipt.getStatus() == OrderStatus.CONFIRMED) {
+            throw new BadRequestException(Message.NOT_PENDING_IMPORT);
+        }
+
+        // Kiểm tra quyền hạn (nếu cần)
+        if (!importReceipt.getUser().getId().equals(currentUser.getId())
+                && !userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)) {
+            throw new UnauthorizedException(Message.REJECT_AUTHORIZATION);
+        }
+
+        // Nếu trạng thái hiện tại là REJECT và người cập nhật không phải là chủ cửa hàng, đặt lại trạng thái về PENDING
+        if (importReceipt.getStatus() == OrderStatus.REJECT && !userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)) {
+            importReceipt.setStatus(OrderStatus.PENDING);
+        }
+
+        // Tìm user và supplier mới
         User user = userRepository.findById(importDto.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
 
         Supplier supplier = supplierRepository.findById(importDto.getSupplierId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND));
 
-        // Cập nhật thông tin Import
+        // Cập nhật thông tin phiếu nhập
         importReceipt.setPaymentMethod(importDto.getPaymentMethod());
         importReceipt.setNote(importDto.getNote());
         importReceipt.setUser(user);
@@ -299,79 +279,94 @@ public class ImportServiceImpl implements ImportService {
         importReceipt.setDiscount(importDto.getDiscount());
         importReceipt.setImportDate(Instant.now());
 
-        // Tính tổng totalAmount từ các ImportItem mới
-        double totalAmount = 0.0;
+        if (file != null && !file.isEmpty()) {
+            String imageUrl = uploadImage(file);
+            importReceipt.setImage(imageUrl);
+        }
 
         // Lấy danh sách ImportItem hiện tại
-        List<ImportItem> existingImportItems = importItemRepository.findByImportId(importId);
+        List<ImportItem> existingImportItems = importItemRepository.findByImportId(importReceipt.getId());
 
         // Sử dụng Map để tiện tra cứu các mục hiện tại theo ProductId
         Map<Long, ImportItem> existingItemMap = existingImportItems.stream()
                 .collect(Collectors.toMap(item -> item.getProduct().getId(), item -> item));
 
-        for (ImportItemRequestDto itemDto : importDto.getImportItems()) {
-            ImportItem importItem = existingItemMap.get(itemDto.getProductId());
+        double totalAmount = 0.0;
 
-            // Lấy sản phẩm từ repository
-            Product product = productRepository.getProductById(itemDto.getProductId())
+        // Xử lý các ImportItem mới
+        for (ImportItemRequestDto itemDto : importDto.getImportItems()) {
+            Long productId = itemDto.getProductId();
+            ImportItem importItem = existingItemMap.get(productId);
+
+            double itemTotalAmount = calculateImportItemTotalAmount(itemDto);
+
+            // Cập nhật lại totalAmount
+            totalAmount += itemTotalAmount;
+
+            // Lấy sản phẩm
+            Product product = productRepository.getProductById(productId)
                     .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
-            // Chuyển đổi quantity về đơn vị nhỏ nhất
             int smallestQuantity = itemDto.getQuantity() * itemDto.getConversionFactor();
 
             if (importItem != null) {
-                // Nếu ImportItem đã tồn tại, cập nhật lại `totalQuantity` dựa trên sự chênh lệch giữa số lượng cũ và mới
-                int oldSmallestQuantity = importItem.getRemainingQuantity();  // Số lượng còn lại trước đó
+                // Cập nhật ImportItem
+                int oldSmallestQuantity = importItem.getRemainingQuantity();
                 int quantityDifference = smallestQuantity - oldSmallestQuantity;
-                product.setTotalQuantity(product.getTotalQuantity() + quantityDifference);
 
-                // Cập nhật lại thông tin của ImportItem
-                importItem.setQuantity(itemDto.getQuantity());  // Giữ nguyên đơn vị nhập
+                if (importReceipt.getStatus() == OrderStatus.CONFIRMED) {
+                    // Khôi phục tồn kho từ số lượng cũ
+                    product.setTotalQuantity(product.getTotalQuantity() - oldSmallestQuantity);
+                    // Cập nhật tồn kho với số lượng mới
+                    product.setTotalQuantity(product.getTotalQuantity() + smallestQuantity);
+                    productRepository.save(product);
+                }
+
+                importItem.setQuantity(itemDto.getQuantity());
                 importItem.setUnit(itemDto.getUnit());
                 importItem.setUnitPrice(itemDto.getUnitPrice());
                 importItem.setDiscount(itemDto.getDiscount());
                 importItem.setTax(itemDto.getTax());
                 importItem.setBatchNumber(itemDto.getBatchNumber());
                 importItem.setExpiryDate(itemDto.getExpiryDate());
-                importItem.setTotalAmount(itemDto.getTotalAmount());
+                itemDto.setTotalAmount(itemTotalAmount);
                 importItem.setConversionFactor(itemDto.getConversionFactor());
-                importItem.setRemainingQuantity(smallestQuantity);  // Cập nhật số lượng còn lại theo đơn vị nhỏ nhất
+                importItem.setRemainingQuantity(smallestQuantity);
 
-                // Cập nhật giá nhập cho ProductUnit nếu cần
                 updateProductUnits(product, itemDto);
-
-                // Lưu ImportItem đã cập nhật
                 importItemRepository.save(importItem);
+
+                // Xóa khỏi Map để xử lý các mục không còn trong danh sách mới
+                existingItemMap.remove(productId);
             } else {
-                // Nếu ImportItem không tồn tại, tạo mới
-                importItem = new ImportItem();
-                importItem.setImportReceipt(importReceipt);
+                // Tạo mới ImportItem
+                ImportItem newImportItem = createImportItem(itemDto, importReceipt);
+                importItemRepository.save(newImportItem);
 
-                importItem.setProduct(product);
-                importItem.setQuantity(itemDto.getQuantity());  // Giữ nguyên đơn vị nhập
-                importItem.setUnit(itemDto.getUnit());
-                importItem.setUnitPrice(itemDto.getUnitPrice());
-                importItem.setDiscount(itemDto.getDiscount());
-                importItem.setTax(itemDto.getTax());
-                importItem.setBatchNumber(itemDto.getBatchNumber());
-                importItem.setExpiryDate(itemDto.getExpiryDate());
-                importItem.setTotalAmount(itemDto.getTotalAmount());
-                importItem.setConversionFactor(itemDto.getConversionFactor());
-                importItem.setRemainingQuantity(smallestQuantity);  // Chuyển đổi số lượng còn lại theo đơn vị nhỏ nhất
+                if (importReceipt.getStatus() == OrderStatus.CONFIRMED) {
+                    product.setTotalQuantity(product.getTotalQuantity() + smallestQuantity);
+                    productRepository.save(product);
+                }
 
-                // Cập nhật tổng số lượng sản phẩm trong Product khi thêm mới
-                product.setTotalQuantity((product.getTotalQuantity() == null ? 0 : product.getTotalQuantity()) + smallestQuantity);
-                productRepository.save(product);
-
-                // Cập nhật giá nhập cho ProductUnit nếu cần
                 updateProductUnits(product, itemDto);
-
-                // Lưu ImportItem mới
-                importItemRepository.save(importItem);
             }
 
-            // Cộng dồn totalAmount
             totalAmount += itemDto.getTotalAmount();
+        }
+
+        // Xử lý các ImportItem không còn trong danh sách mới
+        for (ImportItem remainingItem : existingItemMap.values()) {
+            Product product = remainingItem.getProduct();
+            int smallestQuantity = remainingItem.getRemainingQuantity();
+
+            if (importReceipt.getStatus() == OrderStatus.CONFIRMED) {
+                // Giảm số lượng sản phẩm trong kho
+                product.setTotalQuantity(product.getTotalQuantity() - smallestQuantity);
+                productRepository.save(product);
+            }
+
+            // Xóa ImportItem
+            importItemRepository.delete(remainingItem);
         }
 
         // Kiểm tra tổng totalAmount của Import với tổng các ImportItem
@@ -379,10 +374,209 @@ public class ImportServiceImpl implements ImportService {
             throw new BadRequestException(Message.TOTAL_AMOUNT_NOT_MATCH);
         }
 
+        if (importDto.getTotalAmount() != null) {
+            double feTotalAmount = importDto.getTotalAmount();
+
+            if (Math.abs(totalAmount - feTotalAmount) > 0.01) { // Cho phép sai số nhỏ
+                throw new BadRequestException(Message.TOTAL_AMOUNT_NOT_MATCH);
+            }
+        } else {
+            throw new BadRequestException(Message.TOTAL_AMOUNT_REQUIRED);
+        }
+
         // Cập nhật lại tổng totalAmount cho Import và lưu vào repository
         importReceipt.setTotalAmount(totalAmount);
         importRepository.save(importReceipt);
     }
+
+
+
+    @Transactional
+    @Override
+    public void confirmImport(Long importId) {
+        // Lấy người dùng hiện tại
+        User currentUser = getCurrentUser();
+
+        // Kiểm tra quyền hạn
+        if (!userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)) {
+            throw new UnauthorizedException(Message.REJECT_AUTHORIZATION);
+        }
+
+        // Tìm phiếu nhập
+        Import importReceipt = importRepository.findById(importId)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
+
+        // Kiểm tra trạng thái
+        if (importReceipt.getStatus() != OrderStatus.PENDING) {
+            throw new BadRequestException(Message.NOT_PENDING_IMPORT);
+        }
+
+        // Cập nhật trạng thái
+        importReceipt.setStatus(OrderStatus.CONFIRMED);
+        importRepository.save(importReceipt);
+
+        // Cập nhật số lượng sản phẩm và giá nhập
+        for (ImportItem importItem : importReceipt.getImportItems()) {
+            ImportItemRequestDto itemDto = mapImportItemToDto(importItem);
+            updateProductQuantityAndPrice(itemDto, importItem);
+        }
+    }
+
+    @Transactional
+    @Override
+    public void rejectImport(Long importId, String reason) {
+        // Lấy người dùng hiện tại
+        User currentUser = getCurrentUser();
+
+        // Kiểm tra quyền hạn
+        if (!userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)) {
+            throw new UnauthorizedException(Message.REJECT_AUTHORIZATION);
+        }
+
+        // Kiểm tra lý do từ chối
+        if (reason == null || reason.trim().isEmpty()) {
+            throw new BadRequestException(Message.REASON_REQUIRED);
+        }
+
+        // Tìm phiếu nhập
+        Import importReceipt = importRepository.findById(importId)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
+
+        // Kiểm tra trạng thái
+        if (importReceipt.getStatus() != OrderStatus.PENDING) {
+            throw new BadRequestException(Message.NOT_PENDING_IMPORT);
+        }
+
+        // Cập nhật trạng thái và ghi chú
+        importReceipt.setStatus(OrderStatus.REJECT);
+        importReceipt.setNote(reason); // Ghi lý do từ chối vào trường note
+        importRepository.save(importReceipt);
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedException(Message.NOT_LOGIN);
+        }
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
+    }
+
+    private OrderStatus determineImportStatus(User user) {
+        if (userHasRole(user, ERole.ROLE_PRODUCT_OWNER)) {
+            return OrderStatus.CONFIRMED;
+        } else {
+            return OrderStatus.PENDING;
+        }
+    }
+
+    private boolean userHasRole(User user, ERole role) {
+        return user.getRoles().stream().anyMatch(r -> r.getName().equals(role));
+    }
+
+    private Import createImportReceipt(ImportDto importDto, User user, Supplier supplier, OrderStatus status) {
+        Import importReceipt = new Import();
+        String lastInvoiceNumber = importRepository.getLastInvoiceNumber();
+        importReceipt.setInvoiceNumber(lastInvoiceNumber == null ? "PN000001"
+                : generateCode.generateNewProductCode(lastInvoiceNumber));
+        importReceipt.setImportDate(Instant.now());
+        importReceipt.setPaymentMethod(importDto.getPaymentMethod());
+        importReceipt.setNote(importDto.getNote());
+        importReceipt.setUser(user);
+        importReceipt.setSupplier(supplier);
+        importReceipt.setTax(importDto.getTax());
+        importReceipt.setDiscount(importDto.getDiscount());
+        importReceipt.setStatus(status);
+        return importReceipt;
+    }
+
+    private double saveImportItems(ImportDto importDto, Import importReceipt, OrderStatus status) {
+        double totalAmount = 0.0;
+
+        for (ImportItemRequestDto itemDto : importDto.getImportItems()) {
+            // Tính tổng tiền của ImportItem trên BE
+            double itemTotalAmount = calculateImportItemTotalAmount(itemDto);
+
+            // Cập nhật lại totalAmount
+            totalAmount += itemTotalAmount;
+
+            // Cập nhật itemDto với totalAmount đã tính toán
+            itemDto.setTotalAmount(itemTotalAmount);
+
+            // Tạo và lưu ImportItem
+            ImportItem importItem = createImportItem(itemDto, importReceipt);
+            importItemRepository.save(importItem);
+
+            // Nếu trạng thái là CONFIRMED, cập nhật sản phẩm
+            if (status == OrderStatus.CONFIRMED) {
+                updateProductQuantityAndPrice(itemDto, importItem);
+            }
+        }
+
+        return totalAmount;
+    }
+    private double calculateImportItemTotalAmount(ImportItemRequestDto itemDto) {
+        double unitPrice = itemDto.getUnitPrice();
+        int quantity = itemDto.getQuantity();
+        double discount = itemDto.getDiscount() != null ? itemDto.getDiscount() : 0.0;
+        double tax = itemDto.getTax() != null ? itemDto.getTax() : 0.0;
+
+        // Tính tổng tiền trước thuế và chiết khấu
+        double total = unitPrice * quantity;
+
+        // Áp dụng chiết khấu
+        total = total - (total * discount / 100);
+
+        // Áp dụng thuế
+        total = total + (total * tax / 100);
+
+        return total;
+    }
+
+
+
+
+
+    private ImportItem createImportItem(ImportItemRequestDto itemDto, Import importReceipt) {
+        ImportItem importItem = new ImportItem();
+        importItem.setImportReceipt(importReceipt);
+
+        Product product = productRepository.getProductById(itemDto.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
+
+        int smallestQuantity = itemDto.getQuantity() * itemDto.getConversionFactor();
+
+        importItem.setProduct(product);
+        importItem.setQuantity(itemDto.getQuantity());
+        importItem.setUnit(itemDto.getUnit());
+        importItem.setUnitPrice(itemDto.getUnitPrice());
+        importItem.setDiscount(itemDto.getDiscount());
+        importItem.setTax(itemDto.getTax());
+        importItem.setBatchNumber(itemDto.getBatchNumber());
+        importItem.setExpiryDate(itemDto.getExpiryDate());
+        importItem.setTotalAmount(itemDto.getTotalAmount()); // Sử dụng totalAmount đã tính
+        importItem.setConversionFactor(itemDto.getConversionFactor());
+        importItem.setRemainingQuantity(smallestQuantity);
+
+        return importItem;
+    }
+
+
+    private void updateProductQuantityAndPrice(ImportItemRequestDto itemDto, ImportItem importItem) {
+        Product product = importItem.getProduct();
+        Integer currentTotalQuantity = product.getTotalQuantity();
+        if (currentTotalQuantity == null) {
+            currentTotalQuantity = 0;
+        }
+
+        int smallestQuantity = itemDto.getQuantity() * itemDto.getConversionFactor();
+        product.setTotalQuantity(currentTotalQuantity + smallestQuantity);
+        productRepository.save(product);
+
+        updateProductUnits(product, itemDto);
+    }
+
 
     // Hàm cập nhật giá nhập cho ProductUnit
     private void updateProductUnits(Product product, ImportItemRequestDto itemDto) {
@@ -398,6 +592,59 @@ public class ImportServiceImpl implements ImportService {
                 throw new BadRequestException(Message.INVALID_CONVERSION_FACTOR);
             }
         }
+    }
+
+
+    private String uploadImage(final MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new BadRequestException(Message.EMPTY_FILE);
+        }
+
+        if (!FileUploadUtil.isAllowedExtension(file.getOriginalFilename(), FileUploadUtil.IMAGE_PATTERN)) {
+            throw new BadRequestException(Message.INVALID_FILE);
+        }
+
+        if (file.getSize() > FileUploadUtil.MAX_FILE_SIZE) {
+            throw new MaxUploadSizeExceededException(Message.INVALID_FILE_SIZE);
+        }
+
+        String customFileName = "import_" + System.currentTimeMillis();
+
+        CloudinaryResponse cloudinaryResponse = cloudinaryService.upLoadFile(file, FileUploadUtil.getFileName(customFileName));
+
+        return cloudinaryResponse.getUrl();
+    }
+
+
+    private ImportItemRequestDto convertItemToDto(ImportItem importItem) {
+        ImportItemRequestDto itemDto = new ImportItemRequestDto();
+        itemDto.setId(importItem.getId());
+        itemDto.setProductId(importItem.getProduct().getId());
+        itemDto.setQuantity(importItem.getQuantity());
+        itemDto.setUnit(importItem.getUnit());
+        itemDto.setUnitPrice(importItem.getUnitPrice());
+        itemDto.setDiscount(importItem.getDiscount());
+        itemDto.setTax(importItem.getTax());
+        itemDto.setBatchNumber(importItem.getBatchNumber());
+        itemDto.setExpiryDate(importItem.getExpiryDate());
+        itemDto.setTotalAmount(importItem.getTotalAmount());
+        itemDto.setConversionFactor(importItem.getConversionFactor());
+        return itemDto;
+    }
+
+    private ImportItemRequestDto mapImportItemToDto(ImportItem importItem) {
+        ImportItemRequestDto itemDto = new ImportItemRequestDto();
+        itemDto.setProductId(importItem.getProduct().getId());
+        itemDto.setQuantity(importItem.getQuantity());
+        itemDto.setUnit(importItem.getUnit());
+        itemDto.setUnitPrice(importItem.getUnitPrice());
+        itemDto.setDiscount(importItem.getDiscount());
+        itemDto.setTax(importItem.getTax());
+        itemDto.setBatchNumber(importItem.getBatchNumber());
+        itemDto.setExpiryDate(importItem.getExpiryDate());
+        itemDto.setTotalAmount(importItem.getTotalAmount());
+        itemDto.setConversionFactor(importItem.getConversionFactor());
+        return itemDto;
     }
 
     @Override

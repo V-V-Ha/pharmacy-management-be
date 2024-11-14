@@ -84,4 +84,17 @@ public class Message {
     public static final String SALE_ORDER_NOT_NULL = "Thông tin đơn hàng không được trống";
     public static final String PAYMENT_METHOD_NOT_NULL = "Phương thức thanh toán không được trống";
     public static final String INVALID_YOB = "Năm sinh phải lớn hơn 1900 và không phải là năm sau.";
+    public static final Object CONFIRM_SUCCESS = "Xác nhận phiếu thành công";
+    public static final Object REJECT_SUCCESS = "Xác nhận từ chối phiếu thành công";
+    public static final String IMAGE_IMPORT_NOT_NULL = "Ảnh phiếu nhập là bắt buộc";
+    public static final String REJECT_AUTHORIZATION = "Bạn không có quyền thực hiện chức năng này";
+    public static final String NOT_PENDING_IMPORT = "Phiếu nhập không ở trạng thái chờ xác nhận";
+
+    public static final String NOT_PENDING_EXPORT = "Phiếu xuất không ở trạng thái chờ xác nhận";
+    public static final String REASON_REQUIRED = "Phải nhập lý do từ chối";
+    public static final String NOT_LOGIN = "Bạn chưa đăng nhập";
+    public static final String NOT_UPDATE_CONFIRMED = "Không thể cập nhật phiếu đã xác nhận";
+    public static final String NOT_REJECT = " Chỉ có thể từ chối phiếu ở trạng thái chờ xác nhận";
+    public static final String TOTAL_AMOUNT_REQUIRED = "Tổng tiền không được trống";
+    public static final String IMPORT_ITEM_NOT_FOUND = "Không tìm thấy sản phẩm trong phiếu";
 }
