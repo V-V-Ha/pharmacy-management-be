@@ -1,6 +1,7 @@
 package com.fu.pha.dto.request;
 
 import com.fu.pha.entity.Unit;
+import com.fu.pha.enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Data;
@@ -19,6 +20,7 @@ public class UnitDto {
     private Instant lastModifiedDate;
     private String createBy;
     private String lastModifiedBy;
+    private Status status;
 
     public UnitDto(Unit unit) {
         this.id = unit.getId();
@@ -28,6 +30,7 @@ public class UnitDto {
         this.createBy=unit.getCreateBy();
         this.lastModifiedDate=unit.getLastModifiedDate();
         this.lastModifiedBy=unit.getLastModifiedBy();
+        this.status=unit.getStatus();
     }
 
     public UnitDto(Long id, String unitName) {

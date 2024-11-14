@@ -2,6 +2,7 @@ package com.fu.pha.controller;
 
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.dto.response.PageResponseModel;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.Message;
 import com.fu.pha.service.UnitService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +21,11 @@ public class UnitController {
 
     @GetMapping("/get-all-unit")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<PageResponseModel<UnitDto>> getAllUnitPaging(@RequestParam int page,
-                                                                          @RequestParam int size,
-                                                                       @RequestParam(required = false) String name) {
-        Page<UnitDto> content = unitService.getAllUnitPaging(page, size, name);
+    public ResponseEntity<PageResponseModel<UnitDto>> getAllUnitPaging(@RequestParam(defaultValue = "0") int page,
+                                                                       @RequestParam(defaultValue = "10") int size,
+                                                                       @RequestParam(required = false) String name,
+                                                                       @RequestParam(required = false) Status status) {
+        Page<UnitDto> content = unitService.getAllUnitPaging(page, size, name, status);
 
         PageResponseModel<UnitDto> response = PageResponseModel.<UnitDto>builder()
                 .page(page)
@@ -54,11 +56,18 @@ public class UnitController {
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
-    @DeleteMapping("/delete-unit")
+    @PutMapping("/active-unit")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deleteUnit(@RequestParam Long id) {
-        unitService.deleteUnit(id);
-        return ResponseEntity.ok(Message.DELETE_SUCCESS);
+    public ResponseEntity<String> activeUnit(@RequestParam Long id) {
+        unitService.activeUnit(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    }
+
+    @PutMapping("/inactive-unit")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> deActiveUnit(@RequestParam Long id) {
+        unitService.deActiveUnit(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
     @GetMapping("/get-all-unit-list")

@@ -2,10 +2,12 @@ package com.fu.pha.repository;
 
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.entity.Unit;
+import com.fu.pha.enums.Status;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,8 +15,11 @@ import java.util.Optional;
 public interface UnitRepository extends JpaRepository<Unit, Long> {
     @Query("SELECT u FROM Unit u WHERE " +
             "(LOWER(u.unitName) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL OR :name = '') " +
+            " AND (u.status = :status OR :status IS NULL OR :status = '') " +
             "ORDER BY u.lastModifiedDate DESC")
-    Page<UnitDto> findAllByNameContaining(String name, Pageable pageable);
+    Page<UnitDto> findAllByNameContaining(@Param("name") String name,
+                                          @Param("status") Status status,
+                                          Pageable pageable);
 
     Unit findByUnitName(String name);
 
