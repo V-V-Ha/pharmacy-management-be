@@ -4,6 +4,7 @@ import com.fu.pha.dto.request.CategoryDto;
 import com.fu.pha.dto.request.UserDto;
 import com.fu.pha.dto.response.MessageResponse;
 import com.fu.pha.entity.Category;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.CategoryRepository;
@@ -56,6 +57,7 @@ public class CategoryServiceImpl implements CategoryService {
             category.setCreateBy(SecurityContextHolder.getContext().getAuthentication().getName());
             category.setLastModifiedDate(Instant.now());
             category.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
+            category.setStatus(Status.ACTIVE);
 
             // Save the category to the database
             categoryRepository.save(category);
@@ -78,7 +80,6 @@ public class CategoryServiceImpl implements CategoryService {
         }
         return capitalizedWords.toString().trim();
     }
-
 
     @Override
     @Transactional
@@ -106,17 +107,16 @@ public class CategoryServiceImpl implements CategoryService {
         category.setDescription(request.getDescription());
         category.setLastModifiedDate(Instant.now());
         category.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
+        category.setStatus(request.getStatus());
 
         // Save the updated category to the database
         categoryRepository.save(category);
     }
 
-
-
     @Override
-    public Page<CategoryDto> getAllCategoryPaging(int page, int size, String name) {
+    public Page<CategoryDto> getAllCategoryPaging(int page, int size, String name, Status status) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<CategoryDto> categoryPage = categoryRepository.findAllByNameContaining(name, pageable);
+        Page<CategoryDto> categoryPage = categoryRepository.findAllByNameContaining(name, status, pageable);
         if(categoryPage.isEmpty()){
             throw new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND);
         }
@@ -130,13 +130,24 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void deleteCategory(Long id) {
+    public void activeCategory(Long id) {
         Category category = categoryRepository.findById(id).orElseThrow(()
                 -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
-        //soft delete
-        category.setDeleted(true);
+
+        category.setStatus(Status.ACTIVE);
         categoryRepository.save(category);
     }
+
+    @Override
+    public void deActiveCategory(Long id) {
+        Category category = categoryRepository.findById(id).orElseThrow(()
+                -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
+
+        category.setStatus(Status.INACTIVE);
+        categoryRepository.save(category);
+    }
+
+
     @Override
     public List<CategoryDto> getAllCategory() {
         return categoryRepository.findAllCategory();

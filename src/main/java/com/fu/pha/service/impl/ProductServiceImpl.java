@@ -96,6 +96,7 @@ public class ProductServiceImpl implements ProductService {
         product.setDosageForms(productDTORequest.getDosageForms());
         product.setDescription(productDTORequest.getDescription());
         product.setPrescriptionDrug(productDTORequest.getPrescriptionDrug());
+        product.setStatus(productDTORequest.getStatus());
         // Upload the image product if there is a file
         if (file != null && !file.isEmpty()) {
             String imageProduct = uploadImage(file);
@@ -116,7 +117,6 @@ public class ProductServiceImpl implements ProductService {
         }
         productUnitRepository.saveAll(productUnitList);
     }
-
 
     @Override
     @Transactional
@@ -151,6 +151,7 @@ public class ProductServiceImpl implements ProductService {
         product.setDosageForms(productDTORequest.getDosageForms());
         product.setDescription(productDTORequest.getDescription());
         product.setPrescriptionDrug(productDTORequest.getPrescriptionDrug());
+        product.setStatus(productDTORequest.getStatus());
 
         // Upload the image product if there is a file
         if (file != null && !file.isEmpty()) {
@@ -201,7 +202,7 @@ public class ProductServiceImpl implements ProductService {
                 productDTORequest.getRegistrationNumber().isEmpty() || productDTORequest.getActiveIngredient().isEmpty() ||
                 productDTORequest.getDosageConcentration().isEmpty() || productDTORequest.getPackingMethod().isEmpty() ||
                 productDTORequest.getManufacturer().isEmpty() || productDTORequest.getCountryOfOrigin().isEmpty() ||
-                productDTORequest.getDosageForms().isEmpty()){
+                productDTORequest.getDosageForms().isEmpty() || productDTORequest.getStatus() == null){
             throw new ResourceNotFoundException(Message.NULL_FILED);
         }
 

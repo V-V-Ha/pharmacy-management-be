@@ -2,6 +2,7 @@ package com.fu.pha.service;
 
 import com.fu.pha.dto.request.CategoryDto;
 import com.fu.pha.entity.Category;
+import com.fu.pha.enums.Status;
 import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.Query;
@@ -18,12 +19,13 @@ public interface CategoryService {
 
 
     //get all category and paging
-    Page<CategoryDto> getAllCategoryPaging(int page, int size, String name);
+    Page<CategoryDto> getAllCategoryPaging(int page, int size, String name, Status status);
 
     CategoryDto getCategoryById(Long id);
 
     //delete category
-    void deleteCategory(Long id);
+    void activeCategory(Long id);
+    void deActiveCategory(Long id);
 
     List<CategoryDto> getAllCategory();
 

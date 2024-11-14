@@ -40,6 +40,7 @@ public class ProductDTORequest {
     private Instant lastModifiedDate;
     private String createBy;
     private String lastModifiedBy;
+    private Boolean status;
 
     public ProductDTORequest(Product product){
         this.id = product.getId();

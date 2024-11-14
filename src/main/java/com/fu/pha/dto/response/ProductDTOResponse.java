@@ -43,6 +43,7 @@ public class ProductDTOResponse {
     private String createBy;
     private String lastModifiedBy;
     private Integer totalQuantity;
+    private Boolean status;
 
     public ProductDTOResponse(Product product){
         this.id = product.getId();
@@ -80,5 +81,6 @@ public class ProductDTOResponse {
         this.lastModifiedDate = product.getLastModifiedDate();
         this.totalQuantity = product.getTotalQuantity();
         this.categoryName = product.getCategoryId().getCategoryName();
+        this.status = product.getStatus();
     }
 }
