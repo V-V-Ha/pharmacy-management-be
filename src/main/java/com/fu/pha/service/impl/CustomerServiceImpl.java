@@ -6,6 +6,7 @@ import com.fu.pha.dto.response.CustomerDTOResponse;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.Customer;
 import com.fu.pha.entity.SaleOrder;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
@@ -52,6 +53,7 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setAddress(customerDTORequest.getAddress());
         customer.setYob(yob);
         customer.setGender(customerDTORequest.getGender());
+        customer.setStatus(Status.ACTIVE);
         customerRepository.save(customer);
     }
 
@@ -87,12 +89,22 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void deleteCustomer(Long id) {
+    public void activeCustomer(Long id) {
         Optional<Customer> customerOptional = customerRepository.findById(id);
         if (customerOptional.isEmpty()) {
             throw new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND);
         }
-        customerOptional.get().setDeleted(true);
+        customerOptional.get().setStatus(Status.ACTIVE);
+        customerRepository.save(customerOptional.get());
+    }
+
+    @Override
+    public void deActiveCustomer(Long id) {
+        Optional<Customer> customerOptional = customerRepository.findById(id);
+        if (customerOptional.isEmpty()) {
+            throw new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND);
+        }
+        customerOptional.get().setStatus(Status.INACTIVE);
         customerRepository.save(customerOptional.get());
     }
 
@@ -126,9 +138,17 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String phoneNumber) {
+    public Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String phoneNumber, String status) {
         Pageable pageable = PageRequest.of(size, index);
-        Page<CustomerDTOResponse> customerDTOResponses = customerRepository.getListCustomerPaging(phoneNumber, pageable);
+        Status customerStatus = null;
+        if (status != null) {
+            try {
+                customerStatus = Status.valueOf(status.toUpperCase());
+            } catch (Exception e) {
+                throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
+            }
+        }
+        Page<CustomerDTOResponse> customerDTOResponses = customerRepository.getListCustomerPaging(phoneNumber, customerStatus, pageable);
         if (customerDTOResponses.isEmpty()) {
             throw new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND);
         }

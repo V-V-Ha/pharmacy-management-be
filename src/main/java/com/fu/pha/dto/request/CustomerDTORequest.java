@@ -28,4 +28,5 @@ public class CustomerDTORequest {
     private String phoneNumber;
     private Integer yob;
     private Gender gender;
+    private String status;
 }

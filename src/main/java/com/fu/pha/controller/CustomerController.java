@@ -3,6 +3,7 @@ package com.fu.pha.controller;
 import com.fu.pha.dto.request.CustomerDTORequest;
 import com.fu.pha.dto.response.CustomerDTOResponse;
 import com.fu.pha.dto.response.PageResponseModel;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.Message;
 import com.fu.pha.service.CustomerService;
 import jakarta.validation.Valid;
@@ -23,8 +24,9 @@ public class CustomerController {
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<PageResponseModel<CustomerDTOResponse>> getALlCustomerPaging(@RequestParam(defaultValue = "0") int page,
                                                                                        @RequestParam(defaultValue = "10") int size,
-                                                                                       @RequestParam(defaultValue = "", name = "phoneNumber") String phoneNumber) {
-        Page<CustomerDTOResponse> customerDTOResponses = customerService.getAllCustomerByPaging(page, size, phoneNumber);
+                                                                                       @RequestParam(defaultValue = "", name = "phoneNumber") String phoneNumber,
+                                                                                       @RequestParam(defaultValue = "") String status) {
+        Page<CustomerDTOResponse> customerDTOResponses = customerService.getAllCustomerByPaging(page, size, phoneNumber, status);
         PageResponseModel<CustomerDTOResponse> response = PageResponseModel.<CustomerDTOResponse>builder()
                 .page(page)
                 .size(size)
@@ -54,10 +56,17 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.getCustomerById(id));
     }
 
-    @DeleteMapping("/delete-customer")
+    @PutMapping("/active-customer")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deleteCustomer(@RequestParam Long id) {
-        customerService.deleteCustomer(id);
-        return ResponseEntity.ok(Message.DELETE_SUCCESS);
+    public ResponseEntity<String> activeCustomer(@RequestParam Long id) {
+        customerService.activeCustomer(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    }
+
+    @PutMapping("/inactive-customer")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> deActiveCustomer(@RequestParam Long id) {
+        customerService.deActiveCustomer(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 }

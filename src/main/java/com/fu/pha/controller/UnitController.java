@@ -24,7 +24,7 @@ public class UnitController {
     public ResponseEntity<PageResponseModel<UnitDto>> getAllUnitPaging(@RequestParam(defaultValue = "0") int page,
                                                                        @RequestParam(defaultValue = "10") int size,
                                                                        @RequestParam(required = false) String name,
-                                                                       @RequestParam(required = false) Status status) {
+                                                                       @RequestParam(required = false) String status) {
         Page<UnitDto> content = unitService.getAllUnitPaging(page, size, name, status);
 
         PageResponseModel<UnitDto> response = PageResponseModel.<UnitDto>builder()

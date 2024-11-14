@@ -3,6 +3,7 @@ package com.fu.pha.repository;
 import com.fu.pha.dto.response.CustomerDTOResponse;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.Customer;
+import com.fu.pha.enums.Status;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,8 +19,11 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     @Query("SELECT new com.fu.pha.dto.response.CustomerDTOResponse(c) FROM Customer c WHERE " +
             "(LOWER(c.phoneNumber) LIKE LOWER(CONCAT('%', :phoneNumber, '%')) OR :phoneNumber IS NULL OR :phoneNumber = '') " +
+            " AND (c.status = :status OR :status IS NULL OR :status = '') " +
             "ORDER BY c.lastModifiedDate DESC")
-    Page<CustomerDTOResponse> getListCustomerPaging(String phoneNumber, Pageable pageable);
+    Page<CustomerDTOResponse> getListCustomerPaging(@Param("phoneNumber") String phoneNumber,
+                                                    @Param("status") Status status,
+                                                    Pageable pageable);
 
 
     Optional<Customer> findByPhoneNumber(String phoneNumber);

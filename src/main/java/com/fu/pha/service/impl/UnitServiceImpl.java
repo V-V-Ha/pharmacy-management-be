@@ -28,9 +28,17 @@ public class UnitServiceImpl implements UnitService {
     UnitRepository unitRepository;
 
     @Override
-    public Page<UnitDto> getAllUnitPaging(int page, int size, String name, Status status) {
+    public Page<UnitDto> getAllUnitPaging(int page, int size, String name, String status) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<UnitDto> unitPage = unitRepository.findAllByNameContaining(name, status, pageable);
+        Status unitStatus = null;
+        if (status != null) {
+            try {
+                unitStatus = Status.valueOf(status.toUpperCase());
+            } catch (Exception e) {
+                throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
+            }
+        }
+        Page<UnitDto> unitPage = unitRepository.findAllByNameContaining(name, unitStatus, pageable);
         if(unitPage.isEmpty()){
             throw new ResourceNotFoundException(Message.UNIT_NOT_FOUND);
         }
@@ -110,7 +118,6 @@ public class UnitServiceImpl implements UnitService {
         // Update the unit fields
         existingUnit.setUnitName(normalizedUnitName);
         existingUnit.setDescription(unitDto.getDescription());
-        existingUnit.setStatus(unitDto.getStatus());
 
         // Save the updated unit to the database
         unitRepository.save(existingUnit);

@@ -107,7 +107,6 @@ public class CategoryServiceImpl implements CategoryService {
         category.setDescription(request.getDescription());
         category.setLastModifiedDate(Instant.now());
         category.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
-        category.setStatus(request.getStatus());
 
         // Save the updated category to the database
         categoryRepository.save(category);
@@ -119,7 +118,7 @@ public class CategoryServiceImpl implements CategoryService {
         Status categoryStatus = null;
         if (status != null) {
             try {
-                categoryStatus = Status.valueOf(status);
+                categoryStatus = Status.valueOf(status.toUpperCase());
             } catch (Exception e) {
                 throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
             }
