@@ -75,6 +75,11 @@ public class ProductServiceImpl implements ProductService {
         Category category = categoryRepository.findById(productDTORequest.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
 
+        // Check if category is active
+        if (category.getStatus() != Status.ACTIVE) {
+            throw new BadRequestException(Message.CATEGORY_INACTIVE);
+        }
+
         Product product = new Product();
         product.setProductName(productDTORequest.getProductName());
         product.setCategoryId(category);
@@ -107,7 +112,13 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
         List<ProductUnit> productUnitList = new ArrayList<>();
         for (ProductUnitDTORequest productUnitDTORequest : productDTORequest.getProductUnitListDTO()) {
-            Unit unit = unitRepository.findUnitById(productUnitDTORequest.getUnitId());
+            Unit unit = unitRepository.findById(productUnitDTORequest.getUnitId())
+                    .orElseThrow(() -> new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
+
+            // Check if unit is active
+            if (unit.getStatus() != Status.ACTIVE) {
+                throw new BadRequestException(Message.UNIT_INACTIVE);
+            }
             ProductUnit productUnit = new ProductUnit();
             productUnit.setProduct(product);
             productUnit.setUnit(unit);
@@ -137,6 +148,10 @@ public class ProductServiceImpl implements ProductService {
 
         Category category = categoryRepository.findById(productDTORequest.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
+        // Check if category is active
+        if (category.getStatus() != Status.ACTIVE) {
+            throw new BadRequestException(Message.CATEGORY_INACTIVE);
+        }
 
         product.setProductName(productDTORequest.getProductName());
         product.setCategoryId(category);
@@ -170,7 +185,13 @@ public class ProductServiceImpl implements ProductService {
 
                 if (productUnit != null) {
                     // Update product unit
-                    productUnit.setUnit(unitRepository.findUnitById(productUnitDTORequest.getUnitId()));
+                    Unit unit = unitRepository.findById(productUnitDTORequest.getUnitId())
+                            .orElseThrow(() -> new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
+
+                    if (unit.getStatus() != Status.ACTIVE) {
+                        throw new BadRequestException(Message.UNIT_INACTIVE);
+                    }
+                    productUnit.setUnit(unit);
                     productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
                     productUnit.setImportPrice(productUnitDTORequest.getImportPrice());
                     productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
@@ -178,7 +199,13 @@ public class ProductServiceImpl implements ProductService {
                 } else {
                     // Create a new product unit
                     productUnit = new ProductUnit();
-                    Unit unit = unitRepository.findUnitById(productUnitDTORequest.getUnitId());
+                    Unit unit = unitRepository.findById(productUnitDTORequest.getUnitId())
+                            .orElseThrow(() -> new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
+
+                    // Check if unit is active
+                    if (unit.getStatus() != Status.ACTIVE) {
+                        throw new BadRequestException(Message.UNIT_INACTIVE);
+                    }
                     product = productRepository.findProductById(productDTORequest.getId());
                     productUnit.setUnit(unit);
                     productUnit.setProduct(product);
@@ -202,7 +229,7 @@ public class ProductServiceImpl implements ProductService {
                 productDTORequest.getRegistrationNumber().isEmpty() || productDTORequest.getActiveIngredient().isEmpty() ||
                 productDTORequest.getDosageConcentration().isEmpty() || productDTORequest.getPackingMethod().isEmpty() ||
                 productDTORequest.getManufacturer().isEmpty() || productDTORequest.getCountryOfOrigin().isEmpty() ||
-                productDTORequest.getDosageForms().isEmpty() || productDTORequest.getStatus() == null){
+                productDTORequest.getDosageForms().isEmpty()){
             throw new ResourceNotFoundException(Message.NULL_FILED);
         }
 
