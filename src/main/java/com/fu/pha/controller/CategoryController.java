@@ -51,7 +51,7 @@ public class CategoryController {
         public ResponseEntity<PageResponseModel<CategoryDto>> getAllCategoryPaging(@RequestParam(defaultValue = "0") int page,
                                                                                    @RequestParam(defaultValue = "10") int size,
                                                                                     @RequestParam(required = false) String name,
-                                                                                   @RequestParam(required = false) Status status) {
+                                                                                   @RequestParam(required = false) String status) {
 
             Page<CategoryDto> content = categoryService.getAllCategoryPaging(page, size, name, status);
 

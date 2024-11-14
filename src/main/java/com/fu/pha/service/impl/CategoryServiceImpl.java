@@ -114,9 +114,17 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Page<CategoryDto> getAllCategoryPaging(int page, int size, String name, Status status) {
+    public Page<CategoryDto> getAllCategoryPaging(int page, int size, String name, String status) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<CategoryDto> categoryPage = categoryRepository.findAllByNameContaining(name, status, pageable);
+        Status categoryStatus = null;
+        if (status != null) {
+            try {
+                categoryStatus = Status.valueOf(status);
+            } catch (Exception e) {
+                throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
+            }
+        }
+        Page<CategoryDto> categoryPage = categoryRepository.findAllByNameContaining(name, categoryStatus, pageable);
         if(categoryPage.isEmpty()){
             throw new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND);
         }

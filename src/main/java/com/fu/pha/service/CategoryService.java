@@ -19,7 +19,7 @@ public interface CategoryService {
 
 
     //get all category and paging
-    Page<CategoryDto> getAllCategoryPaging(int page, int size, String name, Status status);
+    Page<CategoryDto> getAllCategoryPaging(int page, int size, String name, String status);
 
     CategoryDto getCategoryById(Long id);
 
