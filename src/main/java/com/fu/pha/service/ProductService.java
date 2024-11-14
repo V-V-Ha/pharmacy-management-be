@@ -13,10 +13,9 @@ import java.util.List;
 public interface ProductService {
     void createProduct(ProductDTORequest request, MultipartFile file);
     void updateProduct(ProductDTORequest request, MultipartFile file);
-    Page<ProductDTOResponse> getAllProductPaging(int size, int index, String productName, String category);
+    Page<ProductDTOResponse> getAllProductPaging(int size, int index, String productName, String category, String status);
     ProductDTOResponse getProductById(Long id);
-    void activeProduct(Long id);
-    void deActiveProduct(Long id);
+    void updateProductStatus(Long id);
     List<UnitDto> getAllUnit();
     List<ProductDTOResponse> getAllProducts();
     ResponseEntity<byte[]> exportProductsToExcel() throws IOException;

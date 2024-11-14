@@ -3,6 +3,7 @@ package com.fu.pha.repository;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.dto.response.report.reportEntity.ProductReportDto;
 import com.fu.pha.entity.Product;
+import com.fu.pha.enums.Status;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,8 +31,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT new com.fu.pha.dto.response.ProductDTOResponse(p) FROM Product p WHERE " +
             "((LOWER(p.productName) LIKE LOWER(CONCAT('%', :productName, '%')) OR :productName IS NULL OR :productName = '') AND " +
             "(p.categoryId.categoryName = :category OR :category IS NULL OR :category = '')) " +
+            " AND (p.status = :status OR :status IS NULL OR :status = '') " +
             "ORDER BY p.lastModifiedDate DESC")
-    Page<ProductDTOResponse> getListProductPaging(String productName, String category, Pageable pageable);
+    Page<ProductDTOResponse> getListProductPaging(@Param("productName") String productName,
+                                                  @Param("category") String category,
+                                                  @Param("status") Status status,
+                                                  Pageable pageable);
 
     @Query("SELECT new com.fu.pha.dto.response.ProductDTOResponse(p) FROM Product p WHERE (LOWER(p.productName) LIKE lower(concat('%', :productName, '%')))")
     Optional<List<ProductDTOResponse>> findProductByProductName(String productName);

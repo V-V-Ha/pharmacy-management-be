@@ -122,23 +122,7 @@ public class UnitServiceImpl implements UnitService {
         // Save the updated unit to the database
         unitRepository.save(existingUnit);
     }
-
-    @Override
-    public void activeUnit(Long id) {
-        Unit unit = unitRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
-        unit.setStatus(Status.ACTIVE);
-        unitRepository.save(unit);
-    }
-
-    @Override
-    public void deActiveUnit(Long id) {
-        Unit unit = unitRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
-        unit.setStatus(Status.INACTIVE);
-        unitRepository.save(unit);
-    }
-
+    
     @Override
     public void updateUnitStatus(Long id) {
         Unit unit = unitRepository.findById(id).orElseThrow(() ->

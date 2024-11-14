@@ -23,9 +23,7 @@ public interface CategoryService {
 
     CategoryDto getCategoryById(Long id);
 
-    //delete category
-    void activeCategory(Long id);
-    void deActiveCategory(Long id);
+    void updateCategoryStatus(Long id);
 
     List<CategoryDto> getAllCategory();
 

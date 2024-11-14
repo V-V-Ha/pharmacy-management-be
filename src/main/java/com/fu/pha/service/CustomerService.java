@@ -13,9 +13,7 @@ public interface CustomerService {
 
     void updateCustomer(CustomerDTORequest customerDTORequest);
 
-    void activeCustomer(Long id);
-
-    void deActiveCustomer(Long id);
+    void updateCustomerStatus(Long id);
 
     CustomerDTOResponse getCustomerById(Long id);
 

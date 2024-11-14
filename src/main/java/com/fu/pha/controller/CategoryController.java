@@ -64,17 +64,10 @@ public class CategoryController {
             return ResponseEntity.ok(response);
         }
 
-    @PutMapping("/active-category")
+    @PutMapping("/change-status-category")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> activeCategory(@RequestParam Long id) {
-        categoryService.activeCategory(id);
-        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
-    }
-
-    @PutMapping("/inactive-category")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deActiveCategory(@RequestParam Long id) {
-        categoryService.deActiveCategory(id);
+    public ResponseEntity<String> updateCategoryStatus(@RequestParam Long id) {
+        categoryService.updateCategoryStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 

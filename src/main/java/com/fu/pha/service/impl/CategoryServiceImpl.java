@@ -137,23 +137,18 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void activeCategory(Long id) {
+    public void updateCategoryStatus(Long id) {
         Category category = categoryRepository.findById(id).orElseThrow(()
                 -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
 
-        category.setStatus(Status.ACTIVE);
+        // Chuyển đổi trạng thái
+        if (category.getStatus() == Status.ACTIVE) {
+            category.setStatus(Status.INACTIVE);
+        } else {
+            category.setStatus(Status.ACTIVE);
+        }
         categoryRepository.save(category);
     }
-
-    @Override
-    public void deActiveCategory(Long id) {
-        Category category = categoryRepository.findById(id).orElseThrow(()
-                -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
-
-        category.setStatus(Status.INACTIVE);
-        categoryRepository.save(category);
-    }
-
 
     @Override
     public List<CategoryDto> getAllCategory() {

@@ -4,6 +4,7 @@ import com.fu.pha.dto.request.CustomerDTORequest;
 import com.fu.pha.dto.request.CustomerDto;
 import com.fu.pha.dto.response.CustomerDTOResponse;
 import com.fu.pha.dto.response.ProductDTOResponse;
+import com.fu.pha.entity.Category;
 import com.fu.pha.entity.Customer;
 import com.fu.pha.entity.SaleOrder;
 import com.fu.pha.enums.Status;
@@ -88,24 +89,21 @@ public class CustomerServiceImpl implements CustomerService {
         customerRepository.save(customer);
     }
 
-    @Override
-    public void activeCustomer(Long id) {
+   @Override
+    public void updateCustomerStatus(Long id) {
         Optional<Customer> customerOptional = customerRepository.findById(id);
         if (customerOptional.isEmpty()) {
             throw new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND);
         }
-        customerOptional.get().setStatus(Status.ACTIVE);
-        customerRepository.save(customerOptional.get());
-    }
 
-    @Override
-    public void deActiveCustomer(Long id) {
-        Optional<Customer> customerOptional = customerRepository.findById(id);
-        if (customerOptional.isEmpty()) {
-            throw new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND);
+        // Chuyển đổi trạng thái
+        Customer customer = customerOptional.get();
+        if (customer.getStatus() == Status.ACTIVE) {
+            customer.setStatus(Status.INACTIVE);
+        } else {
+            customer.setStatus(Status.ACTIVE);
         }
-        customerOptional.get().setStatus(Status.INACTIVE);
-        customerRepository.save(customerOptional.get());
+        customerRepository.save(customer);
     }
 
     @Override

@@ -11,8 +11,7 @@ public interface DoctorService {
 
     void updateDoctor(DoctorDTORequest doctorDTORequest);
 
-    void activeDoctor(Long id);
-    void deActiveDoctor(Long id);
+    void updateDoctorStatus(Long id);
 
     DoctorDTOResponse getDoctorById(Long id);
 

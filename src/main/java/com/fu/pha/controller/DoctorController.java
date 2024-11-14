@@ -41,17 +41,10 @@ public class DoctorController {
         return ResponseEntity.ok(doctorService.getDoctorById(id));
     }
 
-    @PutMapping("/active-doctor")
+    @PutMapping("/change-status-doctor")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> activeDoctor(@RequestParam Long id) {
-        doctorService.activeDoctor(id);
-        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
-    }
-
-    @PutMapping("/inactive-doctor")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deActiveDoctor(@RequestParam Long id) {
-        doctorService.deActiveDoctor(id);
+    public ResponseEntity<String> updateDoctorStatus(@RequestParam Long id) {
+        doctorService.updateDoctorStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 

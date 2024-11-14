@@ -11,8 +11,6 @@ public interface UnitService {
     UnitDto getUnitById(Long id);
     void createUnit(UnitDto unitDto);
     void updateUnit(UnitDto unitDto);
-    void activeUnit(Long id);
-    void deActiveUnit(Long id);
     void updateUnitStatus(Long id);
 
     List<UnitDto> getAllUnit();

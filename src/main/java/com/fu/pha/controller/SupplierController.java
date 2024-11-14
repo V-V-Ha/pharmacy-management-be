@@ -68,24 +68,10 @@ public class SupplierController {
         return ResponseEntity.ok(supplierService.getAllSupplier());
     }
 
-    @PutMapping("/active-supplier")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> activeSupplier(@RequestParam Long id) {
-        supplierService.activeSupplier(id);
-        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
-    }
-
-    @PutMapping("/inactive-supplier")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deActiveSupplier(@RequestParam Long id) {
-        supplierService.deActiveSupplier(id);
-        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
-    }
-
     @PutMapping("/change-status-supplier")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> updateSupplierStatus(@RequestParam Long id, @RequestParam String status) {
-        supplierService.updateSupplierStatus(id, status);
+    public ResponseEntity<String> updateSupplierStatus(@RequestParam Long id) {
+        supplierService.updateSupplierStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 

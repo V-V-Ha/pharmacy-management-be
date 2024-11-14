@@ -56,17 +56,10 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.getCustomerById(id));
     }
 
-    @PutMapping("/active-customer")
+    @PutMapping("/change-status-customer")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> activeCustomer(@RequestParam Long id) {
-        customerService.activeCustomer(id);
-        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
-    }
-
-    @PutMapping("/inactive-customer")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deActiveCustomer(@RequestParam Long id) {
-        customerService.deActiveCustomer(id);
+    public ResponseEntity<String> updateCustomerStatus(@RequestParam Long id) {
+        customerService.updateCustomerStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 }

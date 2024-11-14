@@ -231,9 +231,17 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductDTOResponse> getAllProductPaging(int page, int size,  String productName, String category) {
+    public Page<ProductDTOResponse> getAllProductPaging(int page, int size,  String productName, String category, String status) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<ProductDTOResponse> products = productRepository.getListProductPaging(productName, category, pageable);
+        Status productStatus = null;
+        if (status != null) {
+            try {
+                productStatus = Status.valueOf(status.toUpperCase());
+            } catch (Exception e) {
+                throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
+            }
+        }
+        Page<ProductDTOResponse> products = productRepository.getListProductPaging(productName, category, productStatus, pageable);
         if (products.isEmpty()) {
             throw new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND);
         }
@@ -248,20 +256,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void activeProduct(Long id) {
+    public void updateProductStatus(Long id) {
         Product product = productRepository.getProductById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
-        product.setStatus(Status.ACTIVE);
-        productRepository.save(product);
-    }
-
-    @Override
-    public void deActiveProduct(Long id) {
-        Product product = productRepository.getProductById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
-
-        product.setStatus(Status.INACTIVE);
+        if (product.getStatus() == Status.ACTIVE) {
+            product.setStatus(Status.INACTIVE);
+        } else {
+            product.setStatus(Status.ACTIVE);
+        }
         productRepository.save(product);
     }
 

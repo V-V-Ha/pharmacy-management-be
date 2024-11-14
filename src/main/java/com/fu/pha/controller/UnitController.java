@@ -56,20 +56,6 @@ public class UnitController {
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
-    @PutMapping("/active-unit")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> activeUnit(@RequestParam Long id) {
-        unitService.activeUnit(id);
-        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
-    }
-
-    @PutMapping("/inactive-unit")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deActiveUnit(@RequestParam Long id) {
-        unitService.deActiveUnit(id);
-        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
-    }
-
     @PutMapping("/change-status-unit")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<String> updateUnitStatus(@RequestParam Long id) {
