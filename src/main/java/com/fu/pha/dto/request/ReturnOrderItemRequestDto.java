@@ -1,6 +1,9 @@
 package com.fu.pha.dto.request;
 
 import com.fu.pha.exception.Message;
+import com.fu.pha.validate.anotation.ValidQuantity;
+import com.fu.pha.validate.anotation.ValidUnitPrice;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,14 +15,15 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReturnOrderItemRequestDto {
-    @NotNull
+    @NotNull(message = "Sản phẩm không được để trống")
     private Long productId;
-    @NotNull
+    @ValidQuantity
     private Integer quantity;
-    @NotNull
+    @ValidUnitPrice
     private Double unitPrice;
-    @NotNull
+    @NotNull(message = "Đơn vị không được để trống")
     private String unit;
-    @NotNull
+    @NotNull(message = "Hệ số quy đổi không được để trống")
+    @Min(value = 1, message = "Hệ số quy đổi phải lớn hơn 0")
     private Integer conversionFactor;
 }

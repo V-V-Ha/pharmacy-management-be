@@ -9,10 +9,12 @@ import com.fu.pha.service.ReturnOrderService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/return-order")
+@Validated
 public class ReturnOrderController {
     @Autowired
     private ReturnOrderService returnOrderService;
@@ -24,7 +26,7 @@ public class ReturnOrderController {
     }
 
     @PutMapping("/update-return-order")
-    public ResponseEntity<String> updateReturnOrder(@RequestParam Long returnOrderId,@Valid @RequestBody ReturnOrderRequestDto returnOrderRequestDto) {
+    public ResponseEntity<String> updateReturnOrder(@Valid @RequestParam Long returnOrderId,@Valid @RequestBody ReturnOrderRequestDto returnOrderRequestDto) {
         returnOrderService.updateReturnOrder(returnOrderId, returnOrderRequestDto);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }

@@ -4,14 +4,8 @@ import com.fu.pha.dto.request.ProductUnitDTORequest;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.ImportItem;
 import com.fu.pha.exception.Message;
-import com.fu.pha.validate.anotation.ValidDiscount;
-import com.fu.pha.validate.anotation.ValidQuantity;
-import com.fu.pha.validate.anotation.ValidTax;
-import com.fu.pha.validate.anotation.ValidUnitPrice;
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import com.fu.pha.validate.anotation.*;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -29,44 +23,24 @@ public class ImportItemRequestDto {
     @ValidUnitPrice
     private Double unitPrice;
 
+    @NotBlank(message = "Đơn vị không được để trống")
     private String unit;
 
     @ValidDiscount
     private Double discount;
 
-    @ValidTax
+    @ValidVat
     private Double tax;
 
+    @ValidTotalAmount
     private Double totalAmount;
+    @NotBlank(message = "Số lô không được để trống")
     private String batchNumber;
+    @NotNull(message = "Sản phẩm không được để trống")
     private Long productId;
-    private Long importId;
-    private Instant createDate;
-    private Instant lastModifiedDate;
     private Instant expiryDate;
-    private String createBy;
-    private String lastModifiedBy;
-
+    @NotNull(message = "Hệ số quy đổi không được để trống")
+    @Min(value = 1, message = "Hệ số quy đổi phải lớn hơn 0")
     private Integer conversionFactor;
 
-    private Integer remainingQuantity;
-
-    public ImportItemRequestDto(ImportItem importItem) {
-        this.id = importItem.getId();
-        this.quantity = importItem.getQuantity();
-        this.unitPrice = importItem.getUnitPrice();
-        this.unit = importItem.getUnit();
-        this.discount = importItem.getDiscount();
-        this.tax = importItem.getTax();
-        this.batchNumber = importItem.getBatchNumber();
-        this.expiryDate = importItem.getExpiryDate();
-        this.totalAmount = importItem.getTotalAmount();
-        this.productId = importItem.getProduct().getId();
-        this.importId = importItem.getImportReceipt().getId();
-        this.createDate = importItem.getCreateDate();
-        this.lastModifiedDate = importItem.getLastModifiedDate();
-        this.createBy = importItem.getCreateBy();
-        this.lastModifiedBy = importItem.getLastModifiedBy();
-        this.remainingQuantity = importItem.getRemainingQuantity();
-    }
 }

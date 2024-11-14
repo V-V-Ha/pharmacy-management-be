@@ -3,6 +3,7 @@ package com.fu.pha.repository;
 import com.fu.pha.dto.request.importPack.ImportDto;
 import com.fu.pha.dto.request.importPack.ImportViewListDto;
 import com.fu.pha.entity.Import;
+import com.fu.pha.enums.OrderStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,39 +21,51 @@ public interface ImportRepository extends JpaRepository<Import, Long> {
     String getLastInvoiceNumber();
 
     @Query("SELECT new com.fu.pha.dto.request.importPack.ImportViewListDto(i) " +
-            " FROM Import i " +
-            " WHERE (:supplierName IS NULL OR i.supplier.supplierName = :supplierName OR :supplierName = '') " +
-            " AND (i.importDate IS NULL OR i.importDate BETWEEN :fromDate AND :toDate) " +
-            " ORDER BY i.lastModifiedDate DESC")
+            "FROM Import i " +
+            "WHERE (:supplierName IS NULL OR i.supplier.supplierName = :supplierName OR :supplierName = '') " +
+            "AND (:status IS NULL OR i.status = :status) " +
+            "AND (i.importDate BETWEEN :fromDate AND :toDate) " +
+            "ORDER BY i.lastModifiedDate DESC")
     Page<ImportViewListDto> getListImportPaging(@Param("supplierName") String supplierName,
+                                                @Param("status") OrderStatus status,
                                                 @Param("fromDate") Instant fromDate,
                                                 @Param("toDate") Instant toDate,
                                                 Pageable pageable);
 
-    @Query("SELECT new com.fu.pha.dto.request.importPack.ImportViewListDto(i) " +
-            " FROM Import i " +
-            " WHERE (:supplierName IS NULL OR i.supplier.supplierName = :supplierName OR :supplierName = '') " +
-            " ORDER BY i.lastModifiedDate DESC")
-    Page<ImportViewListDto> getListImportPagingWithoutDate(@Param("supplierName") String supplierName,
-                                                           Pageable pageable);
 
     @Query("SELECT new com.fu.pha.dto.request.importPack.ImportViewListDto(i) " +
-            " FROM Import i " +
-            " WHERE (:supplierName IS NULL OR i.supplier.supplierName = :supplierName OR :supplierName = '') " +
-            " AND i.importDate >= :fromDate " +
-            " ORDER BY i.lastModifiedDate DESC")
+            "FROM Import i " +
+            "WHERE (:supplierName IS NULL OR i.supplier.supplierName = :supplierName OR :supplierName = '') " +
+            "AND (:status IS NULL OR i.status = :status) " +
+            "ORDER BY i.lastModifiedDate DESC")
+    Page<ImportViewListDto> getListImportPagingWithoutDate(@Param("supplierName") String supplierName,
+                                                           @Param("status") OrderStatus status,
+                                                           Pageable pageable);
+
+
+    @Query("SELECT new com.fu.pha.dto.request.importPack.ImportViewListDto(i) " +
+            "FROM Import i " +
+            "WHERE (:supplierName IS NULL OR i.supplier.supplierName = :supplierName OR :supplierName = '') " +
+            "AND (:status IS NULL OR i.status = :status) " +
+            "AND i.importDate >= :fromDate " +
+            "ORDER BY i.lastModifiedDate DESC")
     Page<ImportViewListDto> getListImportPagingFromDate(@Param("supplierName") String supplierName,
+                                                        @Param("status") OrderStatus status,
                                                         @Param("fromDate") Instant fromDate,
                                                         Pageable pageable);
 
+
     @Query("SELECT new com.fu.pha.dto.request.importPack.ImportViewListDto(i) " +
-            " FROM Import i " +
-            " WHERE (:supplierName IS NULL OR i.supplier.supplierName = :supplierName OR :supplierName = '') " +
-            " AND i.importDate <= :toDate " +
-            " ORDER BY i.lastModifiedDate DESC")
+            "FROM Import i " +
+            "WHERE (:supplierName IS NULL OR i.supplier.supplierName = :supplierName OR :supplierName = '') " +
+            "AND (:status IS NULL OR i.status = :status) " +
+            "AND i.importDate <= :toDate " +
+            "ORDER BY i.lastModifiedDate DESC")
     Page<ImportViewListDto> getListImportPagingToDate(@Param("supplierName") String supplierName,
+                                                      @Param("status") OrderStatus status,
                                                       @Param("toDate") Instant toDate,
                                                       Pageable pageable);
+
 
 
     @Query("SELECT COALESCE(SUM(i.totalAmount), 0) FROM Import i WHERE i.importDate BETWEEN :startDate AND :endDate")
