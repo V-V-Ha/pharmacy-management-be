@@ -46,8 +46,11 @@ public class SupplierController {
     // get all supplier by paging
     @GetMapping("/get-all-supplier-by-paging")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<PageResponseModel<SupplierDto>> getAllSupplierPaging(@RequestParam int page, @RequestParam int size, @RequestParam(required = false) String name) {
-        Page<SupplierDto> content = supplierService.getAllSupplierAndPaging(page, size, name);
+    public ResponseEntity<PageResponseModel<SupplierDto>> getAllSupplierPaging(@RequestParam(defaultValue = "0") int page,
+                                                                               @RequestParam(defaultValue = "10") int size,
+                                                                               @RequestParam(required = false) String name,
+                                                                               @RequestParam(required = false) String status) {
+        Page<SupplierDto> content = supplierService.getAllSupplierAndPaging(page, size, name, status);
         PageResponseModel<SupplierDto> response = PageResponseModel.<SupplierDto>builder()
                 .page(page)
                 .size(size)
@@ -57,7 +60,6 @@ public class SupplierController {
         return ResponseEntity.ok(response);
     }
 
-
     // get all supplier
     @GetMapping("/get-all-supplier")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
@@ -65,13 +67,17 @@ public class SupplierController {
         return ResponseEntity.ok(supplierService.getAllSupplier());
     }
 
-    //delete supplier
-    @DeleteMapping("/delete-supplier")
+    @PutMapping("/active-supplier")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deleteSupplier(@RequestParam Long id) {
-        supplierService.deleteSupplier(id);
-        return ResponseEntity.ok(Message.DELETE_SUCCESS);
+    public ResponseEntity<String> activeSupplier(@RequestParam Long id) {
+        supplierService.activeSupplier(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
-
+    @PutMapping("/inactive-supplier")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> deActiveSupplier(@RequestParam Long id) {
+        supplierService.deActiveSupplier(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    }
 }

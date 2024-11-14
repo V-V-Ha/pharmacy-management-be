@@ -11,13 +11,15 @@ public interface SupplierService {
     //update supplier
     void updateSupplier(SupplierDto supplierDto);
     //delete supplier
-    void deleteSupplier(Long id);
+    void activeSupplier(Long id);
+
+    void deActiveSupplier(Long id);
     //get supplier by id
     SupplierDto getSupplierById(Long id);
     //get all supplier
     List<SupplierDto> getAllSupplier();
 
-    Page<SupplierDto> getAllSupplierAndPaging(int page, int size, String name);
+    Page<SupplierDto> getAllSupplierAndPaging(int page, int size, String name, String status);
 
 
 }

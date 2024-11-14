@@ -2,6 +2,7 @@ package com.fu.pha.repository;
 
 import com.fu.pha.dto.request.SupplierDto;
 import com.fu.pha.entity.Supplier;
+import com.fu.pha.enums.Status;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,20 +20,23 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
     Optional<Supplier> findByTax(String tax);
 
     //get all supplier
-    @Query("SELECT new com.fu.pha.dto.request.SupplierDto(s.id, s.supplierName, s.address, s.phoneNumber, s.email, s.tax) FROM Supplier s")
+    @Query("SELECT new com.fu.pha.dto.request.SupplierDto(s.id, s.supplierName, s.address, s.phoneNumber, s.email, s.tax, s.status) FROM Supplier s")
     List<SupplierDto> findAllSupplier();
 
-    @Query("SELECT new com.fu.pha.dto.request.SupplierDto(s.id, s.supplierName, s.address, s.phoneNumber, s.email, s.tax, " +
+    @Query("SELECT new com.fu.pha.dto.request.SupplierDto(s.id, s.supplierName, s.address, s.phoneNumber, s.email, s.tax, s.status, " +
             "COALESCE(SUM(i.totalAmount), 0.0)) " +
             "FROM Supplier s " +
             "LEFT JOIN Import i ON s.id = i.supplier.id " +
             "WHERE (LOWER(s.supplierName) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL OR :name = '') " +
+            " AND (s.status = :status OR :status IS NULL OR :status = '') " +
             "GROUP BY s.id, s.supplierName, s.address, s.phoneNumber, s.email, s.tax " +
             "ORDER BY s.lastModifiedDate DESC")
-    Page<SupplierDto> findAllByNameContaining(String name, Pageable pageable);
+    Page<SupplierDto> findAllByNameContaining(@Param("name") String name,
+                                              @Param("status") Status status,
+                                              Pageable pageable);
 
 
-    @Query("SELECT new com.fu.pha.dto.request.SupplierDto(s.id, s.supplierName, s.address, s.phoneNumber, s.email, s.tax) " +
+    @Query("SELECT new com.fu.pha.dto.request.SupplierDto(s.id, s.supplierName, s.address, s.phoneNumber, s.email, s.tax, s.status) " +
             "FROM Supplier s " +
             "WHERE (LOWER(s.supplierName) LIKE LOWER(CONCAT('%', :supplierName, '%')) OR :supplierName IS NULL OR :supplierName = '') ")
     Optional<List<SupplierDto>> findSupplierBySupplierName(String supplierName);
