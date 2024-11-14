@@ -116,6 +116,24 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
+    public void updateSupplierStatus(Long id, String status) {
+        Optional<Supplier> supplier = supplierRepository.findById(id);
+        if (supplier.isEmpty()) {
+            throw new BadRequestException(Message.SUPPLIER_NOT_FOUND);
+        }
+        Status supplierStatus = null;
+        if (status != null) {
+            try {
+                supplierStatus = Status.valueOf(status.toUpperCase());
+            } catch (Exception e) {
+                throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
+            }
+        }
+        supplier.get().setStatus(supplierStatus);
+        supplierRepository.save(supplier.get());
+    }
+
+    @Override
     public SupplierDto getSupplierById(Long id) {
         Optional<Supplier> supplier = supplierRepository.findById(id);
         if (supplier.isEmpty()) {

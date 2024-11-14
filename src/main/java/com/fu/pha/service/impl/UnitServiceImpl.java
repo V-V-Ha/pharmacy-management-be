@@ -139,5 +139,21 @@ public class UnitServiceImpl implements UnitService {
         unitRepository.save(unit);
     }
 
+    @Override
+    public void updateUnitStatus(Long id, String status) {
+        Unit unit = unitRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
+        Status unitStatus = null;
+        if (status != null) {
+            try {
+                unitStatus = Status.valueOf(status.toUpperCase());
+            } catch (Exception e) {
+                throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
+            }
+        }
+        unit.setStatus(unitStatus);
+        unitRepository.save(unit);
+    }
+
 
 }

@@ -70,6 +70,13 @@ public class UnitController {
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
+    @PutMapping("/change-status-unit")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> updateUnitStatus(@RequestParam Long id, @RequestParam String status) {
+        unitService.updateUnitStatus(id, status);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    }
+
     @GetMapping("/get-all-unit-list")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<List<UnitDto>> getAllUnit() {

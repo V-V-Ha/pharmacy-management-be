@@ -2,6 +2,7 @@ package com.fu.pha.controller;
 
 import com.fu.pha.dto.request.SupplierDto;
 import com.fu.pha.dto.response.PageResponseModel;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.Message;
 import com.fu.pha.service.SupplierService;
 import jakarta.validation.Valid;
@@ -80,4 +81,12 @@ public class SupplierController {
         supplierService.deActiveSupplier(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
+
+    @PutMapping("/change-status-supplier")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> updateSupplierStatus(@RequestParam Long id, @RequestParam String status) {
+        supplierService.updateSupplierStatus(id, status);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    }
+
 }
