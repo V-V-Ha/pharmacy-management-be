@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -30,6 +31,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/sale")
+@Validated
 public class SaleController {
 
     @Autowired
@@ -55,7 +57,7 @@ public class SaleController {
     }
 
     @PutMapping("/update-sale-order")
-    public ResponseEntity<String> updateSaleOrder(@RequestParam Long saleOrderId, @Valid @RequestBody SaleOrderRequestDto saleOrderRequestDto) {
+    public ResponseEntity<String> updateSaleOrder(@Valid @RequestParam Long saleOrderId, @Valid @RequestBody SaleOrderRequestDto saleOrderRequestDto) {
         saleOrderService.updateSaleOrder(saleOrderId, saleOrderRequestDto);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }

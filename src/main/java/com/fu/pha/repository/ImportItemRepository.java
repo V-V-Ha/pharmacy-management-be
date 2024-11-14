@@ -25,11 +25,12 @@ public interface ImportItemRepository extends JpaRepository<ImportItem, Long> {
     List<ImportItem> findByImportId(@Param("importId") Long importId);
 
 
-    @Query("SELECT i FROM ImportItem i JOIN i.product p WHERE LOWER(p.productName) LIKE LOWER(concat('%', :productName, '%'))")
+    @Query("SELECT i FROM ImportItem i JOIN i.product p WHERE LOWER(p.productName) LIKE LOWER(concat('%', :productName, '%')) AND i.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     List<ImportItem> findImportItemsByProductName(@Param("productName") String productName);
 
 
-    List<ImportItem> findByProductIdOrderByCreateDateAsc(Long productId);
+    @Query("SELECT ii FROM ImportItem ii WHERE ii.product.id = :productId AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED ORDER BY ii.createDate ASC")
+    List<ImportItem> findByProductIdOrderByCreateDateAsc(@Param("productId") Long productId);
 
     // Trong ImportItemRepository
     @Query("SELECT sib.importItem FROM SaleOrderItemBatch sib WHERE sib.saleOrderItem.id = :saleOrderItemId")
