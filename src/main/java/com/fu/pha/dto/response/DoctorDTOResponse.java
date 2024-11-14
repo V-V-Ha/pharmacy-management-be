@@ -1,6 +1,7 @@
 package com.fu.pha.dto.response;
 
 import com.fu.pha.entity.Doctor;
+import com.fu.pha.enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,7 @@ public class DoctorDTOResponse {
     private String address;
     private String phoneNumber;
     private String note;
+    private Status status;
 
     public DoctorDTOResponse(Doctor doctor) {
         this.id = doctor.getId();
@@ -24,6 +26,7 @@ public class DoctorDTOResponse {
         this.address = doctor.getAddress();
         this.phoneNumber = doctor.getPhoneNumber();
         this.note = doctor.getNote();
+        this.status = doctor.getStatus();
     }
 
     public DoctorDTOResponse(Long id,String fullName){

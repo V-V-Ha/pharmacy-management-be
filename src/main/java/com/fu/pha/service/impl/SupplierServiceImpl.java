@@ -146,6 +146,7 @@ public class SupplierServiceImpl implements SupplierService {
         supplierDto.setAddress(supplier.get().getAddress());
         supplierDto.setPhoneNumber(supplier.get().getPhoneNumber());
         supplierDto.setEmail(supplier.get().getEmail());
+        supplierDto.setStatus(supplier.get().getStatus());
         return supplierDto;
     }
 

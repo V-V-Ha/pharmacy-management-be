@@ -11,11 +11,12 @@ public interface DoctorService {
 
     void updateDoctor(DoctorDTORequest doctorDTORequest);
 
-    void deleteDoctor(Long id);
+    void activeDoctor(Long id);
+    void deActiveDoctor(Long id);
 
     DoctorDTOResponse getDoctorById(Long id);
 
     List<DoctorDTOResponse> getDoctorByDoctorName(String doctorName);
 
-    Page<DoctorDTOResponse> getAllDoctorByPaging(int size, int index, String doctorName);
+    Page<DoctorDTOResponse> getAllDoctorByPaging(int size, int index, String doctorName, String status);
 }

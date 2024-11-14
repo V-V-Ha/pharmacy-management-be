@@ -114,17 +114,7 @@ public class CustomerServiceImpl implements CustomerService {
         if (customerOptional.isEmpty()) {
             throw new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND);
         }
-
-        CustomerDTOResponse customerDTOResponse = new CustomerDTOResponse();
-        customerDTOResponse.setId(customerOptional.get().getId());
-        customerDTOResponse.setCustomerName(customerOptional.get().getCustomerName());
-        customerDTOResponse.setAddress(customerOptional.get().getAddress());
-        customerDTOResponse.setPhoneNumber(customerOptional.get().getPhoneNumber());
-        customerDTOResponse.setYob(customerOptional.get().getYob());
-        customerDTOResponse.setGender(customerOptional.get().getGender());
-        customerDTOResponse.setTotalAmount(customerOptional.get().getSaleOrderList().stream()
-                .mapToDouble(SaleOrder::getTotalAmount).sum());
-        return customerDTOResponse;
+        return new CustomerDTOResponse(customerOptional.get());
     }
 
     @Override
