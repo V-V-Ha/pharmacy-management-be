@@ -2,6 +2,7 @@ package com.fu.pha.dto.response;
 
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.entity.Product;
+import com.fu.pha.enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,7 +44,7 @@ public class ProductDTOResponse {
     private String createBy;
     private String lastModifiedBy;
     private Integer totalQuantity;
-    private Boolean status;
+    private Status status;
 
     public ProductDTOResponse(Product product){
         this.id = product.getId();

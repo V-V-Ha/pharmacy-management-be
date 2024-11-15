@@ -96,41 +96,19 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
-    public void activeSupplier(Long id) {
-        Optional<Supplier> supplier = supplierRepository.findById(id);
-        if (supplier.isEmpty()) {
+    public void updateSupplierStatus(Long id) {
+        Optional<Supplier> supplierOptional = supplierRepository.findById(id);
+        if (supplierOptional.isEmpty()) {
             throw new BadRequestException(Message.SUPPLIER_NOT_FOUND);
         }
-        supplier.get().setStatus(Status.ACTIVE);
-        supplierRepository.save(supplier.get());
-    }
+        Supplier supplier = supplierOptional.get();
+        if (supplier.getStatus().equals(Status.ACTIVE)) {
+            supplier.setStatus(Status.INACTIVE);
+        } else {
+            supplier.setStatus(Status.ACTIVE);
+        }
+        supplierRepository.save(supplier);
 
-    @Override
-    public void deActiveSupplier(Long id) {
-        Optional<Supplier> supplier = supplierRepository.findById(id);
-        if (supplier.isEmpty()) {
-            throw new BadRequestException(Message.SUPPLIER_NOT_FOUND);
-        }
-        supplier.get().setStatus(Status.INACTIVE);
-        supplierRepository.save(supplier.get());
-    }
-
-    @Override
-    public void updateSupplierStatus(Long id, String status) {
-        Optional<Supplier> supplier = supplierRepository.findById(id);
-        if (supplier.isEmpty()) {
-            throw new BadRequestException(Message.SUPPLIER_NOT_FOUND);
-        }
-        Status supplierStatus = null;
-        if (status != null) {
-            try {
-                supplierStatus = Status.valueOf(status.toUpperCase());
-            } catch (Exception e) {
-                throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
-            }
-        }
-        supplier.get().setStatus(supplierStatus);
-        supplierRepository.save(supplier.get());
     }
 
     @Override

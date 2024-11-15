@@ -122,36 +122,18 @@ public class UnitServiceImpl implements UnitService {
         // Save the updated unit to the database
         unitRepository.save(existingUnit);
     }
-
+    
     @Override
-    public void activeUnit(Long id) {
+    public void updateUnitStatus(Long id) {
         Unit unit = unitRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
-        unit.setStatus(Status.ACTIVE);
-        unitRepository.save(unit);
-    }
 
-    @Override
-    public void deActiveUnit(Long id) {
-        Unit unit = unitRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
-        unit.setStatus(Status.INACTIVE);
-        unitRepository.save(unit);
-    }
-
-    @Override
-    public void updateUnitStatus(Long id, String status) {
-        Unit unit = unitRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
-        Status unitStatus = null;
-        if (status != null) {
-            try {
-                unitStatus = Status.valueOf(status.toUpperCase());
-            } catch (Exception e) {
-                throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
-            }
+        // Chuyển đổi trạng thái
+        if (unit.getStatus() == Status.ACTIVE) {
+            unit.setStatus(Status.INACTIVE);
+        } else {
+            unit.setStatus(Status.ACTIVE);
         }
-        unit.setStatus(unitStatus);
         unitRepository.save(unit);
     }
 

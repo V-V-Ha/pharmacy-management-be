@@ -27,9 +27,10 @@ public class ProductController {
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<PageResponseModel<ProductDTOResponse>> getAllProductPaging(@RequestParam(defaultValue = "0") int page,
                                                                                      @RequestParam(defaultValue = "10") int size,
-                                                                                     @RequestParam(defaultValue = "", name = "productName") String productName,
-                                                                                     @RequestParam(defaultValue = "", name = "category") String category) {
-        Page<ProductDTOResponse> productDTOResponsePage = productService.getAllProductPaging(page, size, productName, category);
+                                                                                     @RequestParam(required = false) String productName,
+                                                                                     @RequestParam(required = false) String category,
+                                                                                     @RequestParam(required = false) String status) {
+        Page<ProductDTOResponse> productDTOResponsePage = productService.getAllProductPaging(page, size, productName, category, status);
 
         PageResponseModel<ProductDTOResponse> response = PageResponseModel.<ProductDTOResponse>builder()
                 .page(page)
@@ -64,17 +65,10 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
-    @PutMapping("/active-product")
+    @PutMapping("/change-status-product")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> activeProduct(@RequestParam Long id) {
-        productService.activeProduct(id);
-        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
-    }
-
-    @PutMapping("/inactive-product")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deActiveProduct(@RequestParam Long id) {
-        productService.deActiveProduct(id);
+    public ResponseEntity<String> updateProductStatus(@RequestParam Long id) {
+        productService.updateProductStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 

@@ -97,4 +97,6 @@ public class Message {
     public static final String NOT_REJECT = " Chỉ có thể từ chối phiếu ở trạng thái chờ xác nhận";
     public static final String TOTAL_AMOUNT_REQUIRED = "Tổng tiền không được trống";
     public static final String IMPORT_ITEM_NOT_FOUND = "Không tìm thấy sản phẩm trong phiếu";
+    public static final String CATEGORY_INACTIVE = "Nhóm sản phẩm đã bị vô hiệu hóa";
+    public static final String UNIT_INACTIVE = "Đơn vị đã bị vô hiệu hóa";
 }

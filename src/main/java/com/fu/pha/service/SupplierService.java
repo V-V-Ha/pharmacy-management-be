@@ -11,12 +11,8 @@ public interface SupplierService {
     void createSupplier(SupplierDto supplierDto);
     //update supplier
     void updateSupplier(SupplierDto supplierDto);
-    //delete supplier
-    void activeSupplier(Long id);
 
-    void deActiveSupplier(Long id);
-
-    void updateSupplierStatus(Long id, String status);
+    void updateSupplierStatus(Long id);
     //get supplier by id
     SupplierDto getSupplierById(Long id);
     //get all supplier

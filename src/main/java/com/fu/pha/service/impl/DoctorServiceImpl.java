@@ -3,7 +3,9 @@ package com.fu.pha.service.impl;
 import com.fu.pha.dto.request.DoctorDTORequest;
 import com.fu.pha.dto.response.DoctorDTOResponse;
 import com.fu.pha.entity.Doctor;
+import com.fu.pha.entity.Supplier;
 import com.fu.pha.enums.Status;
+import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.DoctorRepository;
@@ -53,23 +55,19 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
-    public void activeDoctor(Long id) {
-        Optional<Doctor> doctor = doctorRepository.findById(id);
-        if (doctor.isEmpty()) {
+    public void updateDoctorStatus(Long id) {
+        Optional<Doctor> doctorOptional = doctorRepository.findById(id);
+        if (doctorOptional.isEmpty()) {
             throw new ResourceNotFoundException(Message.DOCTOR_NOT_FOUND);
         }
-        doctor.get().setStatus(Status.ACTIVE);
-        doctorRepository.save(doctor.get());
-    }
+        Doctor doctor = doctorOptional.get();
+        if (doctor.getStatus().equals(Status.ACTIVE)) {
+            doctor.setStatus(Status.INACTIVE);
+        } else {
+            doctor.setStatus(Status.ACTIVE);
+        }
+        doctorRepository.save(doctor);
 
-    @Override
-    public void deActiveDoctor(Long id) {
-        Optional<Doctor> doctor = doctorRepository.findById(id);
-        if (doctor.isEmpty()) {
-            throw new ResourceNotFoundException(Message.DOCTOR_NOT_FOUND);
-        }
-        doctor.get().setStatus(Status.INACTIVE);
-        doctorRepository.save(doctor.get());
     }
 
     @Override

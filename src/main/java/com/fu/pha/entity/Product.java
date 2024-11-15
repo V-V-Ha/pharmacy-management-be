@@ -2,6 +2,7 @@ package com.fu.pha.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fu.pha.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Where;
@@ -88,8 +89,9 @@ public class Product extends BaseEntity{
     @OneToMany(mappedBy = "product")
     private List<SaleOrderItem> saleOrderItemList;
 
-    @Column(name = "status", nullable = false)
-    private Boolean status = true;
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @Column(name = "total_quantity")
     private Integer totalQuantity;

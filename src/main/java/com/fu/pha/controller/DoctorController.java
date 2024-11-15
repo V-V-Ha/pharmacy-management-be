@@ -23,8 +23,8 @@ public class DoctorController {
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<PageResponseModel<DoctorDTOResponse>> getAllDoctor(@RequestParam(defaultValue = "0") int page,
                                                                              @RequestParam(defaultValue = "10") int size,
-                                                                             @RequestParam(defaultValue = "", name = "doctorName") String doctorName,
-                                                                             @RequestParam(defaultValue = "") String status) {
+                                                                             @RequestParam(required = false) String doctorName,
+                                                                             @RequestParam(required = false) String status) {
         Page<DoctorDTOResponse> doctorDTOResponses = doctorService.getAllDoctorByPaging(page, size, doctorName, status);
         PageResponseModel<DoctorDTOResponse> response = PageResponseModel.<DoctorDTOResponse>builder()
                 .page(page)
@@ -41,17 +41,10 @@ public class DoctorController {
         return ResponseEntity.ok(doctorService.getDoctorById(id));
     }
 
-    @PutMapping("/active-doctor")
+    @PutMapping("/change-status-doctor")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> activeDoctor(@RequestParam Long id) {
-        doctorService.activeDoctor(id);
-        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
-    }
-
-    @PutMapping("/inactive-doctor")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deActiveDoctor(@RequestParam Long id) {
-        doctorService.deActiveDoctor(id);
+    public ResponseEntity<String> updateDoctorStatus(@RequestParam Long id) {
+        doctorService.updateDoctorStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
