@@ -27,9 +27,9 @@ public class ProductController {
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<PageResponseModel<ProductDTOResponse>> getAllProductPaging(@RequestParam(defaultValue = "0") int page,
                                                                                      @RequestParam(defaultValue = "10") int size,
-                                                                                     @RequestParam(defaultValue = "", name = "productName") String productName,
-                                                                                     @RequestParam(defaultValue = "", name = "category") String category,
-                                                                                     @RequestParam(defaultValue = "", name = "status") String status) {
+                                                                                     @RequestParam(required = false) String productName,
+                                                                                     @RequestParam(required = false) String category,
+                                                                                     @RequestParam(required = false) String status) {
         Page<ProductDTOResponse> productDTOResponsePage = productService.getAllProductPaging(page, size, productName, category, status);
 
         PageResponseModel<ProductDTOResponse> response = PageResponseModel.<ProductDTOResponse>builder()

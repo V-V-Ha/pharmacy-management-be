@@ -23,8 +23,8 @@ public class DoctorController {
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<PageResponseModel<DoctorDTOResponse>> getAllDoctor(@RequestParam(defaultValue = "0") int page,
                                                                              @RequestParam(defaultValue = "10") int size,
-                                                                             @RequestParam(defaultValue = "", name = "doctorName") String doctorName,
-                                                                             @RequestParam(defaultValue = "") String status) {
+                                                                             @RequestParam(required = false) String doctorName,
+                                                                             @RequestParam(required = false) String status) {
         Page<DoctorDTOResponse> doctorDTOResponses = doctorService.getAllDoctorByPaging(page, size, doctorName, status);
         PageResponseModel<DoctorDTOResponse> response = PageResponseModel.<DoctorDTOResponse>builder()
                 .page(page)
