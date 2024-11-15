@@ -160,8 +160,10 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                 saleOrderItemBatchRepository.save(saleOrderItemBatch);
             }
 
+            double itemTotalAmount = calculateSaleOrderItemTotalAmount(itemRequestDto);
+
             // Cập nhật tổng tiền đơn hàng
-            totalOrderAmount += saleOrderItem.getTotalAmount();
+            totalOrderAmount += itemTotalAmount;
 
             // Cập nhật lại tổng tồn kho của sản phẩm
             int updatedTotalQuantity = product.getTotalQuantity() - smallestQuantityToSell;
@@ -169,10 +171,33 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             productRepository.save(product);
         }
 
+        if (saleOrderRequestDto.getTotalAmount() != null) {
+            double feTotalAmount = saleOrderRequestDto.getTotalAmount();
+            if (Math.abs(totalOrderAmount - feTotalAmount) > 0.01) { // Cho phép sai số nhỏ
+                throw new BadRequestException(Message.TOTAL_AMOUNT_NOT_MATCH);
+            }
+        } else {
+            throw new BadRequestException(Message.TOTAL_AMOUNT_REQUIRED);
+        }
+
         // 4. Cập nhật tổng số tiền của SaleOrder và lưu lại
         saleOrder.setTotalAmount(totalOrderAmount - saleOrder.getDiscount());
         saleOrderRepository.save(saleOrder);
         return saleOrder.getId().intValue();
+    }
+
+    private double calculateSaleOrderItemTotalAmount(SaleOrderItemRequestDto itemRequestDto) {
+        double unitPrice = itemRequestDto.getUnitPrice();
+        int quantity = itemRequestDto.getQuantity();
+        double discount = itemRequestDto.getDiscount() != null ? itemRequestDto.getDiscount() : 0.0;
+
+        // Tính tổng tiền trước chiết khấu
+        double total = unitPrice * quantity;
+
+        // Áp dụng chiết khấu
+        total = total - (total * discount / 100);
+
+        return total;
     }
 
 
@@ -251,7 +276,10 @@ public class SaleOrderServiceImpl implements SaleOrderService {
 
                 saleOrderItemRepository.save(saleOrderItem);
 
-                totalOrderAmount += saleOrderItem.getTotalAmount();
+                double itemTotalAmount = calculateSaleOrderItemTotalAmount(itemRequestDto);
+
+                // Cập nhật tổng tiền đơn hàng
+                totalOrderAmount += itemTotalAmount;
 
                 // Loại bỏ khỏi map để xác định các item cần xóa sau này
                 existingItemsMap.remove(productId);
@@ -275,7 +303,10 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                 // Phân bổ số lượng từ các batches hiện có
                 allocateAdditionalQuantity(saleOrderItemNew, smallestQuantityToSell, product);
 
-                totalOrderAmount += saleOrderItemNew.getTotalAmount();
+                double itemTotalAmount = calculateSaleOrderItemTotalAmount(itemRequestDto);
+
+                // Cập nhật tổng tiền đơn hàng
+                totalOrderAmount += itemTotalAmount;
             }
         }
 
@@ -313,6 +344,17 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         saleOrder.setUser(user);
         saleOrder.setDoctor(doctor);
         saleOrder.setDiagnosis(saleOrderRequestDto.getDiagnosis());
+
+        // So sánh tổng tiền giữa BE và FE
+        if (saleOrderRequestDto.getTotalAmount() != null) {
+            double feTotalAmount = saleOrderRequestDto.getTotalAmount();
+            if (Math.abs(totalOrderAmount - feTotalAmount) > 0.01) { // Cho phép sai số nhỏ
+                throw new BadRequestException(Message.TOTAL_AMOUNT_NOT_MATCH);
+            }
+        } else {
+            throw new BadRequestException(Message.TOTAL_AMOUNT_REQUIRED);
+        }
+
         saleOrder.setTotalAmount(totalOrderAmount - saleOrderRequestDto.getDiscount());
 
         saleOrderRepository.save(saleOrder);
@@ -416,12 +458,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     }
 
 
-
-
-
-
-
-
+    
     public SaleOrderResponseDto getSaleOrderById(Long saleOrderId) {
         // 1. Truy vấn SaleOrder từ cơ sở dữ liệu
         SaleOrder saleOrder = saleOrderRepository.findById(saleOrderId)
