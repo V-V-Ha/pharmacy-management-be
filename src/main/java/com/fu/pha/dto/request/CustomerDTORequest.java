@@ -1,6 +1,7 @@
 package com.fu.pha.dto.request;
 
 import com.fu.pha.enums.Gender;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.Message;
 import com.fu.pha.validate.Constants;
 import com.fu.pha.validate.anotation.ValidFullName;
@@ -28,5 +29,5 @@ public class CustomerDTORequest {
     private String phoneNumber;
     private Integer yob;
     private Gender gender;
-    private String status;
+    private Status status;
 }
