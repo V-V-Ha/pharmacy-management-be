@@ -1,6 +1,7 @@
 package com.fu.pha.Service.Product;
 
 import com.fu.pha.entity.Product;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.ProductRepository;
@@ -18,7 +19,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class ProductDeleteTest {
+public class ProductChangeStatusTest {
 
     @Mock
     private ProductRepository productRepository;
@@ -26,30 +27,31 @@ public class ProductDeleteTest {
     @InjectMocks
     private ProductServiceImpl productService;
 
-    //test trường hợp xóa sản phẩm thành công
+    //test trường hợp change status sản phẩm thành công
     @Test
-    void UTCPD01() {
+    void UTCPCS01() {
         Long productId = 3L;
         Product product = new Product();
         product.setId(productId);
+        product.setStatus(Status.ACTIVE);
 
         when(productRepository.getProductById(productId)).thenReturn(Optional.of(product));
 
-        //productService.deleteProduct(productId);
+        productService.updateProductStatus(productId);
 
-       // assertTrue(product.getDeleted());
+        assertTrue(product.getStatus() == Status.INACTIVE);
         verify(productRepository).save(product);
     }
 
-    //test trường hợp xóa sản phẩm không thành công do không tìm thấy sản phẩm
+    //test trường hợp change status sản phẩm không thành công do không tìm thấy sản phẩm
     @Test
-    void UTCPD02() {
+    void UTCPCS02() {
         Long productId = 200L;
 
         when(productRepository.getProductById(productId)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-          //  productService.deleteProduct(productId);
+            productService.updateProductStatus(productId);
         });
 
         assertEquals(Message.PRODUCT_NOT_FOUND, exception.getMessage());
