@@ -76,6 +76,7 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
                                                       Pageable pageable);
 
 
+//    @Query("SELECT s FROM SaleOrder s WHERE s.invoiceNumber LIKE LOWER(CONCAT('%', :invoiceNumber, '%'))")
     Optional<SaleOrder> findByInvoiceNumber(String invoiceNumber);
 
     @Query("SELECT COUNT(s) FROM SaleOrder s WHERE s.saleDate BETWEEN :startDate AND :endDate")
