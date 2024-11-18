@@ -48,19 +48,19 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<ProductDTOResponse> getListProduct();
 
     // report
-    @Query("SELECT new com.fu.pha.dto.response.report.reportEntity.ProductReportDto(p.id, p.productName, p.productCode, p.totalQuantity, (p.totalQuantity * p.importPrice)) " +
-            "FROM Product p WHERE p.totalQuantity = 0")
-    List<ProductReportDto> findOutOfStockProducts();
-
-    @Query("SELECT new com.fu.pha.dto.response.report.reportEntity.ProductReportDto(p.id, p.productName, p.productCode, p.totalQuantity, (p.totalQuantity * p.importPrice)) " +
-            "FROM Product p WHERE p.totalQuantity <= :threshold")
-    List<ProductReportDto> findNearlyOutOfStockProducts(@Param("threshold") int threshold);
-
-    @Query("SELECT SUM(p.totalQuantity) FROM Product p")
-    Integer calculateCurrentInventoryQuantity();
-
-    @Query("SELECT SUM(p.totalQuantity * p.importPrice) FROM Product p")
-    Double calculateCurrentInventoryAmount();
+//    @Query("SELECT new com.fu.pha.dto.response.report.reportEntity.ProductReportDto(p.id, p.productName, p.productCode, p.totalQuantity, (p.totalQuantity)) " +
+//            "FROM Product p WHERE p.totalQuantity = 0")
+//    List<ProductReportDto> findOutOfStockProducts();
+//
+//    @Query("SELECT new com.fu.pha.dto.response.report.reportEntity.ProductReportDto(p.id, p.productName, p.productCode, p.totalQuantity, (p.totalQuantity)) " +
+//            "FROM Product p WHERE p.totalQuantity <= :threshold")
+//    List<ProductReportDto> findNearlyOutOfStockProducts(@Param("threshold") int threshold);
+//
+//    @Query("SELECT SUM(p.totalQuantity) FROM Product p")
+//    Integer calculateCurrentInventoryQuantity();
+//
+//    @Query("SELECT SUM(p.totalQuantity) FROM Product p")
+//    Double calculateCurrentInventoryAmount();
 
 
 
