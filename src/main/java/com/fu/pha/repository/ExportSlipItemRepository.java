@@ -20,18 +20,27 @@ public interface ExportSlipItemRepository extends JpaRepository<ExportSlipItem, 
     @Query("SELECT COALESCE(SUM(ei.quantity * ei.conversionFactor), 0) FROM ExportSlipItem ei WHERE ei.exportSlip.exportDate < :startDate")
     Integer sumQuantityBeforeDate(@Param("startDate") Instant startDate);
 
-    @Query("SELECT COALESCE(SUM(ei.quantity  * ei.unitPrice), 0) FROM ExportSlipItem ei WHERE ei.exportSlip.exportDate < :startDate")
+    @Query("SELECT COALESCE(SUM(ei.quantity * ei.unitPrice), 0) " +
+            "FROM ExportSlipItem ei " +
+            "WHERE ei.exportSlip.exportDate < :startDate " +
+            "AND ei.exportSlip.typeDelivery != 'DESTROY'")
     Double sumAmountBeforeDate(@Param("startDate") Instant startDate);
+
 
     @Query("SELECT COALESCE(SUM(ei.quantity * ei.conversionFactor), 0) FROM ExportSlipItem ei WHERE ei.exportSlip.exportDate BETWEEN :startDate AND :endDate")
     Integer sumQuantityBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
-    @Query("SELECT COALESCE(SUM(ei.quantity * ei.conversionFactor * ei.unitPrice / ei.conversionFactor), 0) FROM ExportSlipItem ei WHERE ei.exportSlip.exportDate BETWEEN :startDate AND :endDate")
-    Double sumAmountBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+    @Query("SELECT COALESCE(SUM(ei.quantity * ei.unitPrice), 0) " +
+            "FROM ExportSlipItem ei " +
+            "WHERE ei.exportSlip.exportDate BETWEEN :startDate AND :endDate " +
+            "AND ei.exportSlip.typeDelivery != 'DESTROY'")
+    Double sumAmountBetweenDates(@Param("startDate") Instant startDate,
+                                 @Param("endDate") Instant endDate);
+
 
     @Query("SELECT COALESCE(SUM(ei.quantity * ei.conversionFactor), 0) FROM ExportSlipItem ei WHERE ei.exportSlip.exportDate BETWEEN :startDate AND :endDate AND ei.exportSlip.typeDelivery = :typeDelivery")
     Integer sumQuantityByTypeBetweenDates(@Param("typeDelivery") ExportType typeDelivery, @Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
-    @Query("SELECT COALESCE(SUM(ei.quantity * ei.conversionFactor * ei.unitPrice / ei.conversionFactor), 0) FROM ExportSlipItem ei WHERE ei.exportSlip.exportDate BETWEEN :startDate AND :endDate AND ei.exportSlip.typeDelivery = :typeDelivery")
+    @Query("SELECT COALESCE(SUM(ei.quantity  * ei.unitPrice ), 0) FROM ExportSlipItem ei WHERE ei.exportSlip.exportDate BETWEEN :startDate AND :endDate AND ei.exportSlip.typeDelivery = :typeDelivery")
     Double sumAmountByTypeBetweenDates(@Param("typeDelivery") ExportType typeDelivery, @Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 }

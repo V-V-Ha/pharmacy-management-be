@@ -50,7 +50,6 @@ public class SaleController {
     private InvoiceService invoiceService;
 
 
-
     @PostMapping("/create-sale-order")
     public ResponseEntity<Integer> createSaleOrder(@Valid @RequestBody SaleOrderRequestDto saleOrderRequestDto) {
         return ResponseEntity.ok(saleOrderService.createSaleOrder(saleOrderRequestDto));
