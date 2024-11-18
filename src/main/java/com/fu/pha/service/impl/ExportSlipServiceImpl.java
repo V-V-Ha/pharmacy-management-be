@@ -52,6 +52,9 @@ public class ExportSlipServiceImpl implements ExportSlipService {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private InventoryHistoryRepository inventoryHistoryRepository;
+
     @Transactional
     @Override
     public void createExport(ExportSlipRequestDto exportDto) {
@@ -207,6 +210,9 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
                     productRepository.save(product);
                     importItemRepository.save(importItem);
+
+                    saveInventoryHistory(importItem, -smallestQuantity,
+                            "Update export confirmed (ExportSlip ID: " + exportSlip.getId() + ")");
                 }
 
                 // Cập nhật thông tin ExportSlipItem
@@ -245,6 +251,9 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
                     productRepository.save(product);
                     importItemRepository.save(importItem);
+
+                    saveInventoryHistory(importItem, -smallestQuantity,
+                            "Update export confirmed (ExportSlip ID: " + exportSlip.getId() + ")");
                 }
 
                 if (exportSlip.getTypeDelivery() != ExportType.DESTROY) {
@@ -324,6 +333,8 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         // Xử lý tồn kho
         for (ExportSlipItem exportSlipItem : exportSlip.getExportSlipItemList()) {
             processStockForConfirmedExport(exportSlipItem);
+
+
         }
     }
 
@@ -425,6 +436,8 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             // Nếu trạng thái là CONFIRMED, xử lý tồn kho
             if (status == OrderStatus.CONFIRMED) {
                 processStockForConfirmedExport(exportSlipItem);
+
+
             }
         }
 
@@ -469,7 +482,15 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         }
         importItem.setRemainingQuantity(importItem.getRemainingQuantity() - smallestQuantity);
         importItemRepository.save(importItem);
+
+        // Lưu thông tin vào InventoryHistory
+        saveInventoryHistory(
+                importItem,
+                -smallestQuantity,
+                "Export confirmed (ExportSlip ID: " + exportSlipItem.getExportSlip().getId() + ")"
+        );
     }
+
 
     private ExportSlipItem createExportSlipItem(ExportSlipItemRequestDto itemDto, ExportSlip exportSlip) {
         ExportSlipItem exportSlipItem = new ExportSlipItem();
@@ -508,6 +529,17 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         return exportSlipItem;
     }
 
+    private void saveInventoryHistory(ImportItem importItem, int totalChangeQuantity, String reason) {
+        if (totalChangeQuantity == 0) return; // Không lưu nếu không có thay đổi
+
+        InventoryHistory inventoryHistory = new InventoryHistory();
+        inventoryHistory.setImportItem(importItem);
+        inventoryHistory.setRecordDate(Instant.now());
+        inventoryHistory.setRemainingQuantity(importItem.getRemainingQuantity());
+        inventoryHistory.setChangeQuantity(totalChangeQuantity);
+        inventoryHistory.setReason(reason);
+        inventoryHistoryRepository.save(inventoryHistory);
+    }
 
 
     @Transactional

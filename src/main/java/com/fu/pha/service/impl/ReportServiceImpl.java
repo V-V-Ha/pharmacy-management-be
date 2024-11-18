@@ -57,11 +57,37 @@ public class ReportServiceImpl implements ReportService {
     // -------------------- Báo cáo kho --------------------
 
     @Override
-    public InventoryReportDto getInventoryReport(LocalDate startDate, LocalDate endDate) {
+    public InventoryReportDto getInventoryReport(LocalDate startDate, LocalDate endDate, Integer month, Integer year) {
         InventoryReportDto report = new InventoryReportDto();
+        Instant startInstant;
+        Instant endInstant;
 
-        Instant startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        Instant endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        if (month != null && year != null) {
+            // Nếu có tháng và năm, tính startDate và endDate cho tháng đó
+            startInstant = LocalDate.of(year, month, 1)
+                    .atStartOfDay(ZoneId.systemDefault())
+                    .toInstant();
+            endInstant = LocalDate.of(year, month, startDate.lengthOfMonth())
+                    .atTime(23, 59, 59)
+                    .atZone(ZoneId.systemDefault())
+                    .toInstant();
+        } else if (year != null) {
+            // Nếu chỉ có năm, tính startDate và endDate cho cả năm
+            startInstant = LocalDate.of(year, 1, 1)
+                    .atStartOfDay(ZoneId.systemDefault())
+                    .toInstant();
+            endInstant = LocalDate.of(year, 12, 31)
+                    .atTime(23, 59, 59)
+                    .atZone(ZoneId.systemDefault())
+                    .toInstant();
+        } else if (startDate != null && endDate != null) {
+            // Nếu có startDate và endDate, sử dụng chúng làm khoảng thời gian
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        } else {
+            startInstant = Instant.now().minus(1, ChronoUnit.DAYS);
+            endInstant = Instant.now();
+        }
 
         // Tính tồn kho đầu kỳ
         int beginningInventoryQuantity = calculateBeginningInventoryQuantity(startInstant);
@@ -120,8 +146,9 @@ public class ReportServiceImpl implements ReportService {
         return report;
     }
 
+
     // Các phương thức hỗ trợ cho báo cáo kho
-    private int calculateBeginningInventoryQuantity(Instant startDate) {
+    private int calculateBeginningInventoryQuantity(Instant startDate) {    
         Integer totalReceivedBeforeStart = importItemRepository.sumQuantityBeforeDate(startDate);
         Integer totalExportedBeforeStart = exportSlipItemRepository.sumQuantityBeforeDate(startDate);
         Integer totalSoldBeforeStart = saleOrderItemRepository.sumQuantityBeforeDate(startDate);

@@ -57,6 +57,9 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     @Autowired
     private SaleOrderItemBatchRepository saleOrderItemBatchRepository;
 
+    @Autowired
+    private InventoryHistoryRepository inventoryHistoryRepository;
+
     @Override
     @Transactional
     public int createSaleOrder(SaleOrderRequestDto saleOrderRequestDto) {
@@ -120,6 +123,10 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                     // Cập nhật số lượng còn lại trong lô
                     batch.setRemainingQuantity(batch.getRemainingQuantity() - quantityFromBatch);
                     importItemRepository.save(batch);
+
+                    // Ghi vào InventoryHistory
+                    saveInventoryHistory(batch, -quantityFromBatch,
+                            "Sale order created (SaleOrder ID: " + saleOrder.getId() + ")");
 
                     // Tạo và lưu SaleOrderItemBatch
                     SaleOrderItemBatch saleOrderItemBatch = new SaleOrderItemBatch();
@@ -376,6 +383,10 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                 batch.setRemainingQuantity(batch.getRemainingQuantity() - quantityFromBatch);
                 importItemRepository.save(batch);
 
+                // Ghi vào InventoryHistory
+                saveInventoryHistory(batch, -quantityFromBatch,
+                        "Sale order updated (SaleOrder ID: " + saleOrderItem.getSaleOrder().getId() + ")");
+
                 // Kiểm tra xem SaleOrderItemBatch đã tồn tại cho cặp importId và saleOrderItemId chưa
                 Optional<SaleOrderItemBatch> existingBatchOpt = saleOrderItemBatchRepository.findByImportItemIdAndSaleOrderItemId(batch.getId(), saleOrderItem.getId());
 
@@ -432,6 +443,10 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                 importItem.setRemainingQuantity(importItem.getRemainingQuantity() + batchQuantity);
                 importItemRepository.save(importItem);
 
+                // Ghi vào InventoryHistory
+                saveInventoryHistory(importItem, batchQuantity,
+                        "Sale order updated (deallocated, SaleOrder ID: " + saleOrderItem.getSaleOrder().getId() + ")");
+
                 // Xóa SaleOrderItemBatch
                 saleOrderItemBatchRepository.delete(batch);
 
@@ -455,6 +470,18 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         // Cập nhật tổng tồn kho của sản phẩm
         product.setTotalQuantity(product.getTotalQuantity() + totalDeallocated);
         productRepository.save(product);
+    }
+
+    private void saveInventoryHistory(ImportItem importItem, int totalChangeQuantity, String reason) {
+        if (totalChangeQuantity == 0) return;
+
+        InventoryHistory inventoryHistory = new InventoryHistory();
+        inventoryHistory.setImportItem(importItem);
+        inventoryHistory.setRecordDate(Instant.now());
+        inventoryHistory.setRemainingQuantity(importItem.getRemainingQuantity());
+        inventoryHistory.setChangeQuantity(totalChangeQuantity);
+        inventoryHistory.setReason(reason);
+        inventoryHistoryRepository.save(inventoryHistory);
     }
 
 

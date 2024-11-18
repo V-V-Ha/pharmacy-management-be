@@ -46,6 +46,9 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
     @Autowired
     private GenerateCode generateCode;
 
+    @Autowired
+    private InventoryHistoryRepository inventoryHistoryRepository;
+
     @Override
     @Transactional
     public void createReturnOrder(ReturnOrderRequestDto returnOrderRequestDto) {
@@ -117,6 +120,14 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
                     // Cập nhật tồn kho của ImportItem
                     batch.setRemainingQuantity(batch.getRemainingQuantity() + restoreQuantity);
                     importItemRepository.save(batch);
+
+                    // Lưu vào lịch sử tồn kho
+                    InventoryHistory inventoryHistory = new InventoryHistory();
+                    inventoryHistory.setImportItem(batch);
+                    inventoryHistory.setRecordDate(Instant.now());
+                    inventoryHistory.setRemainingQuantity(batch.getRemainingQuantity()); // Số lượng tồn hiện tại
+                    inventoryHistory.setChangeQuantity(restoreQuantity); // Số lượng thay đổi
+                    inventoryHistoryRepository.save(inventoryHistory);
 
                     // Cập nhật SaleOrderItemBatch
                     saleOrderItemBatch.setQuantity(batchQuantityUsed - restoreQuantity);
@@ -254,6 +265,15 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
 
                     batch.setRemainingQuantity(batch.getRemainingQuantity() + restoreQuantity);
                     importItemRepository.save(batch);
+
+                    // Lưu vào lịch sử tồn kho
+                    InventoryHistory inventoryHistory = new InventoryHistory();
+                    inventoryHistory.setImportItem(batch);
+                    inventoryHistory.setRecordDate(Instant.now());
+                    inventoryHistory.setRemainingQuantity(batch.getRemainingQuantity()); // Số lượng tồn hiện tại
+                    inventoryHistory.setChangeQuantity(restoreQuantity); // Số lượng thay đổi
+                    inventoryHistory.setReason("Return Order");
+                    inventoryHistoryRepository.save(inventoryHistory);
 
                     saleOrderItemBatch.setQuantity(batchQuantityUsed - restoreQuantity);
                     saleOrderItemBatchRepository.save(saleOrderItemBatch);

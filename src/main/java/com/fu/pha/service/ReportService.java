@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 public interface ReportService {
     // Báo cáo kho
-    InventoryReportDto getInventoryReport(LocalDate startDate, LocalDate endDate);
+    InventoryReportDto getInventoryReport(LocalDate startDate, LocalDate endDate, Integer month, Integer year);
 
     // Báo cáo bán hàng
     SalesReportDto getSalesReport(LocalDate startDate, LocalDate endDate);

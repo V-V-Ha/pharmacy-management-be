@@ -49,13 +49,16 @@ public interface ImportItemRepository extends JpaRepository<ImportItem, Long> {
     @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate < :startDate")
     Integer sumQuantityBeforeDate(@Param("startDate") Instant startDate);
 
-    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor * ii.unitPrice), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate < :startDate")
+    @Query("SELECT COALESCE(SUM((ii.remainingQuantity * ii.unitPrice) / ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate < :startDate")
     Double sumAmountBeforeDate(@Param("startDate") Instant startDate);
+
+    @Query("SELECT COALESCE(SUM(ii.quantity * ii.unitPrice), 0) FROM ImportItem ii")
+    Double sumAmountNow();
 
     @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate")
     Integer sumQuantityBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
-    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor * ii.unitPrice), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate")
+    @Query("SELECT COALESCE(SUM(ii.quantity * ii.unitPrice), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate")
     Double sumAmountBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
     @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate")
