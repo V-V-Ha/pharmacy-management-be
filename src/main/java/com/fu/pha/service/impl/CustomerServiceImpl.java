@@ -1,12 +1,8 @@
 package com.fu.pha.service.impl;
 
 import com.fu.pha.dto.request.CustomerDTORequest;
-import com.fu.pha.dto.request.CustomerDto;
 import com.fu.pha.dto.response.CustomerDTOResponse;
-import com.fu.pha.dto.response.ProductDTOResponse;
-import com.fu.pha.entity.Category;
 import com.fu.pha.entity.Customer;
-import com.fu.pha.entity.SaleOrder;
 import com.fu.pha.enums.Status;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
@@ -23,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Year;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
