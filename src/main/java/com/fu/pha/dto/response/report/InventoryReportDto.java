@@ -30,11 +30,13 @@ public class InventoryReportDto {
     private int goodsReturnedQuantity;
     private double goodsReturnedAmount;
 
+    private int currentInventoryQuantity;
+    private double currentInventoryAmount;
+
     private List<ProductReportDto> outOfStockProducts;
     private List<ProductReportDto> nearlyOutOfStockProducts;
     private List<ImportItemReportDto> expiredItems;
     private List<ImportItemReportDto> nearlyExpiredItems;
 
-    private int currentInventoryQuantity;
-    private double currentInventoryAmount;
+
 }

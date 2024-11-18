@@ -67,6 +67,9 @@ public class ImportServiceImpl implements ImportService {
     @Autowired
     private CloudinaryService cloudinaryService;
 
+    @Autowired
+    private InventoryHistoryRepository inventoryHistoryRepository;
+
 
     @Override
     public List<UnitDto> getUnitByProductId(Long productId) {
@@ -336,6 +339,9 @@ public class ImportServiceImpl implements ImportService {
                 updateProductUnits(product, itemDto);
                 importItemRepository.save(importItem);
 
+                saveInventoryHistory(importItem, -smallestQuantity,
+                        "Update import confirmed (ExportSlip ID: " + importReceipt.getId() + ")");
+
                 // Xóa khỏi Map để xử lý các mục không còn trong danh sách mới
                 existingItemMap.remove(productId);
             } else {
@@ -346,6 +352,9 @@ public class ImportServiceImpl implements ImportService {
                 if (importReceipt.getStatus() == OrderStatus.CONFIRMED) {
                     product.setTotalQuantity(product.getTotalQuantity() + smallestQuantity);
                     productRepository.save(product);
+
+                    saveInventoryHistory(importItem, -smallestQuantity,
+                            "Update import confirmed (ExportSlip ID: " + importReceipt.getId() + ")");
                 }
 
                 updateProductUnits(product, itemDto);
@@ -419,6 +428,9 @@ public class ImportServiceImpl implements ImportService {
         for (ImportItem importItem : importReceipt.getImportItems()) {
             ImportItemRequestDto itemDto = mapImportItemToDto(importItem);
             updateProductQuantityAndPrice(itemDto, importItem);
+            // Lưu lịch sử kho hàng
+            int changeQuantity = itemDto.getQuantity() * itemDto.getConversionFactor();
+            saveInventoryHistory(importItem, changeQuantity, "Confirmed Import");
         }
     }
 
@@ -593,6 +605,19 @@ public class ImportServiceImpl implements ImportService {
             }
         }
     }
+
+    private void saveInventoryHistory(ImportItem importItem, int totalChangeQuantity, String reason) {
+        if (totalChangeQuantity == 0) return;
+
+        InventoryHistory inventoryHistory = new InventoryHistory();
+        inventoryHistory.setImportItem(importItem);
+        inventoryHistory.setRecordDate(Instant.now());
+        inventoryHistory.setRemainingQuantity(importItem.getRemainingQuantity());
+        inventoryHistory.setChangeQuantity(totalChangeQuantity);
+        inventoryHistory.setReason(reason);
+        inventoryHistoryRepository.save(inventoryHistory);
+    }
+
 
 
     private String uploadImage(final MultipartFile file) {

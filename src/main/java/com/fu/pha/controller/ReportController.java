@@ -21,14 +21,17 @@ public class ReportController {
     private ReportService reportService;
 
     // Báo cáo kho
-    @GetMapping("/inventory")
+    @GetMapping("/inventory-report")
     public ResponseEntity<InventoryReportDto> getInventoryReport(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year) {
 
-        InventoryReportDto report = reportService.getInventoryReport(startDate, endDate);
+        InventoryReportDto report = reportService.getInventoryReport(startDate, endDate, month, year);
         return ResponseEntity.ok(report);
     }
+
 
     // Báo cáo bán hàng
     @GetMapping("/sales")

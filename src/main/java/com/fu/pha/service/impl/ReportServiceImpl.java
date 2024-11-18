@@ -57,71 +57,100 @@ public class ReportServiceImpl implements ReportService {
     // -------------------- Báo cáo kho --------------------
 
     @Override
-    public InventoryReportDto getInventoryReport(LocalDate startDate, LocalDate endDate) {
+    public InventoryReportDto getInventoryReport(LocalDate startDate, LocalDate endDate, Integer month, Integer year) {
         InventoryReportDto report = new InventoryReportDto();
+        Instant startInstant;
+        Instant endInstant;
 
-//        Instant startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
-//        Instant endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
-//
-//        // Tính tồn kho đầu kỳ
-//        int beginningInventoryQuantity = calculateBeginningInventoryQuantity(startInstant);
-//        double beginningInventoryAmount = calculateBeginningInventoryAmount(startInstant);
-//        report.setBeginningInventoryQuantity(beginningInventoryQuantity);
-//        report.setBeginningInventoryAmount(beginningInventoryAmount);
-//
-//        // Tính nhập kho trong kỳ
-//        int goodsReceivedQuantity = calculateGoodsReceivedQuantity(startInstant, endInstant);
-//        double goodsReceivedAmount = calculateGoodsReceivedAmount(startInstant, endInstant);
-//        report.setGoodsReceivedQuantity(goodsReceivedQuantity);
-//        report.setGoodsReceivedAmount(goodsReceivedAmount);
-//
-//        // Tính xuất kho trong kỳ
-//        int goodsIssuedQuantity = calculateGoodsIssuedQuantity(startInstant, endInstant);
-//        double goodsIssuedAmount = calculateGoodsIssuedAmount(startInstant, endInstant);
-//        report.setGoodsIssuedQuantity(goodsIssuedQuantity);
-//        report.setGoodsIssuedAmount(goodsIssuedAmount);
-//
-//        // Tính xuất hủy
-//        int goodsDestroyedQuantity = calculateGoodsDestroyedQuantity(startInstant, endInstant);
-//        double goodsDestroyedAmount = calculateGoodsDestroyedAmount(startInstant, endInstant);
-//        report.setGoodsDestroyedQuantity(goodsDestroyedQuantity);
-//        report.setGoodsDestroyedAmount(goodsDestroyedAmount);
-//
-//        // Tính xuất trả
-//        int goodsReturnedQuantity = calculateGoodsReturnedQuantity(startInstant, endInstant);
-//        double goodsReturnedAmount = calculateGoodsReturnedAmount(startInstant, endInstant);
-//        report.setGoodsReturnedQuantity(goodsReturnedQuantity);
-//        report.setGoodsReturnedAmount(goodsReturnedAmount);
-//
-//        // Lấy danh sách sản phẩm hết hàng
-//        List<ProductReportDto> outOfStockProducts = productRepository.findOutOfStockProducts();
-//        report.setOutOfStockProducts(outOfStockProducts);
-//
-//        // Lấy danh sách sản phẩm sắp hết hàng (ví dụ: tồn kho <= 10)
-//        List<ProductReportDto> nearlyOutOfStockProducts = productRepository.findNearlyOutOfStockProducts(10);
-//        report.setNearlyOutOfStockProducts(nearlyOutOfStockProducts);
-//
-//        // Lấy danh sách sản phẩm đã hết hạn
-//        Instant currentDate = Instant.now();
-//        List<ImportItemReportDto> expiredItems = importItemRepository.findExpiredItems(currentDate);
-//        report.setExpiredItems(expiredItems);
-//
-//        // Lấy danh sách sản phẩm sắp hết hạn (trong vòng 30 ngày tới)
-//        Instant nearExpiryDate = currentDate.plus(30, ChronoUnit.DAYS);
-//        List<ImportItemReportDto> nearlyExpiredItems = importItemRepository.findNearlyExpiredItems(currentDate, nearExpiryDate);
-//        report.setNearlyExpiredItems(nearlyExpiredItems);
-//
-//        // Tính tồn kho hiện tại
-//        Integer currentInventoryQuantity = productRepository.calculateCurrentInventoryQuantity();
-//        Double currentInventoryAmount = productRepository.calculateCurrentInventoryAmount();
-//        report.setCurrentInventoryQuantity(currentInventoryQuantity != null ? currentInventoryQuantity : 0);
-//        report.setCurrentInventoryAmount(currentInventoryAmount != null ? currentInventoryAmount : 0.0);
+
+        if (month != null && year != null) {
+            // Nếu có tháng và năm, tính startDate và endDate cho tháng đó
+            startInstant = LocalDate.of(year, month, 1)
+                    .atStartOfDay(ZoneId.systemDefault())
+                    .toInstant();
+            endInstant = LocalDate.of(year, month, startDate.lengthOfMonth())
+                    .atTime(23, 59, 59)
+                    .atZone(ZoneId.systemDefault())
+                    .toInstant();
+        } else if (year != null) {
+            // Nếu chỉ có năm, tính startDate và endDate cho cả năm
+            startInstant = LocalDate.of(year, 1, 1)
+                    .atStartOfDay(ZoneId.systemDefault())
+                    .toInstant();
+            endInstant = LocalDate.of(year, 12, 31)
+                    .atTime(23, 59, 59)
+                    .atZone(ZoneId.systemDefault())
+                    .toInstant();
+        } else if (startDate != null && endDate != null) {
+            // Nếu có startDate và endDate, sử dụng chúng làm khoảng thời gian
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        } else {
+            startInstant = Instant.now().minus(1, ChronoUnit.DAYS);
+            endInstant = Instant.now();
+        }
+
+        // Tính tồn kho đầu kỳ
+        int beginningInventoryQuantity = calculateBeginningInventoryQuantity(startInstant);
+        double beginningInventoryAmount = calculateBeginningInventoryAmount(startInstant);
+        report.setBeginningInventoryQuantity(beginningInventoryQuantity);
+        report.setBeginningInventoryAmount(beginningInventoryAmount);
+
+        // Tính nhập kho trong kỳ
+        int goodsReceivedQuantity = calculateGoodsReceivedQuantity(startInstant, endInstant);
+        double goodsReceivedAmount = calculateGoodsReceivedAmount(startInstant, endInstant);
+        report.setGoodsReceivedQuantity(goodsReceivedQuantity);
+        report.setGoodsReceivedAmount(goodsReceivedAmount);
+
+        // Tính xuất kho trong kỳ
+        int goodsIssuedQuantity = calculateGoodsIssuedQuantity(startInstant, endInstant);
+        double goodsIssuedAmount = calculateGoodsIssuedAmount(startInstant, endInstant);
+        report.setGoodsIssuedQuantity(goodsIssuedQuantity);
+        report.setGoodsIssuedAmount(goodsIssuedAmount);
+
+        // Tính xuất hủy
+        int goodsDestroyedQuantity = calculateGoodsDestroyedQuantity(startInstant, endInstant);
+        double goodsDestroyedAmount = calculateGoodsDestroyedAmount(startInstant, endInstant);
+        report.setGoodsDestroyedQuantity(goodsDestroyedQuantity);
+        report.setGoodsDestroyedAmount(goodsDestroyedAmount);
+
+        // Tính xuất trả
+        int goodsReturnedQuantity = calculateGoodsReturnedQuantity(startInstant, endInstant);
+        double goodsReturnedAmount = calculateGoodsReturnedAmount(startInstant, endInstant);
+        report.setGoodsReturnedQuantity(goodsReturnedQuantity);
+        report.setGoodsReturnedAmount(goodsReturnedAmount);
+
+        // Lấy danh sách sản phẩm hết hàng
+        List<ProductReportDto> outOfStockProducts = productRepository.findOutOfStockProducts();
+        report.setOutOfStockProducts(outOfStockProducts);
+
+        // Lấy danh sách sản phẩm sắp hết hàng (ví dụ: tồn kho <= 10)
+        List<ProductReportDto> nearlyOutOfStockProducts = productRepository.findNearlyOutOfStockProducts(10);
+        report.setNearlyOutOfStockProducts(nearlyOutOfStockProducts);
+
+        // Lấy danh sách sản phẩm đã hết hạn
+        Instant currentDate = Instant.now();
+        List<ImportItemReportDto> expiredItems = importItemRepository.findExpiredItems(currentDate);
+        report.setExpiredItems(expiredItems);
+
+        // Lấy danh sách sản phẩm sắp hết hạn (trong vòng 30 ngày tới)
+        Instant nearExpiryDate = currentDate.plus(30, ChronoUnit.DAYS);
+        List<ImportItemReportDto> nearlyExpiredItems = importItemRepository.findNearlyExpiredItems(currentDate, nearExpiryDate);
+        report.setNearlyExpiredItems(nearlyExpiredItems);
+
+        // Tính tồn kho hiện tại
+        Integer currentInventoryQuantity = productRepository.calculateCurrentInventoryQuantity();
+        Double currentInventoryAmount = productRepository.calculateCurrentInventoryAmount();
+        report.setCurrentInventoryQuantity(currentInventoryQuantity != null ? currentInventoryQuantity : 0);
+        report.setCurrentInventoryAmount(currentInventoryAmount != null ? currentInventoryAmount : 0.0);
+
 
         return report;
     }
 
+
     // Các phương thức hỗ trợ cho báo cáo kho
-    private int calculateBeginningInventoryQuantity(Instant startDate) {
+    private int calculateBeginningInventoryQuantity(Instant startDate) {    
         Integer totalReceivedBeforeStart = importItemRepository.sumQuantityBeforeDate(startDate);
         Integer totalExportedBeforeStart = exportSlipItemRepository.sumQuantityBeforeDate(startDate);
         Integer totalSoldBeforeStart = saleOrderItemRepository.sumQuantityBeforeDate(startDate);

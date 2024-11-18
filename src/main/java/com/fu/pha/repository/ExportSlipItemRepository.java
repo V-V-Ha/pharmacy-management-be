@@ -20,7 +20,7 @@ public interface ExportSlipItemRepository extends JpaRepository<ExportSlipItem, 
     @Query("SELECT COALESCE(SUM(ei.quantity * ei.conversionFactor), 0) FROM ExportSlipItem ei WHERE ei.exportSlip.exportDate < :startDate")
     Integer sumQuantityBeforeDate(@Param("startDate") Instant startDate);
 
-    @Query("SELECT COALESCE(SUM(ei.quantity * ei.conversionFactor * ei.unitPrice / ei.conversionFactor), 0) FROM ExportSlipItem ei WHERE ei.exportSlip.exportDate < :startDate")
+    @Query("SELECT COALESCE(SUM(ei.quantity  * ei.unitPrice), 0) FROM ExportSlipItem ei WHERE ei.exportSlip.exportDate < :startDate")
     Double sumAmountBeforeDate(@Param("startDate") Instant startDate);
 
     @Query("SELECT COALESCE(SUM(ei.quantity * ei.conversionFactor), 0) FROM ExportSlipItem ei WHERE ei.exportSlip.exportDate BETWEEN :startDate AND :endDate")
