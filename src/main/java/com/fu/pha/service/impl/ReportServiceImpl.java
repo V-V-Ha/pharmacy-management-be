@@ -62,6 +62,7 @@ public class ReportServiceImpl implements ReportService {
         Instant startInstant;
         Instant endInstant;
 
+
         if (month != null && year != null) {
             // Nếu có tháng và năm, tính startDate và endDate cho tháng đó
             startInstant = LocalDate.of(year, month, 1)
@@ -142,6 +143,7 @@ public class ReportServiceImpl implements ReportService {
         Double currentInventoryAmount = productRepository.calculateCurrentInventoryAmount();
         report.setCurrentInventoryQuantity(currentInventoryQuantity != null ? currentInventoryQuantity : 0);
         report.setCurrentInventoryAmount(currentInventoryAmount != null ? currentInventoryAmount : 0.0);
+
 
         return report;
     }

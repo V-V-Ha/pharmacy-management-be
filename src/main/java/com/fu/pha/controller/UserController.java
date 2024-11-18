@@ -34,6 +34,13 @@ public class UserController {
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
+    @PutMapping("/change-status-user")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
+    public ResponseEntity<String> updateUserStatus(@RequestParam Long id) {
+        userService.updateUserStatus(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    }
+
     @GetMapping("/get-all-user-paging")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<PageResponseModel<UserDto>> getAllUserPaging(@RequestParam(defaultValue = "0") int page,

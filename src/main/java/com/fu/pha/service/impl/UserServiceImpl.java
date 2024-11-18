@@ -28,8 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,12 +36,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -429,6 +425,20 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         CloudinaryResponse cloudinaryResponse = cloudinaryService.upLoadFile(file, FileUploadUtil.getFileName(customFileName));
 
         return cloudinaryResponse.getUrl();
+    }
+
+    @Override
+    public void updateUserStatus(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException(Message.USER_NOT_FOUND));
+
+        // Chuyển đổi trạng thái
+        if (user.getStatus() == Status.ACTIVE) {
+            user.setStatus(Status.INACTIVE);
+        } else {
+            user.setStatus(Status.ACTIVE);
+        }
+        userRepository.save(user);
     }
 
     public boolean checkUserAge(UserDto userDto) {

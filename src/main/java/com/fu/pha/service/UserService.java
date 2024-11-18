@@ -34,6 +34,8 @@ public interface UserService {
 
     String uploadImage(final MultipartFile file);
 
+    void updateUserStatus(Long id);
+
 
 
 
