@@ -29,6 +29,7 @@ public class ExportSlipResponseDto {
     private SupplierResponseDto supplier;
     private List<ExportSlipItemResponseDto> exportSlipItems;
     private Long productCount;
+    private String status;
 
     // Constructor đúng để chuyển từ ExportSlip entity sang ExportSlipResponseDto
     public ExportSlipResponseDto(ExportSlip exportSlip) {
@@ -40,6 +41,7 @@ public class ExportSlipResponseDto {
         this.totalAmount = exportSlip.getTotalAmount();
         this.note = exportSlip.getNote();
         this.userId = exportSlip.getUser().getId();
+        this.status = exportSlip.getStatus().name();
         if (exportSlip.getSupplier() != null) {
             this.supplier = new SupplierResponseDto(
                     exportSlip.getSupplier().getId(),

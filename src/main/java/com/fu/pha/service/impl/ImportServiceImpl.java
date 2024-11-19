@@ -187,7 +187,7 @@ public class ImportServiceImpl implements ImportService {
         if (file != null && !file.isEmpty()) {
             String imageUrl = uploadImage(file);
             importReceipt.setImage(imageUrl);
-        }else{
+        } else {
             throw new BadRequestException(Message.IMAGE_IMPORT_NOT_NULL);
         }
 
@@ -359,8 +359,6 @@ public class ImportServiceImpl implements ImportService {
 
                 updateProductUnits(product, itemDto);
             }
-
-            totalAmount += itemDto.getTotalAmount();
         }
 
         // Xử lý các ImportItem không còn trong danh sách mới
@@ -395,16 +393,15 @@ public class ImportServiceImpl implements ImportService {
 
         // Cập nhật lại tổng totalAmount cho Import và lưu vào repository
         importReceipt.setTotalAmount(totalAmount);
+        importReceipt.setStatus(OrderStatus.PENDING);
         importRepository.save(importReceipt);
     }
 
-
-
     @Transactional
     @Override
-    public void confirmImport(Long importId) {
+    public void confirmImport(Long importId, Long userId) {
         // Lấy người dùng hiện tại
-        User currentUser = getCurrentUser();
+        User currentUser = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
 
         // Kiểm tra quyền hạn
         if (!userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)) {
@@ -545,10 +542,6 @@ public class ImportServiceImpl implements ImportService {
 
         return total;
     }
-
-
-
-
 
     private ImportItem createImportItem(ImportItemRequestDto itemDto, Import importReceipt) {
         ImportItem importItem = new ImportItem();

@@ -25,6 +25,7 @@ public class SaleOrderItemResponseDto {
         this.discount = saleOrderItem.getDiscount();
         this.totalAmount = saleOrderItem.getTotalAmount();
         this.dosage = saleOrderItem.getDosage();
+        this.conversionFactor = saleOrderItem.getConversionFactor();
         if (saleOrderItem.getProduct() != null) {
             this.product = new ProductDTOResponse(saleOrderItem.getProduct());
         }
