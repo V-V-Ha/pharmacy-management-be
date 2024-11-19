@@ -30,6 +30,10 @@ public class ExportSlipResponseDto {
     private List<ExportSlipItemResponseDto> exportSlipItems;
     private Long productCount;
     private String status;
+    private String createBy;
+    private Instant createDate;
+    private Instant lastModifiedDate;
+    private String lastModifiedBy;
 
     // Constructor đúng để chuyển từ ExportSlip entity sang ExportSlipResponseDto
     public ExportSlipResponseDto(ExportSlip exportSlip) {
@@ -57,5 +61,9 @@ public class ExportSlipResponseDto {
                 .map(ExportSlipItem::getProduct)
                 .distinct()
                 .count();
+        this.createBy = exportSlip.getCreateBy();
+        this.createDate = exportSlip.getCreateDate();
+        this.lastModifiedBy = exportSlip.getLastModifiedBy();
+        this.lastModifiedDate = exportSlip.getLastModifiedDate();
     }
 }
