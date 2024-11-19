@@ -66,6 +66,8 @@ public class SaleOrder extends BaseEntity{
     @OneToMany(mappedBy = "saleOrder")
     private List<SaleOrderItem> saleOrderItemList;
 
-
+    @Column(name = "payment_status")
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
 
 }
