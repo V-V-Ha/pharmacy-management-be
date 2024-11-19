@@ -76,24 +76,24 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
                                                       Pageable pageable);
 
 
-//    @Query("SELECT s FROM SaleOrder s WHERE s.invoiceNumber LIKE LOWER(CONCAT('%', :invoiceNumber, '%'))")
     Optional<SaleOrder> findByInvoiceNumber(String invoiceNumber);
 
-    @Query("SELECT COUNT(s) FROM SaleOrder s WHERE s.saleDate BETWEEN :startDate AND :endDate")
+    @Query("SELECT COUNT(so) FROM SaleOrder so WHERE so.saleDate BETWEEN :startDate AND :endDate")
     long countSaleOrdersBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
-    @Query("SELECT SUM(s.totalAmount) FROM SaleOrder s WHERE s.saleDate BETWEEN :startDate AND :endDate")
+    @Query("SELECT COALESCE(SUM(so.totalAmount), 0) FROM SaleOrder so WHERE so.saleDate BETWEEN :startDate AND :endDate")
     Double sumTotalAmountBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
-    @Query("SELECT s.paymentMethod as paymentMethod, SUM(s.totalAmount) as totalAmount " +
-            "FROM SaleOrder s WHERE s.saleDate BETWEEN :startDate AND :endDate " +
-            "GROUP BY s.paymentMethod")
+    @Query("SELECT so.paymentMethod, COALESCE(SUM(so.totalAmount), 0) FROM SaleOrder so WHERE so.saleDate BETWEEN :startDate AND :endDate GROUP BY so.paymentMethod")
     List<Object[]> sumTotalAmountByPaymentMethodBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
-    // Phương thức cho báo cáo khách hàng
-    @Query("SELECT SUM(s.totalAmount) FROM SaleOrder s WHERE s.saleDate BETWEEN :startDate AND :endDate AND s.customer IS NOT NULL")
+    @Query("SELECT COALESCE(SUM(so.totalAmount), 0) FROM SaleOrder so WHERE so.customer IS NOT NULL AND so.saleDate BETWEEN :startDate AND :endDate")
     Double sumTotalAmountByCustomersBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
-    @Query("SELECT COUNT(s) FROM SaleOrder s WHERE s.saleDate BETWEEN :startDate AND :endDate AND s.customer IS NULL")
+    @Query("SELECT COUNT(DISTINCT so.customer.id) " +
+            "FROM SaleOrder so " +
+            "WHERE so.customer.id = 1 " +
+            "AND so.saleDate BETWEEN :startDate AND :endDate")
     long countWalkInCustomersBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+
 }

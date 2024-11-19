@@ -11,8 +11,10 @@ import lombok.Setter;
 @NoArgsConstructor
 public class SupplierReportDto {
     private long newSuppliers;
+    private Double newSuppliersAmount;
     private long oldSuppliers;
+    private Double oldSuppliersAmount;
     private long totalSuppliers;
-    private double totalImportAmount;
+    private Double totalImportAmount;
     private int totalImportQuantity;
 }

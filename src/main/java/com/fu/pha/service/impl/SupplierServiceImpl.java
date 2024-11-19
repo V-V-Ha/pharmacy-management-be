@@ -146,7 +146,7 @@ public class SupplierServiceImpl implements SupplierService {
         }
         Page<SupplierDto> supplierPage = supplierRepository.findAllByNameContaining(name, supplierStatus, pageable);
         if(supplierPage.isEmpty()){
-            throw new BadRequestException(Message.SUPPLIER_NOT_FOUND);
+            throw new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND);
         }
         return supplierPage;
     }

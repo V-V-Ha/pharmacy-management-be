@@ -56,7 +56,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "GROUP BY p.id, p.productName, p.productCode")
     List<ProductReportDto> findOutOfStockProducts();
 
-
+    @Query("SELECT COUNT(p) FROM Product p WHERE p.totalQuantity = 0")
+    Integer countOutOfStock();
 
 
     @Query("SELECT new com.fu.pha.dto.response.report.reportEntity.ProductReportDto(p.id, p.productName, p.productCode, " +
@@ -73,7 +74,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT SUM(p.totalQuantity) FROM Product p")
     Integer calculateCurrentInventoryQuantity();
 
-    @Query("SELECT SUM(p.totalQuantity) FROM Product p")
+    @Query("SELECT SUM(p.remainingQuantity * p.unitPrice / p.conversionFactor) FROM ImportItem p")
     Double calculateCurrentInventoryAmount();
 
 

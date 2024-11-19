@@ -17,9 +17,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class ReportServiceImpl implements ReportService {
+
 
     @Autowired
     private ProductRepository productRepository;
@@ -85,7 +87,11 @@ public class ReportServiceImpl implements ReportService {
             // Nếu có startDate và endDate, sử dụng chúng làm khoảng thời gian
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
-        } else {
+        } else if (startDate != null) {
+            // Nếu chỉ có startDate, tính từ đầu ngày đến cuối ngày đó
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        }else {
             startInstant = Instant.now().minus(1, ChronoUnit.DAYS);
             endInstant = Instant.now();
         }
@@ -120,29 +126,30 @@ public class ReportServiceImpl implements ReportService {
         report.setGoodsReturnedQuantity(goodsReturnedQuantity);
         report.setGoodsReturnedAmount(goodsReturnedAmount);
 
-        // Lấy danh sách sản phẩm hết hàng
-        List<ProductReportDto> outOfStockProducts = productRepository.findOutOfStockProducts();
-        report.setOutOfStockProducts(outOfStockProducts);
-
-        // Lấy danh sách sản phẩm sắp hết hàng (ví dụ: tồn kho <= 10)
-        List<ProductReportDto> nearlyOutOfStockProducts = productRepository.findNearlyOutOfStockProducts(10);
-        report.setNearlyOutOfStockProducts(nearlyOutOfStockProducts);
-
-        // Lấy danh sách sản phẩm đã hết hạn
-        Instant currentDate = Instant.now();
-        List<ImportItemReportDto> expiredItems = importItemRepository.findExpiredItems(currentDate);
-        report.setExpiredItems(expiredItems);
-
-        // Lấy danh sách sản phẩm sắp hết hạn (trong vòng 30 ngày tới)
-        Instant nearExpiryDate = currentDate.plus(30, ChronoUnit.DAYS);
-        List<ImportItemReportDto> nearlyExpiredItems = importItemRepository.findNearlyExpiredItems(currentDate, nearExpiryDate);
-        report.setNearlyExpiredItems(nearlyExpiredItems);
-
         // Tính tồn kho hiện tại
         Integer currentInventoryQuantity = productRepository.calculateCurrentInventoryQuantity();
         Double currentInventoryAmount = productRepository.calculateCurrentInventoryAmount();
         report.setCurrentInventoryQuantity(currentInventoryQuantity != null ? currentInventoryQuantity : 0);
         report.setCurrentInventoryAmount(currentInventoryAmount != null ? currentInventoryAmount : 0.0);
+
+        // Tính số lượng sản phẩm sắp hết hàng
+        int nearlyOutOfStockProducts = productRepository.findNearlyOutOfStockProducts(10).size();
+        report.setNearlyOutOfStockProducts(nearlyOutOfStockProducts);
+
+        // Tính số lượng sản phẩm hết hàng
+        int outOfStockProducts = productRepository.countOutOfStock();
+        report.setOutOfStockProducts(outOfStockProducts);
+
+
+        Instant thresholdDate = Instant.now().plus(60, ChronoUnit.DAYS);
+
+        // Tính sản phẩm sắp hết hạn
+        int nearlyExpiredItems = importItemRepository.findNearlyExpiredItems(Instant.now(),thresholdDate).size();
+        report.setNearlyExpiredItems(nearlyExpiredItems);
+
+        // Tính sản phẩm hết hạn
+        int expiredItems = importItemRepository.findExpiredItems(Instant.now()).size();
+        report.setExpiredItems(expiredItems);
 
 
         return report;
@@ -150,66 +157,66 @@ public class ReportServiceImpl implements ReportService {
 
 
     // Các phương thức hỗ trợ cho báo cáo kho
-    private int calculateBeginningInventoryQuantity(Instant startDate) {    
-        Integer totalReceivedBeforeStart = importItemRepository.sumQuantityBeforeDate(startDate);
-        Integer totalExportedBeforeStart = exportSlipItemRepository.sumQuantityBeforeDate(startDate);
-        Integer totalSoldBeforeStart = saleOrderItemRepository.sumQuantityBeforeDate(startDate);
-        Integer totalReturnedBeforeStart = returnOrderItemRepository.sumQuantityBeforeDate(startDate);
+    private int calculateBeginningInventoryQuantity(Instant startDate) {
+        Integer totalReceivedBeforeStart = Optional.ofNullable(importItemRepository.sumQuantityBeforeDate(startDate)).orElse(0);
+        Integer totalExportedBeforeStart = Optional.ofNullable(exportSlipItemRepository.sumQuantityBeforeDate(startDate)).orElse(0);
+        Integer totalSoldBeforeStart = Optional.ofNullable(saleOrderItemRepository.sumQuantityBeforeDate(startDate)).orElse(0);
+        Integer totalReturnedBeforeStart = Optional.ofNullable(returnOrderItemRepository.sumQuantityBeforeDate(startDate)).orElse(0);
 
         // Tồn kho đầu kỳ (số lượng) = Tổng nhập trước kỳ - (Tổng xuất trước kỳ + Tổng bán trước kỳ) + Tổng hàng trả lại trước kỳ
         return totalReceivedBeforeStart - (totalExportedBeforeStart + totalSoldBeforeStart) + totalReturnedBeforeStart;
     }
 
     private double calculateBeginningInventoryAmount(Instant startDate) {
-        Double totalReceivedAmountBeforeStart = importItemRepository.sumAmountBeforeDate(startDate);
-        Double totalExportedAmountBeforeStart = exportSlipItemRepository.sumAmountBeforeDate(startDate);
-        Double totalSoldAmountBeforeStart = saleOrderItemRepository.sumAmountBeforeDate(startDate);
-        Double totalReturnedAmountBeforeStart = returnOrderItemRepository.sumAmountBeforeDate(startDate);
+        Double totalReceivedAmountBeforeStart = Optional.ofNullable(importItemRepository.sumAmountBeforeDate(startDate)).orElse(0.0);
+        Double totalExportedAmountBeforeStart = Optional.ofNullable(exportSlipItemRepository.sumAmountBeforeDate(startDate)).orElse(0.0);
+        Double totalSoldAmountBeforeStart = Optional.ofNullable(saleOrderItemRepository.sumAmountBeforeDate(startDate)).orElse(0.0);
+        Double totalReturnedAmountBeforeStart = Optional.ofNullable(returnOrderItemRepository.sumAmountBeforeDate(startDate)).orElse(0.0);
 
         // Tồn kho đầu kỳ (tổng tiền) = Tổng tiền nhập trước kỳ - (Tổng tiền xuất trước kỳ + Tổng tiền bán trước kỳ) + Tổng tiền hàng trả lại trước kỳ
         return totalReceivedAmountBeforeStart - (totalExportedAmountBeforeStart + totalSoldAmountBeforeStart) + totalReturnedAmountBeforeStart;
     }
 
     private int calculateGoodsReceivedQuantity(Instant startDate, Instant endDate) {
-        return importItemRepository.sumQuantityBetweenDates(startDate, endDate);
+        return Optional.ofNullable(importItemRepository.sumQuantityBetweenDates(startDate, endDate)).orElse(0);
     }
 
     private double calculateGoodsReceivedAmount(Instant startDate, Instant endDate) {
-        return importItemRepository.sumAmountBetweenDates(startDate, endDate);
+        return Optional.ofNullable(importItemRepository.sumAmountBetweenDates(startDate, endDate)).orElse(0.0);
     }
 
     private int calculateGoodsIssuedQuantity(Instant startDate, Instant endDate) {
-        Integer totalExported = exportSlipItemRepository.sumQuantityBetweenDates(startDate, endDate);
-        Integer totalSold = saleOrderItemRepository.sumQuantityBetweenDates(startDate, endDate);
-        Integer totalReturned = returnOrderItemRepository.sumQuantityBetweenDates(startDate, endDate);
+        Integer totalExported = Optional.ofNullable(exportSlipItemRepository.sumQuantityBetweenDates(startDate, endDate)).orElse(0);
+        Integer totalSold = Optional.ofNullable(saleOrderItemRepository.sumQuantityBetweenDates(startDate, endDate)).orElse(0);
+        Integer totalReturned = Optional.ofNullable(returnOrderItemRepository.sumQuantityBetweenDates(startDate, endDate)).orElse(0);
 
         // Tổng xuất kho (số lượng) = Tổng xuất trong kỳ + Tổng bán trong kỳ - Tổng hàng trả lại trong kỳ
         return totalExported + totalSold - totalReturned;
     }
 
     private double calculateGoodsIssuedAmount(Instant startDate, Instant endDate) {
-        Double totalExportedAmount = exportSlipItemRepository.sumAmountBetweenDates(startDate, endDate);
-        Double totalSoldAmount = saleOrderItemRepository.sumAmountBetweenDates(startDate, endDate);
-        Double totalReturnedAmount = returnOrderItemRepository.sumAmountBetweenDates(startDate, endDate);
+        Double totalExportedAmount = Optional.ofNullable(exportSlipItemRepository.sumAmountBetweenDates(startDate, endDate)).orElse(0.0);
+        Double totalSoldAmount = Optional.ofNullable(saleOrderItemRepository.sumAmountBetweenDates(startDate, endDate)).orElse(0.0);
+        Double totalReturnedAmount = Optional.ofNullable(returnOrderItemRepository.sumAmountBetweenDates(startDate, endDate)).orElse(0.0);
 
         // Tổng xuất kho (tổng tiền) = Tổng tiền xuất trong kỳ + Tổng tiền bán trong kỳ - Tổng tiền hàng trả lại trong kỳ
         return totalExportedAmount + totalSoldAmount - totalReturnedAmount;
     }
 
     private int calculateGoodsDestroyedQuantity(Instant startDate, Instant endDate) {
-        return exportSlipItemRepository.sumQuantityByTypeBetweenDates(ExportType.DESTROY, startDate, endDate);
+        return Optional.ofNullable(exportSlipItemRepository.sumQuantityByTypeBetweenDates(ExportType.DESTROY, startDate, endDate)).orElse(0);
     }
 
     private double calculateGoodsDestroyedAmount(Instant startDate, Instant endDate) {
-        return exportSlipItemRepository.sumAmountByTypeBetweenDates(ExportType.DESTROY, startDate, endDate);
+        return Optional.ofNullable(exportSlipItemRepository.sumAmountByTypeBetweenDates(ExportType.DESTROY, startDate, endDate)).orElse(0.0);
     }
 
     private int calculateGoodsReturnedQuantity(Instant startDate, Instant endDate) {
-        return exportSlipItemRepository.sumQuantityByTypeBetweenDates(ExportType.RETURN_TO_SUPPLIER, startDate, endDate);
+        return Optional.ofNullable(exportSlipItemRepository.sumQuantityByTypeBetweenDates(ExportType.RETURN_TO_SUPPLIER, startDate, endDate)).orElse(0);
     }
 
     private double calculateGoodsReturnedAmount(Instant startDate, Instant endDate) {
-        return exportSlipItemRepository.sumAmountByTypeBetweenDates(ExportType.RETURN_TO_SUPPLIER, startDate, endDate);
+        return Optional.ofNullable(exportSlipItemRepository.sumAmountByTypeBetweenDates(ExportType.RETURN_TO_SUPPLIER, startDate, endDate)).orElse(0.0);
     }
 
     // -------------------- Báo cáo bán hàng --------------------
@@ -218,8 +225,22 @@ public class ReportServiceImpl implements ReportService {
     public SalesReportDto getSalesReport(LocalDate startDate, LocalDate endDate) {
         SalesReportDto report = new SalesReportDto();
 
-        Instant startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        Instant endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        Instant startInstant;
+        Instant endInstant;
+
+        if (startDate != null && endDate != null) {
+            // Nếu có cả startDate và endDate, sử dụng chúng để xác định khoảng thời gian
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        } else if (startDate != null) {
+            // Nếu chỉ có startDate, tính từ đầu ngày đến cuối ngày đó
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
+        } else {
+            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
+            startInstant = Instant.MIN;  // Mốc thời gian rất xa trong quá khứ
+            endInstant = Instant.now();  // Thời gian hiện tại
+        }
 
         // Tổng số hóa đơn
         long totalInvoices = saleOrderRepository.countSaleOrdersBetweenDates(startInstant, endInstant);
@@ -252,16 +273,37 @@ public class ReportServiceImpl implements ReportService {
     public SupplierReportDto getSupplierReport(LocalDate startDate, LocalDate endDate) {
         SupplierReportDto report = new SupplierReportDto();
 
-        Instant startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        Instant endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        Instant startInstant;
+        Instant endInstant;
+
+        if (startDate != null && endDate != null) {
+            // Nếu có cả startDate và endDate, sử dụng chúng để xác định khoảng thời gian
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        } else if (startDate != null) {
+            // Nếu chỉ có startDate, tính từ đầu ngày đến cuối ngày đó
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
+        } else {
+            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
+            startInstant = Instant.MIN;  // Mốc thời gian rất xa trong quá khứ
+            endInstant = Instant.now();  // Thời gian hiện tại
+        }
 
         // Số lượng nhà cung cấp mới
-        long newSuppliers = supplierRepository.countNewSuppliersBetweenDates(startInstant, endInstant);
+        long newSuppliers = 0;
+        if (startDate != null && endDate != null) {
+            newSuppliers = supplierRepository.countNewSuppliersBetweenDates(startInstant, endInstant);
+        }
+        Double totalImportNewAmount = importRepository.sumTotalImportNewAmountBetweenDates(startInstant, endInstant);
         report.setNewSuppliers(newSuppliers);
+        report.setNewSuppliersAmount(totalImportNewAmount != null ? totalImportNewAmount : 0.0);
 
         // Số lượng nhà cung cấp cũ
         long oldSuppliers = supplierRepository.countOldSuppliersBeforeDate(startInstant);
+        Double totalImportOldAmount = importRepository.sumTotalImportAmountBeforeDate(startInstant);
         report.setOldSuppliers(oldSuppliers);
+        report.setOldSuppliersAmount(totalImportOldAmount != null ? totalImportOldAmount : 0.0);
 
         // Tổng số nhà cung cấp
         long totalSuppliers = supplierRepository.countTotalSuppliers();
@@ -278,14 +320,29 @@ public class ReportServiceImpl implements ReportService {
         return report;
     }
 
+
     // -------------------- Báo cáo khách hàng --------------------
 
     @Override
     public CustomerReportDto getCustomerReport(LocalDate startDate, LocalDate endDate) {
         CustomerReportDto report = new CustomerReportDto();
 
-        Instant startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        Instant endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        Instant startInstant;
+        Instant endInstant;
+
+        if (startDate != null && endDate != null) {
+            // Nếu có cả startDate và endDate, sử dụng chúng để xác định khoảng thời gian
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        } else if (startDate != null) {
+            // Nếu chỉ có startDate, tính từ đầu ngày đến cuối ngày đó
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
+        } else {
+            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
+            startInstant = Instant.MIN;  // Mốc thời gian rất xa trong quá khứ
+            endInstant = Instant.now();  // Thời gian hiện tại
+        }
 
         // Số lượng khách hàng mới
         long newCustomers = customerRepository.countNewCustomersBetweenDates(startInstant, endInstant);
@@ -314,37 +371,55 @@ public class ReportServiceImpl implements ReportService {
         return report;
     }
 
+
+
     // -------------------- Báo cáo thu chi --------------------
 
     @Override
     public FinancialReportDto getFinancialReport(LocalDate startDate, LocalDate endDate) {
         FinancialReportDto report = new FinancialReportDto();
 
-        Instant startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        Instant endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        Instant startInstant;
+        Instant endInstant;
+
+        if (startDate != null && endDate != null) {
+            // Nếu có cả startDate và endDate, sử dụng chúng để xác định khoảng thời gian
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        } else if (startDate != null) {
+            // Nếu chỉ có startDate, tính từ đầu ngày đến cuối ngày đó
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
+        } else {
+            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
+            startInstant = Instant.MIN;  // Mốc thời gian rất xa trong quá khứ
+            endInstant = Instant.now();  // Thời gian hiện tại
+        }
 
         // Tổng thu từ bán hàng
         Double totalSales = saleOrderRepository.sumTotalAmountBetweenDates(startInstant, endInstant);
         totalSales = totalSales != null ? totalSales : 0.0;
 
+        // Tổng thu từ trả hàng lại nhà cung cấp
+        Double totalExportReturns = exportSlipRepository.sumTotalExportsByTypeBetweenDates(ExportType.RETURN_TO_SUPPLIER, startInstant, endInstant);
+        totalExportReturns = totalExportReturns != null ? totalExportReturns : 0.0;
+
+        // Tổng thu
+        double totalIncome = totalSales + totalExportReturns;
+        report.setTotalIncome(totalIncome);
+
         // Tổng chi từ trả hàng lại khách hàng
         Double totalRefunds = returnOrderRepository.sumTotalRefundsBetweenDates(startInstant, endInstant);
         totalRefunds = totalRefunds != null ? totalRefunds : 0.0;
 
-        // Tổng thu
-        double totalIncome = totalSales;
-        report.setTotalIncome(totalIncome);
 
         // Tổng chi từ nhập hàng
         Double totalImports = importRepository.sumTotalImportAmountBetweenDates(startInstant, endInstant);
         totalImports = totalImports != null ? totalImports : 0.0;
 
-        // Tổng chi từ trả hàng lại nhà cung cấp
-        Double totalExportReturns = exportSlipRepository.sumTotalExportsByTypeBetweenDates(ExportType.RETURN_TO_SUPPLIER, startInstant, endInstant);
-        totalExportReturns = totalExportReturns != null ? totalExportReturns : 0.0;
 
         // Tổng chi
-        double totalExpense = totalImports + totalRefunds + totalExportReturns;
+        double totalExpense = totalImports + totalRefunds ;
         report.setTotalExpense(totalExpense);
 
         // Lợi nhuận
@@ -354,16 +429,15 @@ public class ReportServiceImpl implements ReportService {
         // Chi tiết thu
         Map<String, Double> incomeBySource = new HashMap<>();
         incomeBySource.put("Bán hàng", totalSales);
+        incomeBySource.put("Trả lại nhà cung cấp", totalExportReturns);
+
         report.setIncomeBySource(incomeBySource);
 
         // Chi tiết chi
         Map<String, Double> expenseBySource = new HashMap<>();
         expenseBySource.put("Nhập hàng", totalImports);
         expenseBySource.put("Khách hàng trả lại", totalRefunds);
-        expenseBySource.put("Trả lại nhà cung cấp", totalExportReturns);
         report.setExpenseBySource(expenseBySource);
-
-        // (Nếu cần thêm số lượng cho các nguồn thu chi, bạn có thể thêm vào Map quantityBySource)
 
         return report;
     }

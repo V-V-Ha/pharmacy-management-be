@@ -78,8 +78,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         // Lưu các ExportSlipItem và xử lý tồn kho nếu trạng thái là CONFIRMED
         double totalAmount = saveExportItems(exportDto, exportSlip, status);
 
-        // So sánh tổng tiền giữa BE và FE nếu không phải là phiếu hủy
-        if (exportDto.getTypeDelivery() != ExportType.DESTROY) {
             if (exportDto.getTotalAmount() != null) {
                 double feTotalAmount = exportDto.getTotalAmount();
 
@@ -89,14 +87,9 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             } else {
                 throw new BadRequestException(Message.TOTAL_AMOUNT_REQUIRED);
             }
-        }
 
-        // Cập nhật tổng tiền vào ExportSlip nếu không phải là phiếu hủy
-        if (exportDto.getTypeDelivery() != ExportType.DESTROY) {
             exportSlip.setTotalAmount(totalAmount);
-        } else {
-            exportSlip.setTotalAmount(0.0); // Phiếu hủy không cần giá trị tiền tệ
-        }
+
 
         exportSlipRepository.save(exportSlip);
     }
@@ -486,13 +479,10 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         exportSlipItem.setBatch_number(itemDto.getBatchNumber());
         exportSlipItem.setConversionFactor(itemDto.getConversionFactor());
         exportSlipItem.setExpiryDate(itemDto.getExpiryDate());
+        exportSlipItem.setUnitPrice(itemDto.getUnitPrice());
+        exportSlipItem.setDiscount(itemDto.getDiscount());
+        exportSlipItem.setTotalAmount(itemDto.getTotalAmount());
 
-        // Nếu không phải là phiếu hủy, gán thông tin tài chính
-        if (exportSlip.getTypeDelivery() != ExportType.DESTROY) {
-            exportSlipItem.setUnitPrice(itemDto.getUnitPrice());
-            exportSlipItem.setDiscount(itemDto.getDiscount());
-            exportSlipItem.setTotalAmount(itemDto.getTotalAmount());
-        }
 
         return exportSlipItem;
     }

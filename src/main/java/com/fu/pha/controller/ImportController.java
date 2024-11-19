@@ -8,6 +8,7 @@ import com.fu.pha.dto.response.importPack.ImportResponseDto;
 import com.fu.pha.dto.response.PageResponseModel;
 import com.fu.pha.dto.response.ProductDTOResponse;
 
+import com.fu.pha.dto.response.importPack.UserIdRequest;
 import com.fu.pha.enums.OrderStatus;
 import com.fu.pha.exception.Message;
 import com.fu.pha.service.ImportService;
@@ -54,7 +55,6 @@ public class ImportController {
             @Valid @RequestPart("importRequestDto") ImportDto importRequestDto,
             @RequestPart("image") MultipartFile image) {
 
-
         // Gọi service để tạo phiếu nhập
         importService.createImport(importRequestDto , image);
         return ResponseEntity.ok(Message.CREATE_SUCCESS);
@@ -70,15 +70,17 @@ public class ImportController {
 
     // Xác nhận phiếu nhập
     @PostMapping("/{id}/confirm")
-    public ResponseEntity<?> confirmImport(@PathVariable Long id) {
-        importService.confirmImport(id);
+    public ResponseEntity<?> confirmImport(@PathVariable Long id, @RequestBody UserIdRequest request) {
+        importService.confirmImport(id, request.getUserId());
         return ResponseEntity.ok(Message.CONFIRM_SUCCESS);
     }
 
     // Từ chối phiếu nhập
     @PostMapping("/{id}/reject")
     public ResponseEntity<?> rejectImport(@PathVariable Long id, @RequestBody String reason) {
-        importService.rejectImport(id, reason);
+        String[] parts = reason.split(":", 2);
+        String extractedReason = parts.length > 1 ? parts[1].trim() : reason.trim();
+        importService.rejectImport(id, extractedReason);
         return ResponseEntity.ok(Message.REJECT_SUCCESS);
     }
 
