@@ -2,6 +2,7 @@
 package com.fu.pha.controller;
 
 import com.fu.pha.dto.response.report.*;
+import com.fu.pha.dto.response.report.product.InventoryProductReportDto;
 import com.fu.pha.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/reports")
@@ -29,6 +31,16 @@ public class ReportController {
             @RequestParam(required = false) Integer year) {
 
         InventoryReportDto report = reportService.getInventoryReport(startDate, endDate, month, year);
+        return ResponseEntity.ok(report);
+    }
+
+    @GetMapping("/report-by-product")
+    public ResponseEntity<List<InventoryProductReportDto>> getInventoryReportByProduct(
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year) {
+        List<InventoryProductReportDto> report = reportService.getInventoryReportByProduct(startDate, endDate, month, year);
         return ResponseEntity.ok(report);
     }
 
