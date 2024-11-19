@@ -551,22 +551,29 @@ public class ExportSlipServiceImpl implements ExportSlipService {
     public Page<ExportSlipResponseDto> getAllExportSlipPaging(int page, int size, ExportType exportType, OrderStatus status, Instant fromDate, Instant toDate) {
         Pageable pageable = PageRequest.of(page, size);
 
+        Page<ExportSlipResponseDto> exportSlipResponseDto;
+
         // Nếu không có fromDate và toDate
         if (fromDate == null && toDate == null) {
-            return exportSlipRepository.getListExportSlipPagingWithoutDate(exportType, status, pageable);
+            exportSlipResponseDto = exportSlipRepository.getListExportSlipPagingWithoutDate(exportType, status, pageable);
         }
         // Nếu có fromDate và không có toDate
         else if (fromDate != null && toDate == null) {
-            return exportSlipRepository.getListExportSlipPagingFromDate(exportType, status, fromDate, pageable);
+            exportSlipResponseDto = exportSlipRepository.getListExportSlipPagingFromDate(exportType, status, fromDate, pageable);
         }
         // Nếu không có fromDate và có toDate
         else if (fromDate == null) {
-            return exportSlipRepository.getListExportSlipPagingToDate(exportType, status, toDate, pageable);
+            exportSlipResponseDto = exportSlipRepository.getListExportSlipPagingToDate(exportType, status, toDate, pageable);
         }
         // Nếu có cả fromDate và toDate
         else {
-            return exportSlipRepository.getListExportSlipPaging(exportType, status, fromDate, toDate, pageable);
+            exportSlipResponseDto = exportSlipRepository.getListExportSlipPaging(exportType, status, fromDate, toDate, pageable);
         }
+
+        if (exportSlipResponseDto.isEmpty()) {
+            throw new ResourceNotFoundException(Message.EXPORT_SLIP_NOT_FOUND);
+        }
+        return exportSlipResponseDto;
     }
 
     public List<ExportSlipResponseDto> getAllActiveExportSlips() {

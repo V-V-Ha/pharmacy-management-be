@@ -498,24 +498,31 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     public Page<SaleOrderResponseDto> getAllSaleOrderPaging(int page, int size, OrderType orderType, PaymentMethod paymentMethod, String invoiceNumber, Instant fromDate, Instant toDate) {
         Pageable pageable = PageRequest.of(page, size);
 
+        Page<SaleOrderResponseDto> saleOrderResponseDto;
+
         //Nếu không có ngày bắt đầu và ngày kết thúc
         if (fromDate == null && toDate == null) {
             Instant startOfDay = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant();
             Instant endOfDay = LocalDate.now().atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant();
-            return saleOrderRepository.getListSaleOrderPagingWithoutDate(orderType, paymentMethod, invoiceNumber, startOfDay, endOfDay, pageable);
+            saleOrderResponseDto = saleOrderRepository.getListSaleOrderPagingWithoutDate(orderType, paymentMethod, invoiceNumber, startOfDay, endOfDay, pageable);
         }
         //Nếu chỉ có ngày bắt đầu
         else if (fromDate != null && toDate == null) {
-            return saleOrderRepository.getListSaleOrderPagingFromDate(orderType, paymentMethod, invoiceNumber, fromDate, pageable);
+            saleOrderResponseDto = saleOrderRepository.getListSaleOrderPagingFromDate(orderType, paymentMethod, invoiceNumber, fromDate, pageable);
         }
         //Nếu chỉ có ngày kết thúc
         else if (fromDate == null) {
-            return saleOrderRepository.getListSaleOrderPagingToDate(orderType, paymentMethod, invoiceNumber, toDate, pageable);
+            saleOrderResponseDto = saleOrderRepository.getListSaleOrderPagingToDate(orderType, paymentMethod, invoiceNumber, toDate, pageable);
         }
         //Nếu có cả ngày bắt đầu và ngày kết thúc
         else {
-            return saleOrderRepository.getListSaleOrderPaging(orderType, paymentMethod, invoiceNumber, fromDate, toDate, pageable);
+            saleOrderResponseDto = saleOrderRepository.getListSaleOrderPaging(orderType, paymentMethod, invoiceNumber, fromDate, toDate, pageable);
         }
+
+        if (saleOrderResponseDto.isEmpty()) {
+            throw new ResourceNotFoundException(Message.SALE_ORDER_NOT_FOUND);
+        }
+        return saleOrderResponseDto;
     }
 }
 
