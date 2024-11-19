@@ -28,6 +28,10 @@ public class ImportDto {
     @NotNull(message = Message.DATE_NOT_NULL)
     private Instant importDate;
 
+    @NotNull(message = Message.LIST_ITEM_NOT_NULL)
+    @Valid
+    private List<ImportItemRequestDto> importItems;
+
     @NotNull(message = Message.PAYMENT_METHOD_NOT_NULL)
     private PaymentMethod paymentMethod;
 
@@ -41,10 +45,6 @@ public class ImportDto {
     private Double totalAmount;
 
     private String note;
-
-    @NotNull(message = Message.LIST_ITEM_NOT_NULL)
-    @Valid
-    private List<ImportItemRequestDto> importItems;
 
     @NotNull(message = Message.USER_NOT_NULL)
     private Long userId;

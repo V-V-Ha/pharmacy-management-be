@@ -22,6 +22,7 @@ import java.util.Optional;
 @Service
 public class ReportServiceImpl implements ReportService {
 
+
     @Autowired
     private ProductRepository productRepository;
 
@@ -89,7 +90,7 @@ public class ReportServiceImpl implements ReportService {
         } else if (startDate != null) {
             // Nếu chỉ có startDate, tính từ đầu ngày đến cuối ngày đó
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
-            endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant(); 
+            endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
         }else {
             startInstant = Instant.now().minus(1, ChronoUnit.DAYS);
             endInstant = Instant.now();
@@ -130,6 +131,25 @@ public class ReportServiceImpl implements ReportService {
         Double currentInventoryAmount = productRepository.calculateCurrentInventoryAmount();
         report.setCurrentInventoryQuantity(currentInventoryQuantity != null ? currentInventoryQuantity : 0);
         report.setCurrentInventoryAmount(currentInventoryAmount != null ? currentInventoryAmount : 0.0);
+
+        // Tính số lượng sản phẩm sắp hết hàng
+        int nearlyOutOfStockProducts = productRepository.findNearlyOutOfStockProducts(10).size();
+        report.setNearlyOutOfStockProducts(nearlyOutOfStockProducts);
+
+        // Tính số lượng sản phẩm hết hàng
+        int outOfStockProducts = productRepository.countOutOfStock();
+        report.setOutOfStockProducts(outOfStockProducts);
+
+
+        Instant thresholdDate = Instant.now().plus(60, ChronoUnit.DAYS);
+
+        // Tính sản phẩm sắp hết hạn
+        int nearlyExpiredItems = importItemRepository.findNearlyExpiredItems(Instant.now(),thresholdDate).size();
+        report.setNearlyExpiredItems(nearlyExpiredItems);
+
+        // Tính sản phẩm hết hạn
+        int expiredItems = importItemRepository.findExpiredItems(Instant.now()).size();
+        report.setExpiredItems(expiredItems);
 
 
         return report;
