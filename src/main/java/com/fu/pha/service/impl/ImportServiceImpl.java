@@ -221,23 +221,29 @@ public class ImportServiceImpl implements ImportService {
     @Override
     public Page<ImportViewListDto> getAllImportPaging(int page, int size, String supplierName, OrderStatus status, Instant fromDate, Instant toDate) {
         Pageable pageable = PageRequest.of(page, size);
+        Page<ImportViewListDto> importViewListDto;
 
         // Nếu cả fromDate và toDate đều null
         if (fromDate == null && toDate == null) {
-            return importRepository.getListImportPagingWithoutDate(supplierName, status, pageable);
+            importViewListDto = importRepository.getListImportPagingWithoutDate(supplierName, status, pageable);
         }
         // Nếu chỉ có fromDate
         else if (fromDate != null && toDate == null) {
-            return importRepository.getListImportPagingFromDate(supplierName, status, fromDate, pageable);
+            importViewListDto = importRepository.getListImportPagingFromDate(supplierName, status, fromDate, pageable);
         }
         // Nếu chỉ có toDate
         else if (fromDate == null) {
-            return importRepository.getListImportPagingToDate(supplierName, status, toDate, pageable);
+            importViewListDto = importRepository.getListImportPagingToDate(supplierName, status, toDate, pageable);
         }
         // Nếu cả fromDate và toDate đều có giá trị
         else {
-            return importRepository.getListImportPaging(supplierName, status, fromDate, toDate, pageable);
+            importViewListDto = importRepository.getListImportPaging(supplierName, status, fromDate, toDate, pageable);
         }
+
+        if (importViewListDto.isEmpty()) {
+            throw new ResourceNotFoundException(Message.IMPORT_NOT_FOUND);
+        }
+        return importViewListDto;
     }
 
     @Transactional
