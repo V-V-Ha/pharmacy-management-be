@@ -2,6 +2,7 @@ package com.fu.pha.dto.response;
 
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.entity.Product;
+import com.fu.pha.enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,6 +44,7 @@ public class ProductDTOResponse {
     private String createBy;
     private String lastModifiedBy;
     private Integer totalQuantity;
+    private Status status;
 
     public ProductDTOResponse(Product product){
         this.id = product.getId();
@@ -66,12 +68,12 @@ public class ProductDTOResponse {
         this.productUnitList = product.getProductUnitList().stream()
                 .map(productUnit -> new ProductUnitDTOResponse(
                         productUnit.getId(),
-                        new UnitDto(productUnit.getUnitId().getId(), productUnit.getUnitId().getUnitName()),
-                        productUnit.getProductId().getId(),
+                        new UnitDto(productUnit.getUnit().getId(), productUnit.getUnit().getUnitName()),
+                        productUnit.getProduct().getId(),
                         productUnit.getConversionFactor(),
                         productUnit.getImportPrice(),
                         productUnit.getRetailPrice(),
-                        productUnit.getUnitId().getUnitName()
+                        productUnit.getUnit().getUnitName()
                 ))
                 .collect(Collectors.toList());
         this.createBy = product.getCreateBy();
@@ -80,5 +82,6 @@ public class ProductDTOResponse {
         this.lastModifiedDate = product.getLastModifiedDate();
         this.totalQuantity = product.getTotalQuantity();
         this.categoryName = product.getCategoryId().getCategoryName();
+        this.status = product.getStatus();
     }
 }

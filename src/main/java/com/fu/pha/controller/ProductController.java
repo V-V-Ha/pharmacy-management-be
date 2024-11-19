@@ -27,9 +27,10 @@ public class ProductController {
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<PageResponseModel<ProductDTOResponse>> getAllProductPaging(@RequestParam(defaultValue = "0") int page,
                                                                                      @RequestParam(defaultValue = "10") int size,
-                                                                                     @RequestParam(defaultValue = "", name = "productName") String productName,
-                                                                                     @RequestParam(defaultValue = "", name = "category") String category) {
-        Page<ProductDTOResponse> productDTOResponsePage = productService.getAllProductPaging(page, size, productName, category);
+                                                                                     @RequestParam(required = false) String productName,
+                                                                                     @RequestParam(required = false) String category,
+                                                                                     @RequestParam(required = false) String status) {
+        Page<ProductDTOResponse> productDTOResponsePage = productService.getAllProductPaging(page, size, productName, category, status);
 
         PageResponseModel<ProductDTOResponse> response = PageResponseModel.<ProductDTOResponse>builder()
                 .page(page)
@@ -46,7 +47,7 @@ public class ProductController {
             @RequestPart("productDTORequest") ProductDTORequest productDTORequest,
             @RequestPart(value = "file", required = false) MultipartFile file) {
         productService.createProduct(productDTORequest, file);
-        return ResponseEntity.ok(Message.PRODUCT_SUCCESS);
+        return ResponseEntity.ok(Message.CREATE_SUCCESS);
     }
 
     @PutMapping("/update-product")
@@ -55,7 +56,7 @@ public class ProductController {
             @RequestPart("productDTORequest") ProductDTORequest productDTORequest,
             @RequestPart(value = "file", required = false) MultipartFile file) {
         productService.updateProduct(productDTORequest, file);
-        return ResponseEntity.ok(Message.PRODUCT_UPDATE_SUCCESS);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
     @GetMapping("/get-product-by-id")
@@ -64,11 +65,11 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
-    @DeleteMapping("/delete-product")
+    @PutMapping("/change-status-product")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deleteProduct(@RequestParam Long id) {
-        productService.deleteProduct(id);
-        return ResponseEntity.ok(Message.PRODUCT_DELETE_SUCCESS);
+    public ResponseEntity<String> updateProductStatus(@RequestParam Long id) {
+        productService.updateProductStatus(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
     @GetMapping("/get-all-unit")

@@ -11,6 +11,7 @@ spring:
         enabled: false
   servlet:
     multipart:
+      enabled: true
       max-file-size: 2MB
       max-request-size: 2MB
 
@@ -72,6 +73,17 @@ cloudinary:
   api_key: 359211291938856
   api_secret: D9fANGl5fK9Q1QGrwBv88fMtIY4
 
+# Expiry Date
+expiry:
+  warning:
+    days: 90
+
+# Payment
+payment:
+  payOS:
+    client_id: 26876906-65fd-4d08-afd2-c19fcada6857
+    api_key: 4fe2a0c9-5986-4150-be96-263684e0014f
+    checkSum_key: ee3386799b1e49366fb904e05b8cf21ce13b682e188b805513c0c305696293e3
 
 
 

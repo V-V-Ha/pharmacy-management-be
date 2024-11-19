@@ -8,6 +8,7 @@ import com.fu.pha.dto.response.CloudinaryResponse;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.dto.response.ProductUnitDTOResponse;
 import com.fu.pha.entity.*;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.MaxUploadSizeExceededException;
 import com.fu.pha.exception.Message;
@@ -74,6 +75,11 @@ public class ProductServiceImpl implements ProductService {
         Category category = categoryRepository.findById(productDTORequest.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
 
+        // Check if category is active
+        if (category.getStatus() != Status.ACTIVE) {
+            throw new BadRequestException(Message.CATEGORY_INACTIVE);
+        }
+
         Product product = new Product();
         product.setProductName(productDTORequest.getProductName());
         product.setCategoryId(category);
@@ -96,6 +102,7 @@ public class ProductServiceImpl implements ProductService {
         product.setDosageForms(productDTORequest.getDosageForms());
         product.setDescription(productDTORequest.getDescription());
         product.setPrescriptionDrug(productDTORequest.getPrescriptionDrug());
+        product.setStatus(Status.ACTIVE);
         // Upload the image product if there is a file
         if (file != null && !file.isEmpty()) {
             String imageProduct = uploadImage(file);
@@ -105,10 +112,16 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
         List<ProductUnit> productUnitList = new ArrayList<>();
         for (ProductUnitDTORequest productUnitDTORequest : productDTORequest.getProductUnitListDTO()) {
-            Unit unit = unitRepository.findUnitById(productUnitDTORequest.getUnitId());
+            Unit unit = unitRepository.findById(productUnitDTORequest.getUnitId())
+                    .orElseThrow(() -> new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
+
+            // Check if unit is active
+            if (unit.getStatus() != Status.ACTIVE) {
+                throw new BadRequestException(Message.UNIT_INACTIVE);
+            }
             ProductUnit productUnit = new ProductUnit();
-            productUnit.setProductId(product);
-            productUnit.setUnitId(unit);
+            productUnit.setProduct(product);
+            productUnit.setUnit(unit);
             productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
             productUnit.setImportPrice(productUnitDTORequest.getImportPrice());
             productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
@@ -116,7 +129,6 @@ public class ProductServiceImpl implements ProductService {
         }
         productUnitRepository.saveAll(productUnitList);
     }
-
 
     @Override
     @Transactional
@@ -136,6 +148,10 @@ public class ProductServiceImpl implements ProductService {
 
         Category category = categoryRepository.findById(productDTORequest.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
+        // Check if category is active
+        if (category.getStatus() != Status.ACTIVE) {
+            throw new BadRequestException(Message.CATEGORY_INACTIVE);
+        }
 
         product.setProductName(productDTORequest.getProductName());
         product.setCategoryId(category);
@@ -169,7 +185,13 @@ public class ProductServiceImpl implements ProductService {
 
                 if (productUnit != null) {
                     // Update product unit
-                    productUnit.setUnitId(unitRepository.findUnitById(productUnitDTORequest.getUnitId()));
+                    Unit unit = unitRepository.findById(productUnitDTORequest.getUnitId())
+                            .orElseThrow(() -> new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
+
+                    if (unit.getStatus() != Status.ACTIVE) {
+                        throw new BadRequestException(Message.UNIT_INACTIVE);
+                    }
+                    productUnit.setUnit(unit);
                     productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
                     productUnit.setImportPrice(productUnitDTORequest.getImportPrice());
                     productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
@@ -177,10 +199,16 @@ public class ProductServiceImpl implements ProductService {
                 } else {
                     // Create a new product unit
                     productUnit = new ProductUnit();
-                    Unit unit = unitRepository.findUnitById(productUnitDTORequest.getUnitId());
+                    Unit unit = unitRepository.findById(productUnitDTORequest.getUnitId())
+                            .orElseThrow(() -> new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
+
+                    // Check if unit is active
+                    if (unit.getStatus() != Status.ACTIVE) {
+                        throw new BadRequestException(Message.UNIT_INACTIVE);
+                    }
                     product = productRepository.findProductById(productDTORequest.getId());
-                    productUnit.setUnitId(unit);
-                    productUnit.setProductId(product);
+                    productUnit.setUnit(unit);
+                    productUnit.setProduct(product);
                     productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
                     productUnit.setImportPrice(productUnitDTORequest.getImportPrice());
                     productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
@@ -230,9 +258,17 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductDTOResponse> getAllProductPaging(int page, int size,  String productName, String category) {
+    public Page<ProductDTOResponse> getAllProductPaging(int page, int size,  String productName, String category, String status) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<ProductDTOResponse> products = productRepository.getListProductPaging(productName, category, pageable);
+        Status productStatus = null;
+        if (status != null) {
+            try {
+                productStatus = Status.valueOf(status.toUpperCase());
+            } catch (Exception e) {
+                throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
+            }
+        }
+        Page<ProductDTOResponse> products = productRepository.getListProductPaging(productName, category, productStatus, pageable);
         if (products.isEmpty()) {
             throw new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND);
         }
@@ -247,11 +283,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void deleteProduct(Long id) {
+    public void updateProductStatus(Long id) {
         Product product = productRepository.getProductById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
-        product.setDeleted(true);
+        if (product.getStatus() == Status.ACTIVE) {
+            product.setStatus(Status.INACTIVE);
+        } else {
+            product.setStatus(Status.ACTIVE);
+        }
         productRepository.save(product);
     }
 

@@ -4,6 +4,7 @@ import com.fu.pha.dto.request.CategoryDto;
 import com.fu.pha.dto.request.UserDto;
 import com.fu.pha.dto.response.MessageResponse;
 import com.fu.pha.entity.Category;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.CategoryRepository;
@@ -56,6 +57,7 @@ public class CategoryServiceImpl implements CategoryService {
             category.setCreateBy(SecurityContextHolder.getContext().getAuthentication().getName());
             category.setLastModifiedDate(Instant.now());
             category.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
+            category.setStatus(Status.ACTIVE);
 
             // Save the category to the database
             categoryRepository.save(category);
@@ -79,7 +81,6 @@ public class CategoryServiceImpl implements CategoryService {
         return capitalizedWords.toString().trim();
     }
 
-
     @Override
     @Transactional
     public void updateCategory(CategoryDto request) {
@@ -92,14 +93,17 @@ public class CategoryServiceImpl implements CategoryService {
         Optional<Category> categoryOptional = categoryRepository.findById(request.getId());
         Category category = categoryOptional.orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
 
-        // Check for existing category with the same name
-        Optional<Category> categoryExist = categoryRepository.findByCategoryName(request.getName());
+        // Normalize the category name
+        String normalizedCategoryName = capitalizeWords(request.getName());
+
+        // Check for existing category with the same normalized name
+        Optional<Category> categoryExist = categoryRepository.findByCategoryName(normalizedCategoryName);
         if (categoryExist.isPresent() && !categoryExist.get().getId().equals(request.getId())) {
             throw new BadRequestException(Message.CATEGORY_EXIST);
         }
 
-        // Update the category entity
-        category.setCategoryName(request.getName());
+        // Update the category entity with the normalized name
+        category.setCategoryName(normalizedCategoryName);
         category.setDescription(request.getDescription());
         category.setLastModifiedDate(Instant.now());
         category.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -108,11 +112,18 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.save(category);
     }
 
-
     @Override
-    public Page<CategoryDto> getAllCategoryPaging(int page, int size, String name) {
+    public Page<CategoryDto> getAllCategoryPaging(int page, int size, String name, String status) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<CategoryDto> categoryPage = categoryRepository.findAllByNameContaining(name, pageable);
+        Status categoryStatus = null;
+        if (status != null) {
+            try {
+                categoryStatus = Status.valueOf(status.toUpperCase());
+            } catch (Exception e) {
+                throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
+            }
+        }
+        Page<CategoryDto> categoryPage = categoryRepository.findAllByNameContaining(name, categoryStatus, pageable);
         if(categoryPage.isEmpty()){
             throw new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND);
         }
@@ -126,13 +137,19 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void deleteCategory(Long id) {
+    public void updateCategoryStatus(Long id) {
         Category category = categoryRepository.findById(id).orElseThrow(()
                 -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
-        //soft delete
-        category.setDeleted(true);
+
+        // Chuyển đổi trạng thái
+        if (category.getStatus() == Status.ACTIVE) {
+            category.setStatus(Status.INACTIVE);
+        } else {
+            category.setStatus(Status.ACTIVE);
+        }
         categoryRepository.save(category);
     }
+
     @Override
     public List<CategoryDto> getAllCategory() {
         return categoryRepository.findAllCategory();

@@ -19,7 +19,6 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User,Long> {
     Optional<User> findByUsername(String username);
 
-
     Optional<User> getUserById(Long id);
 
     Optional<User> getUserByCic(String cic);
@@ -28,9 +27,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
 
     Optional<User> getUserByEmail(String email);
 
-
     // get user paging and search by full name , filter by role
-
     @Transactional
     @Query("SELECT DISTINCT new com.fu.pha.dto.request.UserDto(u) FROM User u JOIN u.roles r WHERE " +
             "((LOWER(u.fullName) LIKE LOWER(CONCAT('%', :fullName, '%')) OR :fullName IS NULL OR :fullName = '') AND " +
@@ -41,10 +38,5 @@ public interface UserRepository extends JpaRepository<User,Long> {
                                    @Param("role") ERole role,
                                    @Param("status") Status status,
                                    Pageable pageable);
-
-
-    //check condition delete user if user does not exist in other table
-
-
 
 }

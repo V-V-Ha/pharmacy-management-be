@@ -60,4 +60,7 @@ public class ImportItem extends BaseEntity{
     @Column(name = "remaining_quantity")
     private Integer remainingQuantity;
 
+    @Column(name = "conversion_factor")
+    private Integer conversionFactor;
+
 }

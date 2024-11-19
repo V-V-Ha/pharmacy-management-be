@@ -3,6 +3,7 @@ package com.fu.pha.dto.response.importPack;
 import com.fu.pha.entity.Import;
 import com.fu.pha.entity.ImportItem;
 import com.fu.pha.enums.PaymentMethod;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -16,22 +17,18 @@ import java.util.stream.Collectors;
 public class ImportResponseDto {
     private Long id;
     private String invoiceNumber;
-    @NotNull(message = "Ngày nhập không đươc để trống")
     private Instant importDate;
     private PaymentMethod paymentMethod;
     private Double tax;
     private Double discount;
-    @NotNull(message = "Tổng tiền không được để trống")
-    @DecimalMin(value = "0.0", message = "Tổng tiền phải lớn hơn 0")
     private Double totalAmount;
     private String note;
-    @NotNull(message = "Danh sách sản phẩm nhập không được để trống")
     private List<ImportItemResponseDto> importItems;
-    @NotNull(message = "Người dùng không được để trống")
     private Long userId;
-    @NotNull(message = "Nhà cung cấp không được để trống")
     private Long supplierId;
     private String supplierName;
+    private String status;
+    private String imageUrl;
     private Instant createDate;
     private Instant lastModifiedDate;
     private String createBy;
@@ -55,6 +52,8 @@ public class ImportResponseDto {
         this.lastModifiedDate = importRequest.getLastModifiedDate();
         this.createBy = importRequest.getCreateBy();
         this.lastModifiedBy = importRequest.getLastModifiedBy();
+        this.status = importRequest.getStatus().getValue();
+        this.imageUrl = importRequest.getImage();
         this.importItems = importRequest.getImportItems().stream()
                 .map(ImportItemResponseDto::new)
                 .collect(Collectors.toList());

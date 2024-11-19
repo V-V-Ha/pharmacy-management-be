@@ -3,6 +3,7 @@ package com.fu.pha.dto.request;
 import com.fu.pha.entity.Category;
 import com.fu.pha.entity.Product;
 import com.fu.pha.entity.ProductUnit;
+import com.fu.pha.enums.Status;
 import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,6 +41,7 @@ public class ProductDTORequest {
     private Instant lastModifiedDate;
     private String createBy;
     private String lastModifiedBy;
+    private Status status;
 
     public ProductDTORequest(Product product){
         this.id = product.getId();

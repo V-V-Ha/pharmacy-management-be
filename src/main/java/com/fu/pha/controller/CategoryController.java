@@ -5,6 +5,7 @@ import com.fu.pha.dto.response.MessageResponse;
 import com.fu.pha.dto.response.PageResponseModel;
 import com.fu.pha.entity.Category;
 import com.fu.pha.entity.User;
+import com.fu.pha.enums.Status;
 import com.fu.pha.service.CategoryService;
 import com.fu.pha.exception.Message;
 import org.apache.coyote.BadRequestException;
@@ -47,11 +48,12 @@ public class CategoryController {
 
      @GetMapping("/get-all-category")
      @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-        public ResponseEntity<PageResponseModel<CategoryDto>> getAllCategoryPaging(@RequestParam int page,
-                                                                                    @RequestParam int size,
-                                                           @RequestParam(required = false) String name) {
+        public ResponseEntity<PageResponseModel<CategoryDto>> getAllCategoryPaging(@RequestParam(defaultValue = "0") int page,
+                                                                                   @RequestParam(defaultValue = "10") int size,
+                                                                                    @RequestParam(required = false) String name,
+                                                                                   @RequestParam(required = false) String status) {
 
-            Page<CategoryDto> content = categoryService.getAllCategoryPaging(page, size, name);
+            Page<CategoryDto> content = categoryService.getAllCategoryPaging(page, size, name, status);
 
          PageResponseModel<CategoryDto> response = PageResponseModel.<CategoryDto>builder()
                  .page(page)
@@ -62,11 +64,11 @@ public class CategoryController {
             return ResponseEntity.ok(response);
         }
 
-    @DeleteMapping("/delete-category")
+    @PutMapping("/change-status-category")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deleteCategory(@RequestParam Long id) {
-        categoryService.deleteCategory(id);
-        return ResponseEntity.ok(Message.DELETE_SUCCESS);
+    public ResponseEntity<String> updateCategoryStatus(@RequestParam Long id) {
+        categoryService.updateCategoryStatus(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
     @GetMapping("/get-all-category-list")

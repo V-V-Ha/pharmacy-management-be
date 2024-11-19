@@ -42,12 +42,23 @@ public class GlobalExceptionHandler {
     }
 
 
+
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorMessage handleMaxSizeException(MaxUploadSizeExceededException ex,WebRequest request) {
         return new ErrorMessage(
                 HttpStatus.BAD_REQUEST.value(),
                 Message.INVALID_FILE_SIZE,
+                toExactlyPath(request.getDescription(false)));
+    }
+
+
+    @ExceptionHandler(UnauthorizedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorMessage handleUnauthorizedException(UnauthorizedException ex,WebRequest request) {
+        return new ErrorMessage(
+                HttpStatus.UNAUTHORIZED.value(),
+                ex.getMessage(),
                 toExactlyPath(request.getDescription(false)));
     }
 

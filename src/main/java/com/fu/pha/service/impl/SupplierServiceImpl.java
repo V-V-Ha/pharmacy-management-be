@@ -2,7 +2,9 @@ package com.fu.pha.service.impl;
 
 import com.fu.pha.dto.request.SupplierDto;
 import com.fu.pha.entity.Supplier;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.BadRequestException;
+import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.SupplierRepository;
 import com.fu.pha.service.SupplierService;
 import com.fu.pha.exception.Message;
@@ -42,6 +44,7 @@ public class SupplierServiceImpl implements SupplierService {
         supplier.setAddress(supplierDto.getAddress());
         supplier.setPhoneNumber(supplierDto.getPhoneNumber());
         supplier.setEmail(supplierDto.getEmail());
+        supplier.setStatus(Status.ACTIVE);
 
         // Save supplier to the database
         supplierRepository.save(supplier);
@@ -75,6 +78,12 @@ public class SupplierServiceImpl implements SupplierService {
             throw new BadRequestException(Message.SUPPLIER_EXIST);
         }
 
+        // Kiểm tra số điện thoại trùng lặp
+        Optional<Supplier> supplierWithSamePhone = supplierRepository.findByPhoneNumber(supplierDto.getPhoneNumber());
+        if (supplierWithSamePhone.isPresent() && !supplierWithSamePhone.get().getId().equals(supplierDto.getId())) {
+            throw new BadRequestException(Message.EXIST_PHONE);
+        }
+
         Supplier supplier = supplierExist.get();
         supplier.setSupplierName(supplierDto.getSupplierName());
         supplier.setTax(supplierDto.getTax());
@@ -87,13 +96,19 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
-    public void deleteSupplier(Long id) {
-        Optional<Supplier> supplier = supplierRepository.findById(id);
-        if (supplier.isEmpty()) {
+    public void updateSupplierStatus(Long id) {
+        Optional<Supplier> supplierOptional = supplierRepository.findById(id);
+        if (supplierOptional.isEmpty()) {
             throw new BadRequestException(Message.SUPPLIER_NOT_FOUND);
         }
-        supplier.get().setDeleted(true);
-        supplierRepository.save(supplier.get());
+        Supplier supplier = supplierOptional.get();
+        if (supplier.getStatus().equals(Status.ACTIVE)) {
+            supplier.setStatus(Status.INACTIVE);
+        } else {
+            supplier.setStatus(Status.ACTIVE);
+        }
+        supplierRepository.save(supplier);
+
     }
 
     @Override
@@ -109,6 +124,7 @@ public class SupplierServiceImpl implements SupplierService {
         supplierDto.setAddress(supplier.get().getAddress());
         supplierDto.setPhoneNumber(supplier.get().getPhoneNumber());
         supplierDto.setEmail(supplier.get().getEmail());
+        supplierDto.setStatus(supplier.get().getStatus());
         return supplierDto;
     }
 
@@ -118,11 +134,19 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
-    public Page<SupplierDto> getAllSupplierAndPaging(int page, int size , String name) {
+    public Page<SupplierDto> getAllSupplierAndPaging(int page, int size , String name, String status) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<SupplierDto> supplierPage = supplierRepository.findAllByNameContaining(name, pageable);
+        Status supplierStatus = null;
+        if (status != null) {
+            try {
+                supplierStatus = Status.valueOf(status.toUpperCase());
+            } catch (Exception e) {
+                throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
+            }
+        }
+        Page<SupplierDto> supplierPage = supplierRepository.findAllByNameContaining(name, supplierStatus, pageable);
         if(supplierPage.isEmpty()){
-            throw new BadRequestException(Message.SUPPLIER_NOT_FOUND);
+            throw new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND);
         }
         return supplierPage;
     }

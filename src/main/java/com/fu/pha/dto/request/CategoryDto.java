@@ -1,6 +1,7 @@
 package com.fu.pha.dto.request;
 
 import com.fu.pha.entity.Category;
+import com.fu.pha.enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,7 @@ public class CategoryDto {
     private Instant lastModifiedDate;
     private String createBy;
     private String lastModifiedBy;
+    private Status status;
 
 
     public CategoryDto(Category category) {
@@ -28,6 +30,7 @@ public class CategoryDto {
         this.createBy=category.getCreateBy();
         this.lastModifiedDate=category.getLastModifiedDate();
         this.lastModifiedBy=category.getLastModifiedBy();
+        this.status=category.getStatus();
     }
 
     public CategoryDto(Long id, String name) {

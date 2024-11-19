@@ -13,6 +13,8 @@ public class Message {
 
     public static final String CREATE_SUCCESS = "Tạo thành công";
 
+    public static final String CREATE_FAILED = "Tạo thất bại";
+
     public static final String INVALID_PASSWORD = "Mật khẩu không hợp lệ, mật khẩu phải có ít nhất 8 ký tự, " +
             "và phải có 1 ký tự hoa và 1 ký tự thường";
     public static final String INVALID_CCCD = "Số căn cước công dân không hợp lệ. Yêu cầu 12 chữ số";
@@ -29,42 +31,31 @@ public class Message {
     public static final String INVALID_AGE = "Người dùng chưa đủ 18 tuổi";
     public static final String UPDATE_SUCCESS = "Cập nhật thành công";
     public static final String USER_NOT_FOUND = "Người dùng không tồn tại";
-    public static final String ACTIVE_SUCCESS = "Kích hoạt tài khoản thành công";
-    public static final String DEACTIVE_SUCCESS = "Ngưng kích hoạt tài khoản thành công";
     public static final String INVALID_TOKEN = "Token không hợp lệ";
     public static final String ROLE_NOT_FOUND = "Không tìm thấy quyền truy cập";
     public static final String STATUS_NOT_FOUND = "Không tìm thấy trạng thái";
     public static final String NOT_MATCH_PASSWORD = "Mật khẩu không khớp";
     public static final String CHANGE_PASS_SUCCESS = "Đổi mật khẩu thành công";
     public static final String INVALID_OLD_PASSWORD = "Mật khẩu cũ không chính xác";
-    public static final String UPLOAD_SUCCESS = "Upload file thành công";
     public static final String EMPTY_FILE = "File không được trống";
     public static final String INVALID_FILE = "Chỉ những định dạng ảnh sau được phép: jpg,png,gif,bmp";
     public static final String INVALID_FILE_SIZE = "Kích thước file phải bé hơn 2MB";
     public static final String PRODUCT_NOT_FOUND = "Không tìm thấy sản phẩm";
-    public static final String PRODUCT_SUCCESS = "Thêm sản phẩm thành công";
-    public static final String EXIST_PRODUCT_CODE = "Mã sản phẩm đã tồn tại";
     public static final String EXIST_REGISTRATION_NUMBER = "Số đăng ký đã tồn tại";
     public static final String CATEGORY_NOT_FOUND = "Nhóm sản phẩm không tồn tại";
     public static final String CATEGORY_EXIST = "Nhóm sản phẩm đã tồn tại";
     public static final String MUST_FILL_USERNAME = "Tên đăng nhập không được trống";
     public static final String MUST_FILL_PASSWORD = "Mật khẩu không được trống";
-    public static final String PRODUCT_UPDATE_SUCCESS = "Cập nhật sản phẩm thành công";
     public static final String UNIT_NOT_FOUND = "Đơn vị không tồn tại";
     public static final String UNIT_EXIST = "Đơn vị đã tồn tại";
     public static final String FORGOT_PASS_SUCCESS = "Vui lòng kiểm tra email để lấy lại mật khẩu";
     public static final String INVALID_ROLE_COMBINATION = "Không thể chọn cùng lúc 2 quyền truy cập này";
-    public static final String UNIT_IN_USE = "Đơn vị đang được sử dụng";
     public static final String DELETE_SUCCESS = "Xóa thành công";
-    public static final String EXIST_PRODUCT_NAME = "Tên sản phẩm đã tồn tại";
-    public static final String PRODUCT_DELETE_SUCCESS = "Xóa sản phẩm thành công";
     public static final String SUPPLIER_EXIST = "Nhà cung cấp đã tồn tại";
     public static final String INVALID_TAX = "Mã số thuế không hợp lệ";
     public static final String SUPPLIER_NOT_FOUND = "Nhà cung cấp không tồn tại";
-    public static final String QUANTITY_NOT_FOUND = "Số lượng không được trống";
     public static final String IMPORT_NOT_FOUND = "Phiếu nhập không tồn tại";
 
-    public static final String IMPORT_SUCCESS = "Tạo phiếu nhập thành công";
     public static final String TOTAL_AMOUNT_NOT_MATCH = "Tổng tiền không khớp";
     public static final String IMPORT_ITEMS_EMPTY = "Danh sách sản phẩm không được trống";
     public static final String INVALID_CONVERSION_FACTOR = "Hệ số quy đổi không hợp lệ";
@@ -72,7 +63,6 @@ public class Message {
     public static final String EXPORT_ITEMS_EMPTY = "Danh sách sản phẩm xuất không được trống";
     public static final String NOT_ENOUGH_STOCK = "Số lượng tồn kho không đủ";
     public static final String INVALID_EXPORT_TYPE = "Loại xuất kho không hợp lệ";
-    public static final String IMPORT_ITEM_NOT_FOUND_FOR_BATCH = "Không tìm thấy sản phẩm trong lô hàng nhập";
     public static final String NOT_ENOUGH_STOCK_IN_BATCH = "Số lượng trong lô hàng không đủ";
     public static final String EXPORT_SLIP_NOT_FOUND = "Không tìm thấy phiếu xuất kho";
 
@@ -88,4 +78,25 @@ public class Message {
     public static final String TOTAL_AMOUNT_VALID = "Tổng tiền phải lớn hơn 0";
     public static final String LIST_ITEM_NOT_NULL = "Danh sách sản phẩm không được trống";
     public static final String DOCTOR_REQUIRED = "Bác sĩ không được trống";
+    public static final String INVALID_RETURN_QUANTITY = "Số lượng trả lại không hợp lệ";
+    public static final String RETURN_ORDER_NOT_FOUND = "Không tìm thấy phiếu trả hàng";
+    public static final String PRODUCT_NOT_IN_SALE_ORDER = "Sản phẩm không có trong đơn hàng";
+    public static final String SALE_ORDER_NOT_NULL = "Thông tin đơn hàng không được trống";
+    public static final String PAYMENT_METHOD_NOT_NULL = "Phương thức thanh toán không được trống";
+    public static final String INVALID_YOB = "Năm sinh phải lớn hơn 1900 và không phải là năm sau.";
+    public static final Object CONFIRM_SUCCESS = "Xác nhận phiếu thành công";
+    public static final Object REJECT_SUCCESS = "Xác nhận từ chối phiếu thành công";
+    public static final String IMAGE_IMPORT_NOT_NULL = "Ảnh phiếu nhập là bắt buộc";
+    public static final String REJECT_AUTHORIZATION = "Bạn không có quyền thực hiện chức năng này";
+    public static final String NOT_PENDING_IMPORT = "Phiếu nhập không ở trạng thái chờ xác nhận";
+
+    public static final String NOT_PENDING_EXPORT = "Phiếu xuất không ở trạng thái chờ xác nhận";
+    public static final String REASON_REQUIRED = "Phải nhập lý do từ chối";
+    public static final String NOT_LOGIN = "Bạn chưa đăng nhập";
+    public static final String NOT_UPDATE_CONFIRMED = "Không thể cập nhật phiếu đã xác nhận";
+    public static final String NOT_REJECT = " Chỉ có thể từ chối phiếu ở trạng thái chờ xác nhận";
+    public static final String TOTAL_AMOUNT_REQUIRED = "Tổng tiền không được trống";
+    public static final String IMPORT_ITEM_NOT_FOUND = "Không tìm thấy sản phẩm trong phiếu";
+    public static final String CATEGORY_INACTIVE = "Nhóm sản phẩm đã bị vô hiệu hóa";
+    public static final String UNIT_INACTIVE = "Đơn vị đã bị vô hiệu hóa";
 }

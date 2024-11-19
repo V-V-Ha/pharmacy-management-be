@@ -25,12 +25,12 @@ public class ProductUnit extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     @JsonBackReference
-    private Product productId;
+    private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "unit_id", nullable = false)
     @JsonBackReference
-    private Unit unitId;
+    private Unit unit;
 
     @Column(name = "conversion_factor",nullable = false)
     private Integer conversionFactor;

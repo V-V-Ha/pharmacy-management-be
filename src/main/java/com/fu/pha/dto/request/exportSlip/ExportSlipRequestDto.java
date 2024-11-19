@@ -1,6 +1,11 @@
 package com.fu.pha.dto.request.exportSlip;
 
 import com.fu.pha.enums.ExportType;
+import com.fu.pha.validate.anotation.ValidDiscount;
+import com.fu.pha.validate.anotation.ValidTotalAmount;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -14,14 +19,21 @@ import java.util.List;
 public class ExportSlipRequestDto {
     private Long id;
     private String invoiceNumber;
+    @NotNull(message = "Ngày xuất không được để trống")
     private Instant exportDate;
+    @NotNull(message = "Loại phiếu xuất không được để trống")
     private ExportType typeDelivery;
+    @ValidDiscount
     private Double discount;
+    @ValidTotalAmount
     private Double totalAmount;
     private String note;
+    @NotNull(message = "Người dùng không được để trống")
     private Long userId;
     private Long supplierId;
     @NotNull(message = "Danh sách sản phẩm nhập không được để trống")
+    @Valid
     private List<ExportSlipItemRequestDto> exportSlipItems;
     private Long productCount;
+    private String status;
 }

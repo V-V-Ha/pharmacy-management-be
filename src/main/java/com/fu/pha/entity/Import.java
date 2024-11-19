@@ -2,6 +2,7 @@ package com.fu.pha.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fu.pha.enums.OrderStatus;
 import com.fu.pha.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -45,6 +46,13 @@ public class Import extends BaseEntity{
     @Column(name = "total_amount")
     private Double totalAmount;
 
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
+
+    @Column(name = "image", columnDefinition = "TEXT")
+    private String image;
+
     @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 
@@ -61,5 +69,7 @@ public class Import extends BaseEntity{
     @JsonBackReference
     @JoinColumn(name = "supplier_id")
     private Supplier supplier;
+
+
 }
 

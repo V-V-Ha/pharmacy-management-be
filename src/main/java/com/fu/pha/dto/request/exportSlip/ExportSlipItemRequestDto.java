@@ -2,6 +2,13 @@ package com.fu.pha.dto.request.exportSlip;
 
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.ExportSlipItem;
+import com.fu.pha.validate.anotation.ValidDiscount;
+import com.fu.pha.validate.anotation.ValidQuantity;
+import com.fu.pha.validate.anotation.ValidTotalAmount;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,18 +18,28 @@ import java.time.Instant;
 @Setter
 @NoArgsConstructor
 public class ExportSlipItemRequestDto {
-    private Long id;                 // ID của ExportSlipItem
-    private Integer quantity;        // Số lượng sản phẩm
-    private Double unitPrice;        // Đơn giá
-    private String unit;             // Đơn vị tính
-    private Double discount;         // Chiết khấu
-    private String batchNumber;      // Số lô
-    private Instant expiryDate;      // Ngày hết hạn
-    private Long productId;          // ID của sản phẩm
-    private Long exportSlipId;       // ID của phiếu xuất kho
-    private Double totalAmount;      // Tổng số tiền
-    private Long importItemId;       // ID của lô hàng nhập
-    private Integer conversionFactor; // Hệ số quy đổi
+    private Long id;
+    @ValidQuantity
+    private Integer quantity;
+    @NotNull(message = "Đơn giá không được để trống")
+    @DecimalMin(value = "0", message = "Đơn giá phải lớn hơn hoặc bằng 0")
+    private Double unitPrice;
+    @NotNull(message = "Đơn vị không được để trống")
+    private String unit;
+    @ValidDiscount
+    private Double discount;
+    @NotNull(message = "Số lô không được để trống")
+    private String batchNumber;
+    private Instant expiryDate;
+    @NotNull(message = "Sản phẩm không được để trống")
+    private Long productId;
+    private Long exportSlipId;
+    @ValidTotalAmount
+    private Double totalAmount;
+    private Long importItemId;
+    @NotNull(message = "Hệ số quy đổi không được để trống")
+    @Min(value = 1, message = "Hệ số quy đổi phải lớn hơn 0")
+    private Integer conversionFactor;
 
     public ExportSlipItemRequestDto(ExportSlipItem exportSlipItem) {
         this.id = exportSlipItem.getId();

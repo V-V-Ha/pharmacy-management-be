@@ -2,6 +2,7 @@ package com.fu.pha.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fu.pha.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Where;
@@ -14,7 +15,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Table(name = "product")
-@Where(clause = "deleted = false")
 public class Product extends BaseEntity{
 
     @Id
@@ -46,9 +46,6 @@ public class Product extends BaseEntity{
     @Column(name = "product_code")
     private String productCode;
 
-    @Column(name = "import_price")
-    private Double importPrice;
-
     @Column(name = "indication", columnDefinition = "TEXT")
     private String indication;
 
@@ -75,7 +72,7 @@ public class Product extends BaseEntity{
     @JsonBackReference
     private Category categoryId;
 
-    @OneToMany(mappedBy = "productId",cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,orphanRemoval = true)
     @JsonManagedReference
     private List<ProductUnit> productUnitList;
 
@@ -89,8 +86,9 @@ public class Product extends BaseEntity{
     @OneToMany(mappedBy = "product")
     private List<SaleOrderItem> saleOrderItemList;
 
-    @Column(name = "deleted", nullable = false)
-    private Boolean deleted = false;
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @Column(name = "total_quantity")
     private Integer totalQuantity;

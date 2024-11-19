@@ -1,7 +1,9 @@
 package com.fu.pha.service.impl;
 
 import com.fu.pha.dto.request.UnitDto;
+import com.fu.pha.entity.Category;
 import com.fu.pha.entity.Unit;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.UnitRepository;
@@ -26,9 +28,17 @@ public class UnitServiceImpl implements UnitService {
     UnitRepository unitRepository;
 
     @Override
-    public Page<UnitDto> getAllUnitPaging(int page, int size, String name) {
+    public Page<UnitDto> getAllUnitPaging(int page, int size, String name, String status) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<UnitDto> unitPage = unitRepository.findAllByNameContaining(name, pageable);
+        Status unitStatus = null;
+        if (status != null) {
+            try {
+                unitStatus = Status.valueOf(status.toUpperCase());
+            } catch (Exception e) {
+                throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
+            }
+        }
+        Page<UnitDto> unitPage = unitRepository.findAllByNameContaining(name, unitStatus, pageable);
         if(unitPage.isEmpty()){
             throw new ResourceNotFoundException(Message.UNIT_NOT_FOUND);
         }
@@ -62,6 +72,7 @@ public class UnitServiceImpl implements UnitService {
         Unit unit = new Unit();
         unit.setUnitName(normalizedUnitName);
         unit.setDescription(unitDto.getDescription());
+        unit.setStatus(Status.ACTIVE);
 
         // Save the unit to the database
         unitRepository.save(unit);
@@ -95,26 +106,36 @@ public class UnitServiceImpl implements UnitService {
             throw new ResourceNotFoundException(Message.UNIT_NOT_FOUND);
         }
 
+        // Normalize the unit name
+        String normalizedUnitName = capitalizeWords(unitDto.getUnitName());
+
         // Check if the unit name is already taken
-        Unit unit = unitRepository.findByUnitName(unitDto.getUnitName());
+        Unit unit = unitRepository.findByUnitName(normalizedUnitName);
         if (unit != null && !unit.getId().equals(unitDto.getId())) {
             throw new BadRequestException(Message.UNIT_EXIST);
         }
 
         // Update the unit fields
-        existingUnit.setUnitName(unitDto.getUnitName());
+        existingUnit.setUnitName(normalizedUnitName);
         existingUnit.setDescription(unitDto.getDescription());
 
         // Save the updated unit to the database
         unitRepository.save(existingUnit);
     }
-
+    
     @Override
-    public void deleteUnit(Long id) {
-        // Find the existing unit by ID
+    public void updateUnitStatus(Long id) {
         Unit unit = unitRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
-        unit.setDeleted(true);
+
+        // Chuyển đổi trạng thái
+        if (unit.getStatus() == Status.ACTIVE) {
+            unit.setStatus(Status.INACTIVE);
+        } else {
+            unit.setStatus(Status.ACTIVE);
+        }
         unitRepository.save(unit);
     }
+
+
 }

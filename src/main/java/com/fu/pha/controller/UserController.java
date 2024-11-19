@@ -7,7 +7,6 @@ import com.fu.pha.exception.Message;
 import com.fu.pha.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -25,14 +24,21 @@ public class UserController {
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<String> activeUser(@RequestBody UserDto request) {
         userService.activeUser(request);
-        return ResponseEntity.ok(Message.ACTIVE_SUCCESS);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
     @PutMapping("/in-active-user")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<String> deActiveUser(@RequestBody UserDto request) {
          userService.deActiveUser(request);
-        return ResponseEntity.ok(Message.DEACTIVE_SUCCESS);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    }
+
+    @PutMapping("/change-status-user")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
+    public ResponseEntity<String> updateUserStatus(@RequestParam Long id) {
+        userService.updateUserStatus(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
     @GetMapping("/get-all-user-paging")
@@ -56,7 +62,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-
     @GetMapping("/view-detail-user")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<UserDto> viewDetailUser(@RequestParam Long id) {
@@ -69,8 +74,6 @@ public class UserController {
         return ResponseEntity.ok(Message.CHANGE_PASS_SUCCESS);
     }
 
-
-
     @PostMapping("/create-user")
     public ResponseEntity<?> createUser(
             @RequestPart("userDto") UserDto userDto,
@@ -81,8 +84,6 @@ public class UserController {
 
     }
 
-
-
     @PutMapping("/update-user")
     public ResponseEntity<?> updateUser(
             @RequestPart("userDto") UserDto userDto,
@@ -91,8 +92,5 @@ public class UserController {
             // Gọi service để cập nhật user và upload avatar
             userService.updateUser(userDto, file);
             return ResponseEntity.ok(Message.UPDATE_SUCCESS);
-
     }
-
 }
-

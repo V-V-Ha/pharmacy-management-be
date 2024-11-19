@@ -25,6 +25,7 @@ public class ImportItemResponseForExport {
     private String productName;
     private Long importId;
     private Instant expiryDate;
+    private Instant importDate;
     private Integer conversionFactor;
     private Integer remainingQuantity;
     private Long supplierId;
@@ -32,7 +33,7 @@ public class ImportItemResponseForExport {
 
     public ImportItemResponseForExport(Long id, Integer quantity, Double unitPrice, String unit, Double discount,
                                        Double tax, Double totalAmount, String batchNumber,
-                                       Long importId, Instant expiryDate, Integer remainingQuantity,Long supplierId) {
+                                       Long importId, Instant expiryDate,Instant importDate, Integer remainingQuantity,Long supplierId) {
         this.id = id;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
@@ -43,6 +44,7 @@ public class ImportItemResponseForExport {
         this.batchNumber = batchNumber;
         this.importId = importId;
         this.expiryDate = expiryDate;
+        this.importDate = importDate;
         this.remainingQuantity = remainingQuantity;
         this.supplierId = supplierId;
     }

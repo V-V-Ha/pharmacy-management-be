@@ -3,6 +3,7 @@ package com.fu.pha.controller;
 import com.fu.pha.dto.request.CustomerDTORequest;
 import com.fu.pha.dto.response.CustomerDTOResponse;
 import com.fu.pha.dto.response.PageResponseModel;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.Message;
 import com.fu.pha.service.CustomerService;
 import jakarta.validation.Valid;
@@ -23,8 +24,9 @@ public class CustomerController {
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<PageResponseModel<CustomerDTOResponse>> getALlCustomerPaging(@RequestParam(defaultValue = "0") int page,
                                                                                        @RequestParam(defaultValue = "10") int size,
-                                                                                       @RequestParam(defaultValue = "", name = "phoneNumber") String phoneNumber) {
-        Page<CustomerDTOResponse> customerDTOResponses = customerService.getAllCustomerByPaging(page, size, phoneNumber);
+                                                                                       @RequestParam(required = false) String phoneNumber,
+                                                                                       @RequestParam(required = false) String status) {
+        Page<CustomerDTOResponse> customerDTOResponses = customerService.getAllCustomerByPaging(page, size, phoneNumber, status);
         PageResponseModel<CustomerDTOResponse> response = PageResponseModel.<CustomerDTOResponse>builder()
                 .page(page)
                 .size(size)
@@ -35,29 +37,29 @@ public class CustomerController {
     }
 
     @PostMapping("/create-customer")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<String> createCustomer(@Valid @RequestBody CustomerDTORequest request) {
         customerService.createCustomer(request);
         return ResponseEntity.ok(Message.CREATE_SUCCESS);
     }
 
     @PutMapping("/update-customer")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<String> updateCustomer(@Valid @RequestBody CustomerDTORequest request) {
         customerService.updateCustomer(request);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
     @GetMapping("/get-customer-by-id")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<CustomerDTOResponse> getCustomerById(@RequestParam Long id) {
         return ResponseEntity.ok(customerService.getCustomerById(id));
     }
 
-    @DeleteMapping("/delete-customer")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deleteCustomer(@RequestParam Long id) {
-        customerService.deleteCustomer(id);
-        return ResponseEntity.ok(Message.DELETE_SUCCESS);
+    @PutMapping("/change-status-customer")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    public ResponseEntity<String> updateCustomerStatus(@RequestParam Long id) {
+        customerService.updateCustomerStatus(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 }

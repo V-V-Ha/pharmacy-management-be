@@ -20,11 +20,12 @@ public class DoctorController {
     DoctorService doctorService;
 
     @GetMapping("/get-all-doctor")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<PageResponseModel<DoctorDTOResponse>> getAllDoctor(@RequestParam(defaultValue = "0") int page,
                                                                              @RequestParam(defaultValue = "10") int size,
-                                                                             @RequestParam(defaultValue = "", name = "doctorName") String doctorName) {
-        Page<DoctorDTOResponse> doctorDTOResponses = doctorService.getAllDoctorByPaging(page, size, doctorName);
+                                                                             @RequestParam(required = false) String doctorName,
+                                                                             @RequestParam(required = false) String status) {
+        Page<DoctorDTOResponse> doctorDTOResponses = doctorService.getAllDoctorByPaging(page, size, doctorName, status);
         PageResponseModel<DoctorDTOResponse> response = PageResponseModel.<DoctorDTOResponse>builder()
                 .page(page)
                 .size(size)
@@ -35,27 +36,27 @@ public class DoctorController {
     }
 
     @GetMapping("/get-doctor-by-id")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<DoctorDTOResponse> getDoctorById(@RequestParam Long id) {
         return ResponseEntity.ok(doctorService.getDoctorById(id));
     }
 
-    @DeleteMapping("/delete-doctor")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> deleteDoctor(@RequestParam Long id) {
-        doctorService.deleteDoctor(id);
-        return ResponseEntity.ok(Message.DELETE_SUCCESS);
+    @PutMapping("/change-status-doctor")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    public ResponseEntity<String> updateDoctorStatus(@RequestParam Long id) {
+        doctorService.updateDoctorStatus(id);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
     @PostMapping("/create-doctor")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<String> createDoctor(@Valid  @RequestBody DoctorDTORequest request) {
         doctorService.createDoctor(request);
         return ResponseEntity.ok(Message.CREATE_SUCCESS);
     }
 
     @PutMapping("/update-doctor")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<String> updateDoctor(@Valid @RequestBody DoctorDTORequest request) {
         doctorService.updateDoctor(request);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);

@@ -4,10 +4,8 @@ import com.fu.pha.dto.request.ProductUnitDTORequest;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.ImportItem;
 import com.fu.pha.exception.Message;
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import com.fu.pha.validate.anotation.*;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -19,54 +17,30 @@ import java.util.List;
 public class ImportItemRequestDto {
     private Long id;
 
-    @NotNull(message = "Số lượng không được để trống")
-    @Min(value = 1, message = "Số lượng phải lớn hơn 0")
+    @ValidQuantity
     private Integer quantity;
 
-    @NotNull(message = "Đơn giá không được để trống")
-    @DecimalMin(value = "0.01", message = "Đơn giá phải lớn hơn 0")
+    @ValidUnitPrice
     private Double unitPrice;
 
+    @NotBlank(message = "Đơn vị không được để trống")
     private String unit;
 
-    @DecimalMin(value = "0", message = "Chiết khấu phải lớn hơn hoặc bằng 0")
-    @DecimalMax(value = "100", message = "Chiết khấu phải nhỏ hơn hoặc bằng 100")
+    @ValidDiscount
     private Double discount;
 
-    @DecimalMin(value = "0", message = "Thuế phải lớn hơn hoặc bằng 0")
-    @DecimalMax(value = "100", message = "Thuế phải nhỏ hơn hoặc bằng 100")
+    @ValidVat
     private Double tax;
 
+    @ValidTotalAmount
     private Double totalAmount;
+    @NotBlank(message = "Số lô không được để trống")
     private String batchNumber;
+    @NotNull(message = "Sản phẩm không được để trống")
     private Long productId;
-    private Long importId;
-    private Instant createDate;
-    private Instant lastModifiedDate;
     private Instant expiryDate;
-    private String createBy;
-    private String lastModifiedBy;
-
+    @NotNull(message = "Hệ số quy đổi không được để trống")
+    @Min(value = 1, message = "Hệ số quy đổi phải lớn hơn 0")
     private Integer conversionFactor;
 
-    private Integer remainingQuantity;
-
-    public ImportItemRequestDto(ImportItem importItem) {
-        this.id = importItem.getId();
-        this.quantity = importItem.getQuantity();
-        this.unitPrice = importItem.getUnitPrice();
-        this.unit = importItem.getUnit();
-        this.discount = importItem.getDiscount();
-        this.tax = importItem.getTax();
-        this.batchNumber = importItem.getBatchNumber();
-        this.expiryDate = importItem.getExpiryDate();
-        this.totalAmount = importItem.getTotalAmount();
-        this.productId = importItem.getProduct().getId();
-        this.importId = importItem.getImportReceipt().getId();
-        this.createDate = importItem.getCreateDate();
-        this.lastModifiedDate = importItem.getLastModifiedDate();
-        this.createBy = importItem.getCreateBy();
-        this.lastModifiedBy = importItem.getLastModifiedBy();
-        this.remainingQuantity = importItem.getRemainingQuantity();
-    }
 }

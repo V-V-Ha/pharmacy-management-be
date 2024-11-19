@@ -46,6 +46,7 @@ public class ImportItemResponseDto {
         this.batchNumber = importItem.getBatchNumber();
         this.expiryDate = importItem.getExpiryDate();
         this.totalAmount = importItem.getTotalAmount();
+        this.conversionFactor = importItem.getConversionFactor();
         if (importItem.getProduct() != null) {
             this.product = new ProductDTOResponse(importItem.getProduct());
         }
