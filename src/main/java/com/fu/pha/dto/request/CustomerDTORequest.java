@@ -2,11 +2,8 @@ package com.fu.pha.dto.request;
 
 import com.fu.pha.enums.Gender;
 import com.fu.pha.enums.Status;
-import com.fu.pha.exception.Message;
-import com.fu.pha.validate.Constants;
 import com.fu.pha.validate.anotation.ValidFullName;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import com.fu.pha.validate.anotation.ValidPhoneNumber;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,8 +22,9 @@ public class CustomerDTORequest {
 
     private String address;
 
-    @Pattern(regexp = Constants.REGEX_PHONE, message = Message.INVALID_PHONE)
+    @ValidPhoneNumber
     private String phoneNumber;
+
     private Integer yob;
     private Gender gender;
     private Status status;

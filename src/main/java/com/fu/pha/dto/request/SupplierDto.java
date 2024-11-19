@@ -36,9 +36,6 @@ public class SupplierDto {
 
     private Double totalAmount;
 
-
-
-
     public SupplierDto(Long id, String supplierName, String address, String phoneNumber, String email, String tax, Status status) {
         this.id = id;
         this.supplierName = supplierName;
