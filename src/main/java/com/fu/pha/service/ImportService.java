@@ -34,7 +34,7 @@ public interface ImportService {
 
     void updateImport(Long importId, ImportDto importDto, MultipartFile file);
 
-    void confirmImport(Long importId);
+    void confirmImport(Long importId, Long userId);
 
     void rejectImport(Long importId, String reason);
 
