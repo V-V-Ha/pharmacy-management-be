@@ -12,6 +12,9 @@ import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.*;
 import com.fu.pha.service.ReturnOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -313,8 +316,6 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
         returnOrderRepository.save(returnOrder);
     }
 
-
-
     @Override
     public SaleOrderResponseDto getSaleOrderByInvoiceNumber(String invoiceNumber) {
         // 1. Truy vấn SaleOrder từ cơ sở dữ liệu
@@ -333,5 +334,25 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
         return new ReturnOrderResponseDto(returnOrder);
     }
 
+    @Override
+    public Page<ReturnOrderResponseDto> getAllReturnOrderPaging(int page, int size, String invoiceNumber, Instant fromDate, Instant toDate) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ReturnOrderResponseDto> returnOrderResponseDto;
+
+        if (fromDate == null && toDate == null) {
+            returnOrderResponseDto = returnOrderRepository.getListReturnOrderPagingWithoutDate(invoiceNumber, pageable);
+        } else if (fromDate != null && toDate == null) {
+            returnOrderResponseDto = returnOrderRepository.getListReturnOrderPagingFromDate(invoiceNumber, fromDate, pageable);
+        } else if (fromDate == null) {
+            returnOrderResponseDto = returnOrderRepository.getListReturnOrderPagingToDate(invoiceNumber, toDate, pageable);
+        } else {
+            returnOrderResponseDto = returnOrderRepository.getListReturnOrderPaging(invoiceNumber, fromDate, toDate, pageable);
+        }
+
+        if (returnOrderResponseDto.isEmpty()) {
+            throw new ResourceNotFoundException(Message.RETURN_ORDER_NOT_FOUND);
+        }
+        return returnOrderResponseDto;
+    }
 
 }
