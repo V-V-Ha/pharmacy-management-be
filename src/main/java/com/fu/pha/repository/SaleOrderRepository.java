@@ -57,7 +57,7 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
                   " ORDER BY s.lastModifiedDate DESC")
     Page<SaleOrderResponseDto> getListSaleOrderPagingToDate(@Param("orderType") OrderType orderType,
                                                               @Param("paymentMethod") PaymentMethod paymentMethod,
-                                                              @Param("phoneNumber") String invoiceNumber,
+                                                              @Param("invoiceNumber") String invoiceNumber,
                                                             @Param("toDate") Instant toDate,
                                                               Pageable pageable);
 
