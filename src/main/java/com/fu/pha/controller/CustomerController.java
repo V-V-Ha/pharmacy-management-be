@@ -37,27 +37,27 @@ public class CustomerController {
     }
 
     @PostMapping("/create-customer")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<String> createCustomer(@Valid @RequestBody CustomerDTORequest request) {
         customerService.createCustomer(request);
         return ResponseEntity.ok(Message.CREATE_SUCCESS);
     }
 
     @PutMapping("/update-customer")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<String> updateCustomer(@Valid @RequestBody CustomerDTORequest request) {
         customerService.updateCustomer(request);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
     @GetMapping("/get-customer-by-id")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<CustomerDTOResponse> getCustomerById(@RequestParam Long id) {
         return ResponseEntity.ok(customerService.getCustomerById(id));
     }
 
     @PutMapping("/change-status-customer")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<String> updateCustomerStatus(@RequestParam Long id) {
         customerService.updateCustomerStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);

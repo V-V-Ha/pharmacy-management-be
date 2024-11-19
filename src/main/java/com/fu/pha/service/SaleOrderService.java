@@ -15,5 +15,5 @@ public interface SaleOrderService {
 
     SaleOrderResponseDto getSaleOrderById(Long saleOrderId);
 
-    Page<SaleOrderResponseDto> getAllSaleOrderPaging(int size, int index, OrderType orderType, PaymentMethod paymentMethod, String phoneNumber, Instant fromDate, Instant toDate);
+    Page<SaleOrderResponseDto> getAllSaleOrderPaging(int size, int index, OrderType orderType, PaymentMethod paymentMethod, String invoiceNumber, Instant fromDate, Instant toDate);
 }

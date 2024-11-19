@@ -495,26 +495,26 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     }
 
     @Override
-    public Page<SaleOrderResponseDto> getAllSaleOrderPaging(int page, int size, OrderType orderType, PaymentMethod paymentMethod, String phoneNumber, Instant fromDate, Instant toDate) {
+    public Page<SaleOrderResponseDto> getAllSaleOrderPaging(int page, int size, OrderType orderType, PaymentMethod paymentMethod, String invoiceNumber, Instant fromDate, Instant toDate) {
         Pageable pageable = PageRequest.of(page, size);
 
         //Nếu không có ngày bắt đầu và ngày kết thúc
         if (fromDate == null && toDate == null) {
             Instant startOfDay = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant();
             Instant endOfDay = LocalDate.now().atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant();
-            return saleOrderRepository.getListSaleOrderPagingWithoutDate(orderType, paymentMethod, phoneNumber, startOfDay, endOfDay, pageable);
+            return saleOrderRepository.getListSaleOrderPagingWithoutDate(orderType, paymentMethod, invoiceNumber, startOfDay, endOfDay, pageable);
         }
         //Nếu chỉ có ngày bắt đầu
         else if (fromDate != null && toDate == null) {
-            return saleOrderRepository.getListSaleOrderPagingFromDate(orderType, paymentMethod, phoneNumber, fromDate, pageable);
+            return saleOrderRepository.getListSaleOrderPagingFromDate(orderType, paymentMethod, invoiceNumber, fromDate, pageable);
         }
         //Nếu chỉ có ngày kết thúc
         else if (fromDate == null) {
-            return saleOrderRepository.getListSaleOrderPagingToDate(orderType, paymentMethod, phoneNumber, toDate, pageable);
+            return saleOrderRepository.getListSaleOrderPagingToDate(orderType, paymentMethod, invoiceNumber, toDate, pageable);
         }
         //Nếu có cả ngày bắt đầu và ngày kết thúc
         else {
-            return saleOrderRepository.getListSaleOrderPaging(orderType, paymentMethod, phoneNumber, fromDate, toDate, pageable);
+            return saleOrderRepository.getListSaleOrderPaging(orderType, paymentMethod, invoiceNumber, fromDate, toDate, pageable);
         }
     }
 }

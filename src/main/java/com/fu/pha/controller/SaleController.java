@@ -74,14 +74,14 @@ public class SaleController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "", name = "orderType") OrderType orderType,
             @RequestParam(defaultValue = "", name = "paymentMethod") PaymentMethod paymentMethod,
-            @RequestParam(defaultValue = "", name = "phoneNumber") String phoneNumber,
+            @RequestParam(defaultValue = "", name = "invoiceNumber") String invoiceNumber,
             @RequestParam(required = false, name = "fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false, name = "toDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
 
         Instant fromDateStart = fromDate != null ? fromDate.atStartOfDay(ZoneId.systemDefault()).toInstant() : null;
         Instant toDateEnd = toDate != null ? toDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant() : null;
 
-        Page<SaleOrderResponseDto> saleOrderResponseDto = saleOrderService.getAllSaleOrderPaging(page, size, orderType, paymentMethod, phoneNumber, fromDateStart, toDateEnd);
+        Page<SaleOrderResponseDto> saleOrderResponseDto = saleOrderService.getAllSaleOrderPaging(page, size, orderType, paymentMethod, invoiceNumber, fromDateStart, toDateEnd);
         PageResponseModel<SaleOrderResponseDto> response = PageResponseModel.<SaleOrderResponseDto>builder()
                 .page(page)
                 .size(size)

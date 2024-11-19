@@ -25,12 +25,12 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
             " FROM SaleOrder s " +
             " WHERE (:orderType IS NULL OR s.orderType = :orderType OR :orderType = '') " +
             " AND (:paymentMethod IS NULL OR s.paymentMethod = :paymentMethod OR :paymentMethod = '') " +
-            " AND (LOWER(s.customer.phoneNumber) LIKE LOWER(CONCAT('%', :phoneNumber, '%')) OR :phoneNumber IS NULL OR :phoneNumber = '') " +
+            " AND (LOWER(s.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
             " AND (s.saleDate IS NULL OR s.saleDate BETWEEN :startOfDay AND :endOfDay) " +
             " ORDER BY s.lastModifiedDate DESC")
     Page<SaleOrderResponseDto> getListSaleOrderPagingWithoutDate(@Param("orderType") OrderType orderType,
                                                                  @Param("paymentMethod") PaymentMethod paymentMethod,
-                                                                 @Param("phoneNumber") String phoneNumber,
+                                                                 @Param("invoiceNumber") String invoiceNumber,
                                                                  @Param("startOfDay") Instant startOfDay,
                                                                  @Param("endOfDay") Instant endOfDay,
                                                                  Pageable pageable);
@@ -39,12 +39,12 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
             " FROM SaleOrder s " +
             " WHERE (:orderType IS NULL OR s.orderType = :orderType OR :orderType = '') " +
             " AND (:paymentMethod IS NULL OR s.paymentMethod = :paymentMethod OR :paymentMethod = '') " +
-            " AND (LOWER(s.customer.phoneNumber) LIKE LOWER(CONCAT('%', :phoneNumber, '%')) OR :phoneNumber IS NULL OR :phoneNumber = '') " +
+            " AND (LOWER(s.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
             " AND s.saleDate >= :fromDate " +
             " ORDER BY s.lastModifiedDate DESC")
     Page<SaleOrderResponseDto> getListSaleOrderPagingFromDate(@Param("orderType") OrderType orderType,
                                                       @Param("paymentMethod") PaymentMethod paymentMethod,
-                                                      @Param("phoneNumber") String phoneNumber,
+                                                      @Param("invoiceNumber") String invoiceNumber,
                                                       @Param("fromDate") Instant fromDate,
                                                       Pageable pageable);
 
@@ -52,12 +52,12 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
                   " FROM SaleOrder s " +
                   " WHERE (:orderType IS NULL OR s.orderType = :orderType OR :orderType = '') " +
                   " AND (:paymentMethod IS NULL OR s.paymentMethod = :paymentMethod OR :paymentMethod = '') " +
-                  " AND (LOWER(s.customer.phoneNumber) LIKE LOWER(CONCAT('%', :phoneNumber, '%')) OR :phoneNumber IS NULL OR :phoneNumber = '') " +
+                  " AND (LOWER(s.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
                   " AND s.saleDate <= :toDate " +
                   " ORDER BY s.lastModifiedDate DESC")
     Page<SaleOrderResponseDto> getListSaleOrderPagingToDate(@Param("orderType") OrderType orderType,
                                                               @Param("paymentMethod") PaymentMethod paymentMethod,
-                                                              @Param("phoneNumber") String phoneNumber,
+                                                              @Param("phoneNumber") String invoiceNumber,
                                                             @Param("toDate") Instant toDate,
                                                               Pageable pageable);
 
@@ -65,12 +65,12 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
             " FROM SaleOrder s " +
             " WHERE (:orderType IS NULL OR s.orderType = :orderType OR :orderType = '') " +
             " AND (:paymentMethod IS NULL OR s.paymentMethod = :paymentMethod OR :paymentMethod = '') " +
-            " AND (LOWER(s.customer.phoneNumber) LIKE LOWER(CONCAT('%', :phoneNumber, '%')) OR :phoneNumber IS NULL OR :phoneNumber = '') " +
+            " AND (LOWER(s.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
             " AND (s.saleDate IS NULL OR s.saleDate BETWEEN :fromDate AND :toDate)" +
             " ORDER BY s.lastModifiedDate DESC")
     Page<SaleOrderResponseDto> getListSaleOrderPaging(@Param("orderType") OrderType orderType,
                                                       @Param("paymentMethod") PaymentMethod paymentMethod,
-                                                      @Param("phoneNumber") String phoneNumber,
+                                                      @Param("invoiceNumber") String invoiceNumber,
                                                       @Param("fromDate") Instant fromDate,
                                                       @Param("toDate") Instant toDate,
                                                       Pageable pageable);
