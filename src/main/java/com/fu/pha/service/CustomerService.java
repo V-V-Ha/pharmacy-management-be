@@ -20,4 +20,6 @@ public interface CustomerService {
     Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String phoneNumber, String status);
 
     List<CustomerDTOResponse> getCustomerByCustomerName(String customerName);
+
+    List<CustomerDTOResponse> findByPhoneNumber(String phoneNumber);
 }

@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/customer")
 public class CustomerController {
@@ -62,4 +64,11 @@ public class CustomerController {
         customerService.updateCustomerStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
+
+    @GetMapping("/get-customer-by-phone-number")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    public ResponseEntity<List<CustomerDTOResponse>> getCustomerByPhoneNumber(@RequestParam String phoneNumber) {
+        return ResponseEntity.ok(customerService.findByPhoneNumber(phoneNumber));
+    }
+
 }
