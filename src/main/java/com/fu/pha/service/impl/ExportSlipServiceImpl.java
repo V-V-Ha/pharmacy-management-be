@@ -358,7 +358,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         exportSlip.setInvoiceNumber(lastInvoiceNumber == null ? "EX000001" : generateCode.generateNewProductCode(lastInvoiceNumber));
         exportSlip.setExportDate(Instant.now());
         exportSlip.setTypeDelivery(exportDto.getTypeDelivery());
-        exportSlip.setDiscount(exportDto.getDiscount());
+        exportSlip.setDiscount(exportDto.getDiscount() != null ? exportDto.getDiscount() : 0.0);
         exportSlip.setNote(exportDto.getNote());
         exportSlip.setUser(user);
         exportSlip.setStatus(status);
@@ -480,7 +480,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         exportSlipItem.setConversionFactor(itemDto.getConversionFactor());
         exportSlipItem.setExpiryDate(itemDto.getExpiryDate());
         exportSlipItem.setUnitPrice(itemDto.getUnitPrice());
-        exportSlipItem.setDiscount(itemDto.getDiscount());
+        exportSlipItem.setDiscount(itemDto.getDiscount() != null ? itemDto.getDiscount() : 0.0);
         exportSlipItem.setTotalAmount(itemDto.getTotalAmount());
 
 

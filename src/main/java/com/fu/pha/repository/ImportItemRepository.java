@@ -38,35 +38,48 @@ public interface ImportItemRepository extends JpaRepository<ImportItem, Long> {
 
     // report
 
+    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.product.id = :productId AND ii.createDate  < :date AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
+    Integer sumQuantityBeforeDateByProduct(@Param("productId") Long productId, @Param("date") Instant date);
+
+    @Query("SELECT COALESCE(SUM(ii.totalAmount), 0) FROM ImportItem ii WHERE ii.product.id = :productId AND ii.createDate < :date AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
+    Double sumAmountBeforeDateByProduct(@Param("productId") Long productId, @Param("date") Instant date);
+
+    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.product.id = :productId AND ii.createDate BETWEEN :startDate AND :endDate AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
+    Integer sumQuantityByProductBetweenDates(@Param("productId") Long productId, @Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+
+    @Query("SELECT COALESCE(SUM(ii.totalAmount), 0) FROM ImportItem ii WHERE ii.product.id = :productId AND ii.createDate BETWEEN :startDate AND :endDate AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
+    Double sumAmountByProductBetweenDates(@Param("productId") Long productId, @Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+
+
     @Query("SELECT new com.fu.pha.dto.response.report.reportEntity.ImportItemReportDto(ii.id, ii.product.id, ii.product.productName, ii.remainingQuantity, (ii.remainingQuantity * ii.unitPrice / ii.conversionFactor), ii.expiryDate) " +
-            "FROM ImportItem ii WHERE ii.expiryDate <= :currentDate AND ii.remainingQuantity > 0")
+            "FROM ImportItem ii WHERE ii.expiryDate <= :currentDate AND ii.remainingQuantity > 0 AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     List<ImportItemReportDto> findExpiredItems(@Param("currentDate") Instant currentDate);
 
     @Query("SELECT new com.fu.pha.dto.response.report.reportEntity.ImportItemReportDto(ii.id, ii.product.id, ii.product.productName, ii.remainingQuantity, (ii.remainingQuantity * ii.unitPrice / ii.conversionFactor), ii.expiryDate) " +
-            "FROM ImportItem ii WHERE ii.expiryDate > :currentDate AND ii.expiryDate <= :nearExpiryDate AND ii.remainingQuantity > 0")
+            "FROM ImportItem ii WHERE ii.expiryDate > :currentDate AND ii.expiryDate <= :nearExpiryDate AND ii.remainingQuantity > 0 AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     List<ImportItemReportDto> findNearlyExpiredItems(@Param("currentDate") Instant currentDate, @Param("nearExpiryDate") Instant nearExpiryDate);
 
-    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate < :startDate")
+    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate < :startDate AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     Integer sumQuantityBeforeDate(@Param("startDate") Instant startDate);
 
 
-    @Query("SELECT COALESCE(SUM((ii.quantity * ii.unitPrice)), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate < :startDate")
+    @Query("SELECT COALESCE(SUM((ii.totalAmount)), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate < :startDate AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     Double sumAmountBeforeDate(@Param("startDate") Instant startDate);
 
-    @Query("SELECT COALESCE(SUM(ii.quantity * ii.unitPrice), 0) FROM ImportItem ii")
+    @Query("SELECT COALESCE(SUM(ii.totalAmount), 0) FROM ImportItem ii WHERE ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     Double sumAmountNow();
 
-    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate")
+    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     Integer sumQuantityBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
-    @Query("SELECT COALESCE(SUM(ii.quantity * ii.unitPrice), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate")
+    @Query("SELECT COALESCE(SUM(ii.totalAmount), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     Double sumAmountBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
-    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate")
+    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     Integer sumTotalImportQuantityBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
 
-    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate")
+    @Query("SELECT COALESCE(SUM(ii.totalAmount), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     Integer sumTotalQuantityBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
 }

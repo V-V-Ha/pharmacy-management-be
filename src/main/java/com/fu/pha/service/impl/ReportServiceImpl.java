@@ -1,8 +1,10 @@
 package com.fu.pha.service.impl;
 
 import com.fu.pha.dto.response.report.*;
+import com.fu.pha.dto.response.report.product.InventoryProductReportDto;
 import com.fu.pha.dto.response.report.reportEntity.ImportItemReportDto;
 import com.fu.pha.dto.response.report.reportEntity.ProductReportDto;
+import com.fu.pha.entity.Product;
 import com.fu.pha.enums.ExportType;
 import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.repository.*;
@@ -14,10 +16,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ReportServiceImpl implements ReportService {
@@ -128,9 +127,9 @@ public class ReportServiceImpl implements ReportService {
 
         // Tính tồn kho hiện tại
         Integer currentInventoryQuantity = productRepository.calculateCurrentInventoryQuantity();
-        Double currentInventoryAmount = productRepository.calculateCurrentInventoryAmount();
+        double currentInventoryAmount = beginningInventoryAmount + goodsReceivedAmount - goodsIssuedAmount;
         report.setCurrentInventoryQuantity(currentInventoryQuantity != null ? currentInventoryQuantity : 0);
-        report.setCurrentInventoryAmount(currentInventoryAmount != null ? currentInventoryAmount : 0.0);
+        report.setCurrentInventoryAmount(currentInventoryAmount);
 
         // Tính số lượng sản phẩm sắp hết hàng
         int nearlyOutOfStockProducts = productRepository.findNearlyOutOfStockProducts(10).size();
@@ -218,6 +217,122 @@ public class ReportServiceImpl implements ReportService {
     private double calculateGoodsReturnedAmount(Instant startDate, Instant endDate) {
         return Optional.ofNullable(exportSlipItemRepository.sumAmountByTypeBetweenDates(ExportType.RETURN_TO_SUPPLIER, startDate, endDate)).orElse(0.0);
     }
+
+
+
+    @Override
+    public List<InventoryProductReportDto> getInventoryReportByProduct(LocalDate startDate, LocalDate endDate, Integer month, Integer year) {
+        List<Product> products = productRepository.findAll(); // Lấy danh sách sản phẩm
+        List<InventoryProductReportDto> reportList = new ArrayList<>();
+
+        Instant startInstant;
+        Instant endInstant;
+
+        // Xác định khoảng thời gian
+        if (month != null && year != null) {
+            startInstant = LocalDate.of(year, month, 1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = LocalDate.of(year, month, startDate.lengthOfMonth()).atTime(23, 59, 59)
+                    .atZone(ZoneId.systemDefault()).toInstant();
+        } else if (year != null) {
+            startInstant = LocalDate.of(year, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = LocalDate.of(year, 12, 31).atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        } else if (startDate != null && endDate != null) {
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        } else {
+            startInstant = Instant.now().minus(1, ChronoUnit.DAYS);
+            endInstant = Instant.now();
+        }
+
+        // Lặp qua từng sản phẩm
+        for (Product product : products) {
+            Long productId = product.getId();
+            InventoryProductReportDto report = new InventoryProductReportDto();
+            report.setProductName(product.getProductName());
+
+            // Tồn đầu kỳ
+            int beginningQuantity = calculateBeginningInventoryQuantityByProduct(productId, startInstant);
+            double beginningAmount = calculateBeginningInventoryAmountByProduct(productId, startInstant);
+            report.setBeginningInventoryQuantity(beginningQuantity);
+            report.setBeginningInventoryAmount(beginningAmount);
+
+            // Nhập kho
+            int receivedQuantity = calculateGoodsReceivedQuantityByProduct(productId, startInstant, endInstant);
+            double receivedAmount = calculateGoodsReceivedAmountByProduct(productId, startInstant, endInstant);
+            report.setGoodsReceivedQuantity(receivedQuantity);
+            report.setGoodsReceivedAmount(receivedAmount);
+
+            // Xuất kho
+            int issuedQuantity = calculateGoodsIssuedQuantityByProduct(productId, startInstant, endInstant);
+            double issuedAmount = calculateGoodsIssuedAmountByProduct(productId, startInstant, endInstant);
+            report.setGoodsIssuedQuantity(issuedQuantity);
+            report.setGoodsIssuedAmount(issuedAmount);
+
+            // Tồn cuối kỳ
+            int endingQuantity = beginningQuantity + receivedQuantity - issuedQuantity;
+            double endingAmount = beginningAmount + receivedAmount - issuedAmount;
+            report.setEndingInventoryQuantity(endingQuantity);
+            report.setEndingInventoryAmount(endingAmount);
+
+            reportList.add(report);
+        }
+
+        return reportList;
+    }
+
+    // Các phương thức hỗ trợ cho báo cáo kho theo sản phẩm
+
+    private int calculateBeginningInventoryQuantityByProduct(Long productId, Instant startDate) {
+        Integer totalReceivedBeforeStart = Optional.ofNullable(importItemRepository.sumQuantityBeforeDateByProduct(productId, startDate)).orElse(0);
+        Integer totalExportedBeforeStart = Optional.ofNullable(exportSlipItemRepository.sumQuantityBeforeDateByProduct(productId, startDate)).orElse(0);
+        Integer totalSoldBeforeStart = Optional.ofNullable(saleOrderItemRepository.sumQuantityBeforeDateByProduct(productId, startDate)).orElse(0);
+        Integer totalReturnedBeforeStart = Optional.ofNullable(returnOrderItemRepository.sumQuantityBeforeDateByProduct(productId, startDate)).orElse(0);
+
+        // Tồn đầu kỳ (số lượng) = Tổng nhập trước kỳ - (Tổng xuất trước kỳ + Tổng bán trước kỳ) + Tổng trả lại trước kỳ
+        return totalReceivedBeforeStart - (totalExportedBeforeStart + totalSoldBeforeStart) + totalReturnedBeforeStart;
+    }
+
+    private double calculateBeginningInventoryAmountByProduct(Long productId, Instant startDate) {
+        Double totalReceivedAmountBeforeStart = Optional.ofNullable(importItemRepository.sumAmountBeforeDateByProduct(productId, startDate)).orElse(0.0);
+        Double totalExportedAmountBeforeStart = Optional.ofNullable(exportSlipItemRepository.sumAmountBeforeDateByProduct(productId, startDate)).orElse(0.0);
+        Double totalSoldAmountBeforeStart = Optional.ofNullable(saleOrderItemRepository.sumAmountBeforeDateByProduct(productId, startDate)).orElse(0.0);
+        Double totalReturnedAmountBeforeStart = Optional.ofNullable(returnOrderItemRepository.sumAmountBeforeDateByProduct(productId, startDate)).orElse(0.0);
+
+        // Tồn đầu kỳ (tổng tiền) = Tổng nhập trước kỳ - (Tổng xuất trước kỳ + Tổng bán trước kỳ) + Tổng trả lại trước kỳ
+        return totalReceivedAmountBeforeStart - (totalExportedAmountBeforeStart + totalSoldAmountBeforeStart) + totalReturnedAmountBeforeStart;
+    }
+
+    private int calculateGoodsReceivedQuantityByProduct(Long productId, Instant startDate, Instant endDate) {
+        return Optional.ofNullable(importItemRepository.sumQuantityByProductBetweenDates(productId, startDate, endDate)).orElse(0);
+    }
+
+    private double calculateGoodsReceivedAmountByProduct(Long productId, Instant startDate, Instant endDate) {
+        return Optional.ofNullable(importItemRepository.sumAmountByProductBetweenDates(productId, startDate, endDate)).orElse(0.0);
+    }
+
+
+    private int calculateGoodsIssuedQuantityByProduct(Long productId, Instant startDate, Instant endDate) {
+        Integer totalExported = Optional.ofNullable(exportSlipItemRepository.sumQuantityByProductBetweenDates(productId, startDate, endDate)).orElse(0);
+        Integer totalSold = Optional.ofNullable(saleOrderItemRepository.sumQuantityByProductBetweenDates(productId, startDate, endDate)).orElse(0);
+        Integer totalReturned = Optional.ofNullable(returnOrderItemRepository.sumQuantityByProductBetweenDates(productId, startDate, endDate)).orElse(0);
+
+        // Tổng xuất kho (số lượng) = Tổng xuất trong kỳ + Tổng bán trong kỳ - Tổng trả lại trong kỳ
+        return totalExported + totalSold - totalReturned;
+    }
+
+    private double calculateGoodsIssuedAmountByProduct(Long productId, Instant startDate, Instant endDate) {
+        Double totalExportedAmount = Optional.ofNullable(exportSlipItemRepository.sumAmountByProductBetweenDates(productId, startDate, endDate)).orElse(0.0);
+        Double totalSoldAmount = Optional.ofNullable(saleOrderItemRepository.sumAmountByProductBetweenDates(productId, startDate, endDate)).orElse(0.0);
+        Double totalReturnedAmount = Optional.ofNullable(returnOrderItemRepository.sumAmountByProductBetweenDates(productId, startDate, endDate)).orElse(0.0);
+
+        // Tổng xuất kho (tổng tiền) = Tổng tiền xuất trong kỳ + Tổng tiền bán trong kỳ - Tổng tiền trả lại trong kỳ
+        return totalExportedAmount + totalSoldAmount - totalReturnedAmount;
+    }
+
+
+
+
+
 
     // -------------------- Báo cáo bán hàng --------------------
 
