@@ -29,6 +29,10 @@ public class SaleOrderResponseDto {
     private Long userId;
     private String diagnosis;
     private List<SaleOrderItemResponseDto> saleOrderItems;
+    private Instant lastModifiedDate;
+    private Instant createdDate;
+    private String lastModifiedBy;
+    private String createdBy;
 
     public SaleOrderResponseDto(SaleOrder saleOrder) {
         this.id = saleOrder.getId();
@@ -45,6 +49,10 @@ public class SaleOrderResponseDto {
         this.saleOrderItems = saleOrder.getSaleOrderItemList().stream()
                 .map(SaleOrderItemResponseDto::new)
                 .collect(Collectors.toList());
+        this.createdBy = saleOrder.getCreateBy();
+        this.lastModifiedBy = saleOrder.getLastModifiedBy();
+        this.createdDate = saleOrder.getCreateDate();
+        this.lastModifiedDate = saleOrder.getLastModifiedDate();
     }
 
 

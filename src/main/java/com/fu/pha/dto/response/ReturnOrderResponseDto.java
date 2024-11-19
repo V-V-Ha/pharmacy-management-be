@@ -25,6 +25,10 @@ public class ReturnOrderResponseDto {
     private Instant returnDate;
     private String returnReason;
     private List<ReturnOrderItemResponseDto> returnOrderItems;
+    private Instant lastModifiedDate;
+    private Instant createdDate;
+    private String lastModifiedBy;
+    private String createdBy;
 
     public ReturnOrderResponseDto(ReturnOrder returnOrder) {
         this.id = returnOrder.getId();
@@ -36,5 +40,9 @@ public class ReturnOrderResponseDto {
         this.returnOrderItems = returnOrder.getReturnOrderItems().stream()
                 .map(ReturnOrderItemResponseDto::new)
                 .collect(Collectors.toList());
+        this.createdBy = returnOrder.getCreateBy();
+        this.lastModifiedBy = returnOrder.getLastModifiedBy();
+        this.createdDate = returnOrder.getCreateDate();
+        this.lastModifiedDate = returnOrder.getLastModifiedDate();
     }
 }
