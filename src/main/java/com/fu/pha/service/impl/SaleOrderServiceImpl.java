@@ -116,6 +116,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             saleOrderItem.setConversionFactor(itemRequestDto.getConversionFactor());
             saleOrderItem.setDosage(itemRequestDto.getDosage());
             saleOrderItem.setUnit(itemRequestDto.getUnit());
+            saleOrderItem.setReturnedQuantity(0);
 
             double itemTotalAmount = calculateSaleOrderItemTotalAmount(itemRequestDto);
             saleOrderItem.setTotalAmount(itemTotalAmount);
@@ -124,6 +125,15 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             saleOrderItems.add(saleOrderItem);
 
             totalOrderAmount += itemTotalAmount;
+        }
+
+        if (saleOrderRequestDto.getTotalAmount() != null) {
+            double feTotalAmount = saleOrderRequestDto.getTotalAmount();
+            if (Math.abs(totalOrderAmount - feTotalAmount) > 0.01) { // Cho phép sai số nhỏ
+                throw new BadRequestException(Message.TOTAL_AMOUNT_NOT_MATCH);
+            }
+        } else {
+            throw new BadRequestException(Message.TOTAL_AMOUNT_REQUIRED);
         }
 
         // Cập nhật tổng tiền cho SaleOrder
@@ -147,7 +157,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             List<ImportItem> batches = importItemRepository.findByProductIdOrderByCreateDateAsc(product.getId());
             int remainingQuantity = smallestQuantityToSell;
 
-            List<SaleOrderItemBatch> saleOrderItemBatches = new ArrayList<>();
+            
             for (ImportItem batch : batches) {
                 if (batch.getRemainingQuantity() > 0) {
                     int quantityFromBatch = Math.min(batch.getRemainingQuantity(), remainingQuantity);
