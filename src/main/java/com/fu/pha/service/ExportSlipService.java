@@ -20,8 +20,6 @@ public interface ExportSlipService {
 
     void rejectExport(Long exportSlipId, String reason);
 
-    void softDeleteExportSlip(Long exportSlipId);
-
     ExportSlipResponseDto getActiveExportSlipById(Long exportSlipId);
 
     Page<ExportSlipResponseDto> getAllExportSlipPaging(int page, int size, ExportType exportType, OrderStatus status, Instant fromDate, Instant toDate);

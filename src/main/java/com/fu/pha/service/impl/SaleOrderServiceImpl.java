@@ -35,7 +35,6 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     @Autowired
     private SaleOrderItemRepository saleOrderItemRepository;
 
-
     @Autowired
     private ImportItemRepository importItemRepository;
 
@@ -206,7 +205,6 @@ public class SaleOrderServiceImpl implements SaleOrderService {
 
         return total;
     }
-
 
     @Override
     @Transactional
@@ -484,8 +482,6 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         inventoryHistoryRepository.save(inventoryHistory);
     }
 
-
-    
     public SaleOrderResponseDto getSaleOrderById(Long saleOrderId) {
         // 1. Truy vấn SaleOrder từ cơ sở dữ liệu
         SaleOrder saleOrder = saleOrderRepository.findById(saleOrderId)

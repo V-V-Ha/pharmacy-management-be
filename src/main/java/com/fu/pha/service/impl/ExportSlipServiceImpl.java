@@ -265,8 +265,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         exportSlipRepository.save(exportSlip);
     }
 
-
-
     @Transactional
     @Override
     public void confirmExport(Long exportSlipId) {
@@ -419,9 +417,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         return total;
     }
 
-
-
-
     private void processStockForConfirmedExport(ExportSlipItem exportSlipItem) {
         Product product = exportSlipItem.getProduct();
         Integer currentTotalQuantity = product.getTotalQuantity();
@@ -451,7 +446,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
                 "Export confirmed (ExportSlip ID: " + exportSlipItem.getExportSlip().getId() + ")"
         );
     }
-
 
     private ExportSlipItem createExportSlipItem(ExportSlipItemRequestDto itemDto, ExportSlip exportSlip) {
         ExportSlipItem exportSlipItem = new ExportSlipItem();
@@ -497,26 +491,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         inventoryHistory.setChangeQuantity(totalChangeQuantity);
         inventoryHistory.setReason(reason);
         inventoryHistoryRepository.save(inventoryHistory);
-    }
-
-
-    @Transactional
-    @Override
-    public void softDeleteExportSlip(Long exportSlipId) {
-        // Tìm ExportSlip bằng ID
-        ExportSlip exportSlip = exportSlipRepository.findById(exportSlipId)
-                .orElseThrow(() -> new ResourceNotFoundException(Message.EXPORT_SLIP_NOT_FOUND));
-
-        // Đánh dấu xóa mềm
-        exportSlip.setIsDeleted(true);
-        exportSlipRepository.save(exportSlip);
-
-        // Xóa mềm các ExportSlipItem liên quan
-        List<ExportSlipItem> exportSlipItems = exportSlipItemRepository.findByExportSlipId(exportSlipId);
-        for (ExportSlipItem exportSlipItem : exportSlipItems) {
-            exportSlipItem.setIsDeleted(true);
-            exportSlipItemRepository.save(exportSlipItem);
-        }
     }
 
     // Lấy danh sách các phiếu xuất kho chưa bị xóa mềm
@@ -585,7 +559,4 @@ public class ExportSlipServiceImpl implements ExportSlipService {
                 .map(ExportSlipResponseDto::new)  // Sử dụng constructor của DTO để chuyển đổi
                 .collect(Collectors.toList());
     }
-
-
-
 }

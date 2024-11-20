@@ -70,7 +70,6 @@ public class ImportServiceImpl implements ImportService {
     @Autowired
     private InventoryHistoryRepository inventoryHistoryRepository;
 
-
     @Override
     public List<UnitDto> getUnitByProductId(Long productId) {
         Optional<Product> product = productRepository.getProductById(productId);
@@ -87,6 +86,7 @@ public class ImportServiceImpl implements ImportService {
                 ))
                 .collect(Collectors.toList());
     }
+
     @Override
     public List<ProductDTOResponse> getProductByProductName(String productName) {
         Optional<List<ProductDTOResponse>> product = productRepository.findProductByProductName(productName);
@@ -216,7 +216,6 @@ public class ImportServiceImpl implements ImportService {
         importReceipt.setTotalAmount(totalAmount);
         importRepository.save(importReceipt);
     }
-
 
     @Override
     public Page<ImportViewListDto> getAllImportPaging(int page, int size, String supplierName, OrderStatus status, Instant fromDate, Instant toDate) {
@@ -531,6 +530,7 @@ public class ImportServiceImpl implements ImportService {
 
         return totalAmount;
     }
+
     private double calculateImportItemTotalAmount(ImportItemRequestDto itemDto) {
         double unitPrice = itemDto.getUnitPrice();
         int quantity = itemDto.getQuantity();
@@ -573,7 +573,6 @@ public class ImportServiceImpl implements ImportService {
         return importItem;
     }
 
-
     private void updateProductQuantityAndPrice(ImportItemRequestDto itemDto, ImportItem importItem) {
         Product product = importItem.getProduct();
         Integer currentTotalQuantity = product.getTotalQuantity();
@@ -587,7 +586,6 @@ public class ImportServiceImpl implements ImportService {
 
         updateProductUnits(product, itemDto);
     }
-
 
     // Hàm cập nhật giá nhập cho ProductUnit
     private void updateProductUnits(Product product, ImportItemRequestDto itemDto) {
@@ -617,8 +615,6 @@ public class ImportServiceImpl implements ImportService {
         inventoryHistoryRepository.save(inventoryHistory);
     }
 
-
-
     private String uploadImage(final MultipartFile file) {
         if (file.isEmpty()) {
             throw new BadRequestException(Message.EMPTY_FILE);
@@ -638,7 +634,6 @@ public class ImportServiceImpl implements ImportService {
 
         return cloudinaryResponse.getUrl();
     }
-
 
     private ImportItemRequestDto convertItemToDto(ImportItem importItem) {
         ImportItemRequestDto itemDto = new ImportItemRequestDto();

@@ -59,12 +59,6 @@ public class ExportSlipController {
         return ResponseEntity.ok(Message.REJECT_SUCCESS);
     }
 
-    @DeleteMapping("/delete-export-slip/{exportSlipId}")
-    public ResponseEntity<String> deleteExportSlip(@PathVariable Long exportSlipId) {
-        exportSlipService.softDeleteExportSlip(exportSlipId);
-        return ResponseEntity.ok(Message.DELETE_SUCCESS);
-    }
-
     @GetMapping("/get-export-slip/{exportSlipId}")
     public ResponseEntity<?> getExportSlip(@PathVariable Long exportSlipId) {
         return ResponseEntity.ok(exportSlipService.getActiveExportSlipById(exportSlipId));
