@@ -154,4 +154,16 @@ public class CustomerServiceImpl implements CustomerService {
         }
     }
 
+    //find customer by phone number
+    @Override
+    public List<CustomerDTOResponse> findByPhoneNumber(String phoneNumber) {
+        Optional<List<CustomerDTOResponse>> customers = customerRepository.findByPhoneNumberContaining(phoneNumber);
+        if (customers.isEmpty()) {
+            throw new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND);
+        }
+
+        return customers.get();
+
+    }
+
 }

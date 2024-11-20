@@ -26,7 +26,11 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
                                                     Pageable pageable);
 
 
+
     Optional<Customer> findByPhoneNumber(String phoneNumber);
+
+    @Query("SELECT new com.fu.pha.dto.response.CustomerDTOResponse(c) FROM Customer c WHERE LOWER(c.phoneNumber) LIKE LOWER(CONCAT('%', :phoneNumber, '%'))")
+    Optional<List<CustomerDTOResponse>> findByPhoneNumberContaining(String phoneNumber);
 
     Optional<Customer> findById(Long id);
 
