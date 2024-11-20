@@ -353,8 +353,8 @@ public class ReportServiceImpl implements ReportService {
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
             // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
-            startInstant = Instant.MIN;  // Mốc thời gian rất xa trong quá khứ
-            endInstant = Instant.now();  // Thời gian hiện tại
+            startInstant = Instant.MIN;
+            endInstant = Instant.now();
         }
 
         // Tổng số hóa đơn
@@ -381,6 +381,11 @@ public class ReportServiceImpl implements ReportService {
 
         return report;
     }
+
+    
+
+
+
 
     // -------------------- Báo cáo nhà cung cấp --------------------
 
