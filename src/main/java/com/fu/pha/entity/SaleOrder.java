@@ -70,4 +70,7 @@ public class SaleOrder extends BaseEntity{
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
 
+    @Column(name = "check_back_order")
+    private Boolean checkBackOrder;
+
 }

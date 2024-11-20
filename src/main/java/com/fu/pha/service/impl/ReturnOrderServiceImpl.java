@@ -171,6 +171,8 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
         // 4. Cập nhật tổng số tiền hoàn lại vào ReturnOrder và lưu lại
         returnOrder.setRefundAmount(totalRefundAmount);
         returnOrderRepository.save(returnOrder);
+        saleOrder.setCheckBackOrder(true);
+        saleOrderRepository.save(saleOrder);
     }
 
 

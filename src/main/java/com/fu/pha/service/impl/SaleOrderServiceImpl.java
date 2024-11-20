@@ -89,6 +89,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         saleOrder.setUser(user);
         saleOrder.setDoctor(doctor);
         saleOrder.setDiagnosis(saleOrderRequestDto.getDiagnosis());
+        saleOrder.setCheckBackOrder(false);
 
         // Thiết lập trạng thái thanh toán
         if (saleOrderRequestDto.getPaymentMethod() == PaymentMethod.CASH) {
@@ -157,7 +158,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             List<ImportItem> batches = importItemRepository.findByProductIdOrderByCreateDateAsc(product.getId());
             int remainingQuantity = smallestQuantityToSell;
 
-            
+
             for (ImportItem batch : batches) {
                 if (batch.getRemainingQuantity() > 0) {
                     int quantityFromBatch = Math.min(batch.getRemainingQuantity(), remainingQuantity);

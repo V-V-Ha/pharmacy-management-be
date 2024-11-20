@@ -33,6 +33,7 @@ public class SaleOrderResponseDto {
     private Instant createdDate;
     private String lastModifiedBy;
     private String createdBy;
+    private Boolean checkBackOrder;
 
     public SaleOrderResponseDto(SaleOrder saleOrder) {
         this.id = saleOrder.getId();
@@ -53,6 +54,7 @@ public class SaleOrderResponseDto {
         this.lastModifiedBy = saleOrder.getLastModifiedBy();
         this.createdDate = saleOrder.getCreateDate();
         this.lastModifiedDate = saleOrder.getLastModifiedDate();
+        this.checkBackOrder = saleOrder.getCheckBackOrder();
     }
 
 
