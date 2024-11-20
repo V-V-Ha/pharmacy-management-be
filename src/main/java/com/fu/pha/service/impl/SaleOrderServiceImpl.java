@@ -294,11 +294,21 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                 saleOrderItemNew.setDosage(itemRequestDto.getDosage());
                 saleOrderItemNew.setUnit(itemRequestDto.getUnit());
                 saleOrderItemNew.setTotalAmount(calculateSaleOrderItemTotalAmount(itemRequestDto));
+                saleOrderItemNew.setReturnedQuantity(0);
 
                 saleOrderItemRepository.save(saleOrderItemNew);
             }
 
             totalOrderAmount += calculateSaleOrderItemTotalAmount(itemRequestDto);
+        }
+
+        if (saleOrderRequestDto.getTotalAmount() != null) {
+            double feTotalAmount = saleOrderRequestDto.getTotalAmount();
+            if (Math.abs(totalOrderAmount - feTotalAmount) > 0.01) { // Cho phép sai số nhỏ
+                throw new BadRequestException(Message.TOTAL_AMOUNT_NOT_MATCH);
+            }
+        } else {
+            throw new BadRequestException(Message.TOTAL_AMOUNT_REQUIRED);
         }
 
         // Xóa các SaleOrderItem không còn trong yêu cầu
@@ -310,7 +320,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         saleOrder.setTotalAmount(totalOrderAmount - saleOrder.getDiscount());
         saleOrderRepository.save(saleOrder);
     }
-    
+
     public SaleOrderResponseDto getSaleOrderById(Long saleOrderId) {
         // 1. Truy vấn SaleOrder từ cơ sở dữ liệu
         SaleOrder saleOrder = saleOrderRepository.findById(saleOrderId)
