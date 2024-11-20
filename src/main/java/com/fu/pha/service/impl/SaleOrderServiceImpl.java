@@ -90,29 +90,60 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         saleOrder.setDoctor(doctor);
         saleOrder.setDiagnosis(saleOrderRequestDto.getDiagnosis());
 
-        // Nếu thanh toán là tiền mặt, trạng thái là PAID, thực hiện lưu các thông tin kho
+        // Thiết lập trạng thái thanh toán
         if (saleOrderRequestDto.getPaymentMethod() == PaymentMethod.CASH) {
             saleOrder.setPaymentStatus(PaymentStatus.PAID);
-            saleOrderRepository.save(saleOrder);
-            processOrderInventory(saleOrder, saleOrderRequestDto);
         } else {
-            // Nếu là chuyển khoản, chỉ lưu trạng thái UNPAID
             saleOrder.setPaymentStatus(PaymentStatus.UNPAID);
-            saleOrderRepository.save(saleOrder);
+        }
+
+        // Lưu SaleOrder
+        saleOrderRepository.save(saleOrder);
+
+        // Lưu các SaleOrderItem
+        double totalOrderAmount = 0.0;
+        List<SaleOrderItem> saleOrderItems = new ArrayList<>();
+        for (SaleOrderItemRequestDto itemRequestDto : saleOrderRequestDto.getSaleOrderItems()) {
+            Product product = productRepository.findById(itemRequestDto.getProductId())
+                    .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
+
+            SaleOrderItem saleOrderItem = new SaleOrderItem();
+            saleOrderItem.setSaleOrder(saleOrder);
+            saleOrderItem.setProduct(product);
+            saleOrderItem.setQuantity(itemRequestDto.getQuantity());
+            saleOrderItem.setUnitPrice(itemRequestDto.getUnitPrice());
+            saleOrderItem.setDiscount(itemRequestDto.getDiscount() != null ? itemRequestDto.getDiscount() : 0.0);
+            saleOrderItem.setConversionFactor(itemRequestDto.getConversionFactor());
+            saleOrderItem.setDosage(itemRequestDto.getDosage());
+            saleOrderItem.setUnit(itemRequestDto.getUnit());
+
+            double itemTotalAmount = calculateSaleOrderItemTotalAmount(itemRequestDto);
+            saleOrderItem.setTotalAmount(itemTotalAmount);
+
+            saleOrderItemRepository.save(saleOrderItem);
+            saleOrderItems.add(saleOrderItem);
+
+            totalOrderAmount += itemTotalAmount;
+        }
+
+        // Cập nhật tổng tiền cho SaleOrder
+        saleOrder.setTotalAmount(totalOrderAmount - saleOrder.getDiscount());
+        saleOrderRepository.save(saleOrder);
+
+        // Nếu thanh toán là tiền mặt, thực hiện cập nhật kho
+        if (saleOrder.getPaymentStatus() == PaymentStatus.PAID) {
+            processOrderInventory(saleOrder);
         }
 
         return saleOrder.getId().intValue();
     }
 
     // Xử lý logic cập nhật kho, batch, product khi thanh toán hoàn tất
-    private void processOrderInventory(SaleOrder saleOrder, SaleOrderRequestDto saleOrderRequestDto) {
-        double totalOrderAmount = 0.0;
+    private void processOrderInventory(SaleOrder saleOrder) {
+        for (SaleOrderItem saleOrderItem : saleOrder.getSaleOrderItemList()) {
+            Product product = saleOrderItem.getProduct();
 
-        for (SaleOrderItemRequestDto itemRequestDto : saleOrderRequestDto.getSaleOrderItems()) {
-            Product product = productRepository.findById(itemRequestDto.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
-
-            int smallestQuantityToSell = itemRequestDto.getQuantity() * itemRequestDto.getConversionFactor();
+            int smallestQuantityToSell = saleOrderItem.getQuantity() * saleOrderItem.getConversionFactor();
             List<ImportItem> batches = importItemRepository.findByProductIdOrderByCreateDateAsc(product.getId());
             int remainingQuantity = smallestQuantityToSell;
 
@@ -126,7 +157,8 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                     SaleOrderItemBatch saleOrderItemBatch = new SaleOrderItemBatch();
                     saleOrderItemBatch.setImportItem(batch);
                     saleOrderItemBatch.setQuantity(quantityFromBatch);
-                    saleOrderItemBatches.add(saleOrderItemBatch);
+                    saleOrderItemBatch.setSaleOrderItem(saleOrderItem);
+                    saleOrderItemBatchRepository.save(saleOrderItemBatch);
 
                     remainingQuantity -= quantityFromBatch;
                     if (remainingQuantity <= 0) break;
@@ -137,26 +169,12 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                 throw new BadRequestException(Message.OUT_OF_STOCK);
             }
 
-            SaleOrderItem saleOrderItem = new SaleOrderItem();
-            saleOrderItem.setSaleOrder(saleOrder);
-            saleOrderItem.setProduct(product);
-            saleOrderItem.setQuantity(itemRequestDto.getQuantity());
-            saleOrderItem.setUnitPrice(itemRequestDto.getUnitPrice());
-            saleOrderItem.setDiscount(itemRequestDto.getDiscount());
-            saleOrderItemRepository.save(saleOrderItem);
-
-            for (SaleOrderItemBatch saleOrderItemBatch : saleOrderItemBatches) {
-                saleOrderItemBatch.setSaleOrderItem(saleOrderItem);
-                saleOrderItemBatchRepository.save(saleOrderItemBatch);
-            }
-
-            double itemTotalAmount = calculateSaleOrderItemTotalAmount(itemRequestDto);
-            totalOrderAmount += itemTotalAmount;
+            // Cập nhật tồn kho của sản phẩm
+            product.setTotalQuantity(product.getTotalQuantity() - smallestQuantityToSell);
+            productRepository.save(product);
         }
-
-        saleOrder.setTotalAmount(totalOrderAmount - saleOrder.getDiscount());
-        saleOrderRepository.save(saleOrder);
     }
+
 
     @Override
     @Transactional
@@ -169,13 +187,14 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             throw new BadRequestException(Message.ORDER_ALREADY_PAID);
         }
 
-        // Cập nhật trạng thái thành PAID và thực hiện logic lưu kho
+        // Cập nhật trạng thái thành PAID
         saleOrder.setPaymentStatus(PaymentStatus.PAID);
         saleOrderRepository.save(saleOrder);
 
         // Gọi hàm xử lý cập nhật kho
-        processOrderInventory(saleOrder, null);
+        processOrderInventory(saleOrder);
     }
+
 
     private double calculateSaleOrderItemTotalAmount(SaleOrderItemRequestDto itemRequestDto) {
         double unitPrice = itemRequestDto.getUnitPrice();
@@ -246,7 +265,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                 // Cập nhật thông tin SaleOrderItem hiện có
                 saleOrderItem.setQuantity(quantity);
                 saleOrderItem.setUnitPrice(unitPrice);
-                saleOrderItem.setDiscount(itemRequestDto.getDiscount());
+                saleOrderItem.setDiscount(itemRequestDto.getDiscount() != null ? itemRequestDto.getDiscount() : 0.0);
                 saleOrderItem.setConversionFactor(itemRequestDto.getConversionFactor());
                 saleOrderItem.setDosage(itemRequestDto.getDosage());
                 saleOrderItem.setUnit(itemRequestDto.getUnit());
@@ -261,7 +280,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                 saleOrderItemNew.setProduct(product);
                 saleOrderItemNew.setQuantity(quantity);
                 saleOrderItemNew.setUnitPrice(unitPrice);
-                saleOrderItemNew.setDiscount(itemRequestDto.getDiscount());
+                saleOrderItemNew.setDiscount(itemRequestDto.getDiscount() != null ? itemRequestDto.getDiscount() : 0.0);
                 saleOrderItemNew.setConversionFactor(itemRequestDto.getConversionFactor());
                 saleOrderItemNew.setDosage(itemRequestDto.getDosage());
                 saleOrderItemNew.setUnit(itemRequestDto.getUnit());
@@ -279,12 +298,12 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         }
 
         // Cập nhật tổng tiền
-        saleOrder.setTotalAmount(totalOrderAmount - saleOrderRequestDto.getDiscount());
+        saleOrder.setTotalAmount(totalOrderAmount - saleOrder.getDiscount());
         saleOrderRepository.save(saleOrder);
     }
 
 
-    
+
     public SaleOrderResponseDto getSaleOrderById(Long saleOrderId) {
         // 1. Truy vấn SaleOrder từ cơ sở dữ liệu
         SaleOrder saleOrder = saleOrderRepository.findById(saleOrderId)
