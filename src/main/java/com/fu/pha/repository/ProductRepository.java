@@ -38,7 +38,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                                                   @Param("status") Status status,
                                                   Pageable pageable);
 
-    @Query("SELECT new com.fu.pha.dto.response.ProductDTOResponse(p) FROM Product p WHERE (LOWER(p.productName) LIKE lower(concat('%', :productName, '%')))")
+    @Query("SELECT new com.fu.pha.dto.response.ProductDTOResponse(p) FROM Product p WHERE (LOWER(p.productName) LIKE lower(concat('%', :productName, '%')))" +
+            " and p.status = 'ACTIVE'")
     Optional<List<ProductDTOResponse>> findProductByProductName(String productName);
 
     @Query("SELECT new com.fu.pha.dto.response.ProductDTOResponse(p) " +
