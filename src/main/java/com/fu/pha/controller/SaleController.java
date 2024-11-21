@@ -65,6 +65,12 @@ public class SaleController {
         return ResponseEntity.ok(saleOrderService.getSaleOrderById(saleOrderId));
     }
 
+    @PutMapping("/complete-payment/{orderId}")
+    public ResponseEntity<String> completePayment(@PathVariable Long orderId) {
+        saleOrderService.completePayment(orderId);
+        return ResponseEntity.ok(Message.PAYMENT_COMPLETED);
+    }
+
     @GetMapping("/get-all-sale-order-paging")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<PageResponseModel<SaleOrderResponseDto>> getAllSaleOrderPaging(
