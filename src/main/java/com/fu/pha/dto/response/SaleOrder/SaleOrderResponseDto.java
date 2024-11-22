@@ -7,6 +7,7 @@ import com.fu.pha.dto.response.importPack.ImportItemResponseDto;
 import com.fu.pha.entity.SaleOrder;
 import com.fu.pha.enums.OrderType;
 import com.fu.pha.enums.PaymentMethod;
+import com.fu.pha.enums.PaymentStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -22,6 +23,7 @@ public class SaleOrderResponseDto {
     private Instant saleDate;
     private OrderType orderType;
     private PaymentMethod paymentMethod;
+    private PaymentStatus paymentStatus;
     private Double discount;
     private Double totalAmount;
     private CustomerDTOResponse customer;
@@ -33,6 +35,7 @@ public class SaleOrderResponseDto {
     private Instant createdDate;
     private String lastModifiedBy;
     private String createdBy;
+    private String fullName;
     private Boolean checkBackOrder;
 
     public SaleOrderResponseDto(SaleOrder saleOrder) {
@@ -41,6 +44,7 @@ public class SaleOrderResponseDto {
         this.saleDate = saleOrder.getSaleDate();
         this.orderType = saleOrder.getOrderType();
         this.paymentMethod = saleOrder.getPaymentMethod();
+        this.paymentStatus = saleOrder.getPaymentStatus();
         this.discount = saleOrder.getDiscount();
         this.totalAmount = saleOrder.getTotalAmount();
         this.customer = new CustomerDTOResponse(saleOrder.getCustomer());
@@ -51,6 +55,7 @@ public class SaleOrderResponseDto {
                 .map(SaleOrderItemResponseDto::new)
                 .collect(Collectors.toList());
         this.createdBy = saleOrder.getCreateBy();
+        this.fullName = saleOrder.getUser().getFullName();
         this.lastModifiedBy = saleOrder.getLastModifiedBy();
         this.createdDate = saleOrder.getCreateDate();
         this.lastModifiedDate = saleOrder.getLastModifiedDate();

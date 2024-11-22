@@ -27,6 +27,7 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
                                                 Pageable pageable);
 
     @Query("SELECT new com.fu.pha.dto.response.DoctorDTOResponse(d) FROM Doctor d WHERE " +
-            "(LOWER(d.fullName) LIKE LOWER(CONCAT('%', :doctorName, '%')))")
+            "(LOWER(d.fullName) LIKE LOWER(CONCAT('%', :doctorName, '%')))" +
+            " and d.status = 'ACTIVE'")
     Optional<List<DoctorDTOResponse>> findByDoctorName(String doctorName);
 }

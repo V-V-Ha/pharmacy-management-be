@@ -31,6 +31,7 @@ public class ExportSlipResponseDto {
     private Long productCount;
     private String status;
     private String createBy;
+    private String fullName;
     private Instant createDate;
     private Instant lastModifiedDate;
     private String lastModifiedBy;
@@ -62,6 +63,7 @@ public class ExportSlipResponseDto {
                 .distinct()
                 .count();
         this.createBy = exportSlip.getCreateBy();
+        this.fullName = exportSlip.getUser().getFullName();
         this.createDate = exportSlip.getCreateDate();
         this.lastModifiedBy = exportSlip.getLastModifiedBy();
         this.lastModifiedDate = exportSlip.getLastModifiedDate();

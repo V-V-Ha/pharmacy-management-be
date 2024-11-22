@@ -40,7 +40,8 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
 
     @Query("SELECT new com.fu.pha.dto.request.SupplierDto(s.id, s.supplierName, s.address, s.phoneNumber, s.email, s.tax, s.status) " +
             "FROM Supplier s " +
-            "WHERE (LOWER(s.supplierName) LIKE LOWER(CONCAT('%', :supplierName, '%')) OR :supplierName IS NULL OR :supplierName = '') ")
+            "WHERE (LOWER(s.supplierName) LIKE LOWER(CONCAT('%', :supplierName, '%')) OR :supplierName IS NULL OR :supplierName = '') " +
+            " AND s.status = 'ACTIVE'")
     Optional<List<SupplierDto>> findSupplierBySupplierName(String supplierName);
 
     Optional<Supplier> findByPhoneNumber(String phoneNumber);

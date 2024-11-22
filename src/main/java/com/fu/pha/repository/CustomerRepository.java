@@ -38,7 +38,8 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     Optional<Customer> findById(Long id);
 
-    @Query("SELECT new com.fu.pha.dto.response.CustomerDTOResponse(c) FROM Customer c WHERE LOWER(c.customerName) LIKE LOWER(CONCAT('%', :customerName, '%'))")
+    @Query("SELECT new com.fu.pha.dto.response.CustomerDTOResponse(c) FROM Customer c WHERE LOWER(c.customerName) LIKE LOWER(CONCAT('%', :customerName, '%')) " +
+            " AND c.status = 'ACTIVE'")
     Optional<List<CustomerDTOResponse>> findByCustomerName(String customerName);
 
     @Query("SELECT COUNT(c) FROM Customer c WHERE c.createDate BETWEEN :startDate AND :endDate AND c.id != 1")

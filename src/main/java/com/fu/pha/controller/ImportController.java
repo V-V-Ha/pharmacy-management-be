@@ -77,10 +77,8 @@ public class ImportController {
 
     // Từ chối phiếu nhập
     @PostMapping("/{id}/reject")
-    public ResponseEntity<?> rejectImport(@PathVariable Long id, @RequestBody String reason) {
-        String[] parts = reason.split(":", 2);
-        String extractedReason = parts.length > 1 ? parts[1].trim() : reason.trim();
-        importService.rejectImport(id, extractedReason);
+    public ResponseEntity<?> rejectImport(@PathVariable Long id, @RequestBody UserIdRequest request) {
+        importService.rejectImport(id, request.getReason());
         return ResponseEntity.ok(Message.REJECT_SUCCESS);
     }
 
