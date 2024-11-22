@@ -110,6 +110,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             SaleOrderItem saleOrderItem = new SaleOrderItem();
             saleOrderItem.setSaleOrder(saleOrder);
             saleOrderItem.setProduct(product);
+            saleOrderItem.setTotalAmount(itemRequestDto.getTotalAmount());
             saleOrderItem.setQuantity(itemRequestDto.getQuantity());
             saleOrderItem.setUnitPrice(itemRequestDto.getUnitPrice());
             saleOrderItem.setDiscount(itemRequestDto.getDiscount() != null ? itemRequestDto.getDiscount() : 0.0);
@@ -137,6 +138,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         }
 
         // Cập nhật tổng tiền cho SaleOrder
+        saleOrder.setSaleOrderItemList(saleOrderItems);
         saleOrder.setTotalAmount(totalOrderAmount - saleOrder.getDiscount());
         saleOrderRepository.save(saleOrder);
 
