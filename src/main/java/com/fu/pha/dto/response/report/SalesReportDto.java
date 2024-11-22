@@ -15,5 +15,6 @@ public class SalesReportDto {
     private long totalInvoices;
     private double totalRevenue;
     private int totalQuantitySold;
-    private Map<PaymentMethod, Double> revenueByPaymentMethod;
+    private Double cashRevenue;
+    private Double transferRevenue;
 }

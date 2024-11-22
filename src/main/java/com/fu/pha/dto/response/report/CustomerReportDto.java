@@ -11,9 +11,12 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CustomerReportDto {
     private long newCustomers;
+    private Double amountNewCustomers;
     private long oldCustomers;
-    private long totalCustomers;
+    private Double amountOldCustomers;
     private long walkInCustomers;
+    private Double amountWalkInCustomers;
+    private long totalCustomers;
     private double totalRevenueFromCustomers;
     private int totalQuantitySoldToCustomers;
 }

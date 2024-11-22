@@ -68,21 +68,21 @@ public interface ImportRepository extends JpaRepository<Import, Long> {
 
 
 
-    @Query("SELECT COALESCE(SUM(i.totalAmount), 0) FROM Import i WHERE i.importDate BETWEEN :startDate AND :endDate")
+    @Query("SELECT COALESCE(SUM(i.totalAmount), 0) FROM Import i WHERE i.importDate BETWEEN :startDate AND :endDate AND i.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     Double sumTotalImportAmountBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
-    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate")
+    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     Integer sumTotalImportQuantityBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
     @Query("SELECT COALESCE(SUM(i.totalAmount), 0) " +
             "FROM Import i " +
-            "WHERE i.supplier.createDate BETWEEN :startDate AND :endDate")
+            "WHERE i.supplier.createDate BETWEEN :startDate AND :endDate ")
     Double sumTotalImportNewAmountBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
 
     @Query("SELECT COALESCE(SUM(i.totalAmount), 0) " +
             "FROM Import i " +
-            "WHERE i.supplier.createDate < :startDate")
+            "WHERE i.supplier.createDate < :startDate ")
     Double sumTotalImportAmountBeforeDate(@Param("startDate") Instant startDate);
 
 

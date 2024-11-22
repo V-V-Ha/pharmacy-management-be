@@ -10,6 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class InventoryProductReportDto {
+    private String productCode;
     private String productName; // Tên sản phẩm
     private int beginningInventoryQuantity; // Tồn đầu kỳ (số lượng)
     private double beginningInventoryAmount; // Tồn đầu kỳ (tổng tiền)

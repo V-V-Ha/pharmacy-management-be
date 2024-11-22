@@ -1,19 +1,31 @@
 package com.fu.pha.service.impl;
 
 import com.fu.pha.dto.response.report.*;
+import com.fu.pha.dto.response.report.customer.CustomerInvoiceDto;
+import com.fu.pha.dto.response.report.customer.CustomerInvoiceProjection;
 import com.fu.pha.dto.response.report.product.InventoryProductReportDto;
 import com.fu.pha.dto.response.report.reportEntity.ImportItemReportDto;
 import com.fu.pha.dto.response.report.reportEntity.ProductReportDto;
+import com.fu.pha.dto.response.report.sale.SalesTransactionDto;
+import com.fu.pha.dto.response.report.supplier.SupplierInvoiceDto;
+import com.fu.pha.dto.response.report.supplier.SupplierInvoiceProjection;
 import com.fu.pha.entity.Product;
 import com.fu.pha.enums.ExportType;
 import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.repository.*;
 import com.fu.pha.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -54,6 +66,8 @@ public class ReportServiceImpl implements ReportService {
 
     @Autowired
     private ReturnOrderRepository returnOrderRepository;
+
+
 
     // -------------------- Báo cáo kho --------------------
 
@@ -221,9 +235,12 @@ public class ReportServiceImpl implements ReportService {
 
 
     @Override
-    public List<InventoryProductReportDto> getInventoryReportByProduct(LocalDate startDate, LocalDate endDate, Integer month, Integer year) {
-        List<Product> products = productRepository.findAll(); // Lấy danh sách sản phẩm
-        List<InventoryProductReportDto> reportList = new ArrayList<>();
+    public Page<InventoryProductReportDto> getInventoryReportByProduct(
+            LocalDate startDate, LocalDate endDate, Integer month, Integer year,
+            String productCode, String productName, Long categoryId,
+            int pageNumber, int pageSize
+    ) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         Instant startInstant;
         Instant endInstant;
@@ -231,7 +248,7 @@ public class ReportServiceImpl implements ReportService {
         // Xác định khoảng thời gian
         if (month != null && year != null) {
             startInstant = LocalDate.of(year, month, 1).atStartOfDay(ZoneId.systemDefault()).toInstant();
-            endInstant = LocalDate.of(year, month, startDate.lengthOfMonth()).atTime(23, 59, 59)
+            endInstant = LocalDate.of(year, month, YearMonth.of(year, month).lengthOfMonth()).atTime(23, 59, 59)
                     .atZone(ZoneId.systemDefault()).toInstant();
         } else if (year != null) {
             startInstant = LocalDate.of(year, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant();
@@ -244,11 +261,43 @@ public class ReportServiceImpl implements ReportService {
             endInstant = Instant.now();
         }
 
-        // Lặp qua từng sản phẩm
-        for (Product product : products) {
+        // Xây dựng Specification để tìm kiếm và lọc
+        Specification<Product> spec = Specification.where(null);
+
+        if (productCode != null && !productCode.isEmpty()) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(
+                            criteriaBuilder.upper(root.get("productCode").as(String.class)),
+                            "%" + productCode.toUpperCase() + "%"
+                    )
+            );
+        }
+
+        if (productName != null && !productName.isEmpty()) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(
+                            criteriaBuilder.upper(root.get("productName").as(String.class)),
+                            "%" + productName.toUpperCase() + "%"
+                    )
+            );
+        }
+
+        if (categoryId != null) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("categoryId").get("id"), categoryId));
+        }
+
+        // Lấy danh sách sản phẩm theo Specification và phân trang
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+
+        List<InventoryProductReportDto> reportList = new ArrayList<>();
+
+        // Lặp qua các sản phẩm trong trang hiện tại
+        for (Product product : productPage.getContent()) {
             Long productId = product.getId();
             InventoryProductReportDto report = new InventoryProductReportDto();
             report.setProductName(product.getProductName());
+            report.setProductCode(product.getProductCode());
 
             // Tồn đầu kỳ
             int beginningQuantity = calculateBeginningInventoryQuantityByProduct(productId, startInstant);
@@ -277,8 +326,11 @@ public class ReportServiceImpl implements ReportService {
             reportList.add(report);
         }
 
-        return reportList;
+        // Trả về kết quả phân trang
+        return new PageImpl<>(reportList, pageable, productPage.getTotalElements());
     }
+
+
 
     // Các phương thức hỗ trợ cho báo cáo kho theo sản phẩm
 
@@ -330,6 +382,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
 
+    
 
 
 
@@ -353,7 +406,7 @@ public class ReportServiceImpl implements ReportService {
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
             // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
-            startInstant = Instant.MIN;
+            startInstant = Instant.EPOCH;
             endInstant = Instant.now();
         }
 
@@ -369,20 +422,47 @@ public class ReportServiceImpl implements ReportService {
         Integer totalQuantitySold = saleOrderItemRepository.sumTotalQuantityBetweenDates(startInstant, endInstant);
         report.setTotalQuantitySold(totalQuantitySold != null ? totalQuantitySold : 0);
 
-        // Doanh thu theo phương thức thanh toán
-        List<Object[]> revenueByPaymentMethodData = saleOrderRepository.sumTotalAmountByPaymentMethodBetweenDates(startInstant, endInstant);
-        Map<PaymentMethod, Double> revenueByPaymentMethod = new HashMap<>();
-        for (Object[] data : revenueByPaymentMethodData) {
-            PaymentMethod paymentMethod = (PaymentMethod) data[0];
-            Double amount = (Double) data[1];
-            revenueByPaymentMethod.put(paymentMethod, amount != null ? amount : 0.0);
-        }
-        report.setRevenueByPaymentMethod(revenueByPaymentMethod);
+        // Doanh thu theo tền mặt
+        Double cashRevenue = saleOrderRepository.sumTotalAmountByPaymentMethodBetweenDates(startInstant, endInstant ,PaymentMethod.CASH);
+        report.setCashRevenue(cashRevenue != null ? cashRevenue : 0.0);
+        // Doang thu theo chuyển khoản
+        Double transferRevenue = saleOrderRepository.sumTotalAmountByPaymentMethodBetweenDates(startInstant, endInstant ,PaymentMethod.TRANSFER);
+        report.setTransferRevenue(transferRevenue != null ? transferRevenue : 0.0);
 
         return report;
     }
 
-    
+    @Override
+    public Page<SalesTransactionDto> getSalesTransactions(
+            String paymentMethod,
+            String voucherType,
+            LocalDate startDate,
+            LocalDate endDate,
+            int pageNumber,
+            int pageSize
+    ) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+        Instant startInstant;
+        Instant endInstant;
+
+        if (startDate != null && endDate != null) {
+            // Nếu có cả startDate và endDate, sử dụng chúng để xác định khoảng thời gian
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        } else if (startDate != null) {
+            // Nếu chỉ có startDate, tính từ đầu ngày đến cuối ngày đó
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
+        } else {
+            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
+            startInstant = Instant.EPOCH;
+            endInstant = Instant.now();
+        }
+
+        return saleOrderRepository.findSalesTransactions(
+                paymentMethod, voucherType, startInstant, endInstant, pageable);
+    }
 
 
 
@@ -406,7 +486,7 @@ public class ReportServiceImpl implements ReportService {
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
             // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
-            startInstant = Instant.MIN;  // Mốc thời gian rất xa trong quá khứ
+            startInstant = Instant.EPOCH;
             endInstant = Instant.now();  // Thời gian hiện tại
         }
 
@@ -440,6 +520,51 @@ public class ReportServiceImpl implements ReportService {
         return report;
     }
 
+    //List
+
+    @Override
+    public Page<SupplierInvoiceDto> getSupplierInvoiceList(
+            String name,
+            Boolean isNewSupplier,
+            LocalDate startDate,
+            LocalDate endDate,
+            int page,
+            int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Instant startInstant = (startDate != null)
+                ? startDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
+                : Instant.EPOCH;
+        Instant endInstant = (endDate != null)
+                ? endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant()
+                : Instant.now();
+
+        Timestamp startTimestamp = Timestamp.from(startInstant);
+        Timestamp endTimestamp = Timestamp.from(endInstant);
+
+        Page<SupplierInvoiceProjection> projections = supplierRepository.findSupplierInvoices(
+                name,
+                isNewSupplier,
+                startTimestamp,
+                endTimestamp,
+                pageable);
+
+        // Chuyển đổi từ Projection sang DTO
+        Page<SupplierInvoiceDto> dtos = projections.map(projection -> new SupplierInvoiceDto(
+                projection.getSupplierId(),
+                projection.getSupplierName(),
+                projection.getPhoneNumber(),
+                projection.getInvoiceCount(),
+                projection.getTotalProductQuantity(),
+                projection.getTotalReturnAmount(),
+                projection.getTotalImportAmount()
+        ));
+
+        return dtos;
+    }
+
+
+
 
     // -------------------- Báo cáo khách hàng --------------------
 
@@ -460,7 +585,7 @@ public class ReportServiceImpl implements ReportService {
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
             // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
-            startInstant = Instant.MIN;  // Mốc thời gian rất xa trong quá khứ
+            startInstant = Instant.EPOCH;
             endInstant = Instant.now();  // Thời gian hiện tại
         }
 
@@ -468,9 +593,17 @@ public class ReportServiceImpl implements ReportService {
         long newCustomers = customerRepository.countNewCustomersBetweenDates(startInstant, endInstant);
         report.setNewCustomers(newCustomers);
 
+        // Tổng tiền khách hàng mới
+        Double amountNewCustomers = saleOrderRepository.sumTotalAmountFromNewCustomersBetweenDates(startInstant, endInstant);
+        report.setAmountNewCustomers(amountNewCustomers);
+
         // Số lượng khách hàng cũ
         long oldCustomers = customerRepository.countOldCustomersBeforeDate(startInstant);
         report.setOldCustomers(oldCustomers);
+
+        // Tổng tiền khách hàng cũ
+        Double amountOldCustomers = saleOrderRepository.sumTotalAmountFromOldCustomersBetweenDates(startInstant, endInstant);
+        report.setAmountOldCustomers(amountOldCustomers);
 
         // Tổng số khách hàng
         long totalCustomers = customerRepository.countTotalCustomers();
@@ -488,9 +621,67 @@ public class ReportServiceImpl implements ReportService {
         long walkInCustomers = saleOrderRepository.countWalkInCustomersBetweenDates(startInstant, endInstant);
         report.setWalkInCustomers(walkInCustomers);
 
+        //Tổng tiền khách vãng lai (khách lẻ)
+        Double amountWalkinCustomer = saleOrderRepository.sumTotalAmountFromWalkInCustomersBetweenDates(startInstant, endInstant);
+        report.setAmountWalkInCustomers(amountWalkinCustomer);
+
+
         return report;
     }
 
+    //List
+    @Override
+    public Page<CustomerInvoiceDto> getCustomerInvoiceList(
+            String name,
+            String phone,
+            Boolean isNewCustomer,
+            LocalDate startDate,
+            LocalDate endDate,
+            int page,
+            int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Instant startInstant;
+        Instant endInstant;
+
+        if (startDate != null && endDate != null) {
+            // Nếu có cả startDate và endDate, sử dụng chúng để xác định khoảng thời gian
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        } else if (startDate != null) {
+            // Nếu chỉ có startDate, tính từ đầu ngày đến cuối ngày đó
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
+        } else {
+            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
+            startInstant = Instant.EPOCH;
+            endInstant = Instant.now();  // Thời gian hiện tại
+        }
+
+        Timestamp startTimestamp = Timestamp.from(startInstant);
+        Timestamp endTimestamp = Timestamp.from(endInstant);
+
+        Page<CustomerInvoiceProjection> projections = customerRepository.findCustomerInvoices(
+                name,
+                phone,
+                isNewCustomer,
+                startTimestamp,
+                endTimestamp,
+                pageable);
+
+        // Chuyển đổi từ Projection sang DTO
+        Page<CustomerInvoiceDto> dtos = projections.map(projection -> new CustomerInvoiceDto(
+                projection.getCustomerId(),
+                projection.getCustomerName(),
+                projection.getPhoneNumber(),
+                projection.getInvoiceCount(),
+                projection.getTotalProductQuantity(),
+                projection.getTotalAmount()
+        ));
+
+        return dtos;
+    }
 
 
     // -------------------- Báo cáo thu chi --------------------
@@ -546,20 +737,41 @@ public class ReportServiceImpl implements ReportService {
         double profit = totalIncome - totalExpense;
         report.setProfit(profit);
 
-        // Chi tiết thu
-        Map<String, Double> incomeBySource = new HashMap<>();
-        incomeBySource.put("Bán hàng", totalSales);
-        incomeBySource.put("Trả lại nhà cung cấp", totalExportReturns);
-
-        report.setIncomeBySource(incomeBySource);
-
-        // Chi tiết chi
-        Map<String, Double> expenseBySource = new HashMap<>();
-        expenseBySource.put("Nhập hàng", totalImports);
-        expenseBySource.put("Khách hàng trả lại", totalRefunds);
-        report.setExpenseBySource(expenseBySource);
 
         return report;
+    }
+
+    @Override
+    public Page<FinancialTransactionDto> getFinancialTransactions(
+            String paymentMethod,
+            String category,
+            String receiptType,
+            LocalDate startDate,
+            LocalDate endDate,
+            int pageNumber,
+            int pageSize) {
+
+        PageRequest pageable = PageRequest.of(pageNumber, pageSize);
+
+        Instant startInstant;
+        Instant endInstant;
+
+        if (startDate != null && endDate != null) {
+            // Nếu có cả startDate và endDate, sử dụng chúng để xác định khoảng thời gian
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        } else if (startDate != null) {
+            // Nếu chỉ có startDate, tính từ đầu ngày đến cuối ngày đó
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
+        } else {
+            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
+            startInstant = Instant.EPOCH;
+            endInstant = Instant.now();  // Thời gian hiện tại
+        }
+
+        return saleOrderRepository.findFinancialTransactions(
+                paymentMethod, category, receiptType, startInstant, endInstant, pageable);
     }
 }
 
