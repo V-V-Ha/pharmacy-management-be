@@ -42,6 +42,7 @@ public class ProductDTORequest {
     private String createBy;
     private String lastModifiedBy;
     private Status status;
+    private Integer numberWarning;
 
     public ProductDTORequest(Product product){
         this.id = product.getId();

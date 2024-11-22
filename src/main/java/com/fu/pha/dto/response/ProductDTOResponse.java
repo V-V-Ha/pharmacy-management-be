@@ -45,6 +45,7 @@ public class ProductDTOResponse {
     private String lastModifiedBy;
     private Integer totalQuantity;
     private Status status;
+    private Integer numberWarning;
 
     public ProductDTOResponse(Product product){
         this.id = product.getId();
@@ -83,5 +84,6 @@ public class ProductDTOResponse {
         this.totalQuantity = product.getTotalQuantity();
         this.categoryName = product.getCategoryId().getCategoryName();
         this.status = product.getStatus();
+        this.numberWarning = product.getNumberWarning();
     }
 }
