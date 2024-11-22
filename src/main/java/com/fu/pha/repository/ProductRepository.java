@@ -1,21 +1,25 @@
 package com.fu.pha.repository;
 
 import com.fu.pha.dto.response.ProductDTOResponse;
+import com.fu.pha.dto.response.report.product.ExpiredProductDto;
+import com.fu.pha.dto.response.report.product.OutOfStockProductDto;
 import com.fu.pha.dto.response.report.reportEntity.ProductReportDto;
 import com.fu.pha.entity.Product;
 import com.fu.pha.enums.Status;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
+public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
 
     Optional<Product> getProductById(Long id);
 
@@ -87,9 +91,66 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Double calculateCurrentInventoryAmount();
 
 
+    @Query(value = "SELECT p.id AS productId, " +
+            "       p.product_code AS productCode, " +
+            "       p.product_name AS productName, " +
+            "       c.category_name AS categoryName, " +
+            "       u.unit_name AS unitName, " +
+            "       p.number_warning AS numberWarning, " +
+            "       p.total_quantity AS totalQuantity " +
+            "FROM product p " +
+            "JOIN category c ON p.category_id = c.id " +
+            "JOIN product_unit pu ON pu.product_id = p.id AND pu.conversion_factor = 1 " +
+            "JOIN unit u ON pu.unit_id = u.id " +
+            "WHERE p.total_quantity <= p.number_warning " +
+            "AND (:categoryId IS NULL OR p.category_id = :categoryId) " +
+            "AND (:searchText IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "     OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :searchText, '%'))) " +
+            "ORDER BY p.product_name ASC",
+            countQuery = "SELECT COUNT(*) FROM product p " +
+                    "WHERE p.total_quantity <= p.number_warning " +
+                    "AND (:categoryId IS NULL OR p.category_id = :categoryId) " +
+                    "AND (:searchText IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "     OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+            nativeQuery = true)
+    Page<OutOfStockProductDto> findOutOfStockProducts(
+            @Param("categoryId") Long categoryId,
+            @Param("searchText") String searchText,
+            Pageable pageable
+    );
 
-
-
-
-
+    @Query(value = "SELECT p.id AS productId, " +
+            "       p.product_code AS productCode, " +
+            "       p.product_name AS productName, " +
+            "       c.category_name AS categoryName, " +
+            "       u.unit_name AS unitName, " +
+            "       ii.batch_number AS batchNumber, " +
+            "       ii.expiry_date AS expiryDate, " +
+            "       FLOOR(EXTRACT(EPOCH FROM ii.expiry_date - NOW()) / 86400) AS daysRemaining " +
+            "FROM import_item ii " +
+            "JOIN product p ON ii.product_id = p.id " +
+            "JOIN category c ON p.category_id = c.id " +
+            "JOIN product_unit pu ON pu.product_id = p.id AND pu.conversion_factor = 1 " +
+            "JOIN unit u ON pu.unit_id = u.id " +
+            "WHERE ii.expiry_date <= :warningDate " +
+            "AND (:categoryId IS NULL OR p.category_id = :categoryId) " +
+            "AND (:searchText IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "     OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :searchText, '%'))) " +
+            "ORDER BY ii.expiry_date ASC",
+            countQuery = "SELECT COUNT(*) FROM (" +
+                    "SELECT ii.id " +
+                    "FROM import_item ii " +
+                    "JOIN product p ON ii.product_id = p.id " +
+                    "WHERE ii.expiry_date <= :warningDate " +
+                    "AND (:categoryId IS NULL OR p.category_id = :categoryId) " +
+                    "AND (:searchText IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "     OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :searchText, '%'))) " +
+                    ") AS sub",
+            nativeQuery = true)
+    Page<ExpiredProductDto> findExpiredProducts(
+            @Param("categoryId") Long categoryId,
+            @Param("searchText") String searchText,
+            @Param("warningDate") Instant warningDate,
+            Pageable pageable
+    );
 }

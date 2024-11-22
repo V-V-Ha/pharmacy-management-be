@@ -92,4 +92,7 @@ public class Product extends BaseEntity{
 
     @Column(name = "total_quantity")
     private Integer totalQuantity;
+
+    @Column(name = "number_warning")
+    private Integer numberWarning;
 }

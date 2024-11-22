@@ -50,7 +50,7 @@ public class ImportController {
     }
 
     // Tạo mới phiếu nhập
-    @PostMapping(value = "/create-import-receipt", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = "/create-import-receipt")
     public ResponseEntity<?> createImport(
             @Valid @RequestPart("importRequestDto") ImportDto importRequestDto,
             @RequestPart("image") MultipartFile image) {
@@ -60,7 +60,7 @@ public class ImportController {
         return ResponseEntity.ok(Message.CREATE_SUCCESS);
     }
 
-    @PutMapping(value = "/update-import-receipt", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PutMapping(value = "/update-import-receipt")
     public ResponseEntity<String> updateImportReceipt(@RequestParam Long importId,
                                                       @Valid @RequestPart ImportDto importReceiptDto,
                                                       @RequestPart(value = "image",required = false) MultipartFile image) {
