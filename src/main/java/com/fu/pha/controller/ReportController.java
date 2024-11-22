@@ -3,7 +3,10 @@ package com.fu.pha.controller;
 
 import com.fu.pha.dto.response.report.*;
 import com.fu.pha.dto.response.report.customer.CustomerInvoiceDto;
+import com.fu.pha.dto.response.report.product.ExpiredProductDto;
 import com.fu.pha.dto.response.report.product.InventoryProductReportDto;
+import com.fu.pha.dto.response.report.product.OutOfStockProductDto;
+import com.fu.pha.dto.response.report.product.ProductSalesDto;
 import com.fu.pha.dto.response.report.sale.SalesTransactionDto;
 import com.fu.pha.dto.response.report.supplier.SupplierInvoiceDto;
 import com.fu.pha.service.ReportService;
@@ -55,6 +58,37 @@ public class ReportController {
         return ResponseEntity.ok(reportPage);
     }
 
+    @GetMapping("/out-of-stock")
+    public Page<OutOfStockProductDto> getOutOfStockProducts(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String searchText,
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        return reportService.getOutOfStockProducts(
+                categoryId,
+                searchText,
+                pageNumber,
+                pageSize
+        );
+    }
+    @GetMapping("/expired")
+    public Page<ExpiredProductDto> getExpiredProducts(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String searchText,
+            @RequestParam(defaultValue = "30") int warningDays, // Default warning days
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        return reportService.getExpiredProducts(
+                categoryId,
+                searchText,
+                warningDays,
+                pageNumber,
+                pageSize
+        );
+    }
+
 
 
     // Báo cáo bán hàng
@@ -79,6 +113,20 @@ public class ReportController {
         return reportService.getSalesTransactions(
                 paymentMethod, voucherType, startDate, endDate, pageNumber, pageSize);
     }
+
+    @GetMapping("/sales-product")
+    public Page<ProductSalesDto> getProductSales(
+            @RequestParam(required = false) String productName,
+            @RequestParam(required = false) String productCode,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        return reportService.getProductSales(
+                productName, productCode, startDate, endDate, pageNumber, pageSize);
+    }
+
 
     // Báo cáo nhà cung cấp
     @GetMapping("/suppliers")
@@ -152,7 +200,7 @@ public class ReportController {
         return ResponseEntity.ok(report);
     }
 
-    @GetMapping("/transactions")
+    @GetMapping("/financial-transactions")
     public Page<FinancialTransactionDto> getFinancialTransactions(
             @RequestParam(required = false) String paymentMethod,
             @RequestParam(required = false) String category,

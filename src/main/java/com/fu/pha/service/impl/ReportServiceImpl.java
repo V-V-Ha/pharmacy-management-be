@@ -3,7 +3,10 @@ package com.fu.pha.service.impl;
 import com.fu.pha.dto.response.report.*;
 import com.fu.pha.dto.response.report.customer.CustomerInvoiceDto;
 import com.fu.pha.dto.response.report.customer.CustomerInvoiceProjection;
+import com.fu.pha.dto.response.report.product.ExpiredProductDto;
 import com.fu.pha.dto.response.report.product.InventoryProductReportDto;
+import com.fu.pha.dto.response.report.product.OutOfStockProductDto;
+import com.fu.pha.dto.response.report.product.ProductSalesDto;
 import com.fu.pha.dto.response.report.reportEntity.ImportItemReportDto;
 import com.fu.pha.dto.response.report.reportEntity.ProductReportDto;
 import com.fu.pha.dto.response.report.sale.SalesTransactionDto;
@@ -23,10 +26,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -382,7 +382,44 @@ public class ReportServiceImpl implements ReportService {
     }
 
 
-    
+    // --List hàng hết hàng
+    @Override
+    public Page<OutOfStockProductDto> getOutOfStockProducts(
+            Long categoryId,
+            String searchText,
+            int pageNumber,
+            int pageSize
+    ) {
+        PageRequest pageable = PageRequest.of(pageNumber, pageSize);
+
+        return productRepository.findOutOfStockProducts(
+                categoryId,
+                searchText,
+                pageable
+        );
+    }
+
+    // --List hàng hết hạn
+
+    public Page<ExpiredProductDto> getExpiredProducts(
+            Long categoryId,
+            String searchText,
+            int warningDays,
+            int pageNumber,
+            int pageSize
+    ) {
+        PageRequest pageable = PageRequest.of(pageNumber, pageSize);
+        Instant currentDate = Instant.now();
+        Instant warningDate = currentDate.plus(Duration.ofDays(warningDays));
+
+        return productRepository.findExpiredProducts(
+                categoryId,
+                searchText,
+                warningDate,
+                pageable
+        );
+    }
+
 
 
 
@@ -465,6 +502,41 @@ public class ReportServiceImpl implements ReportService {
     }
 
 
+    @Override
+    public Page<ProductSalesDto> getProductSales(
+            String productName,
+            String productCode,
+            LocalDate startDate,
+            LocalDate endDate,
+            int pageNumber,
+            int pageSize
+    ) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+        Instant startInstant;
+        Instant endInstant;
+
+        if (startDate != null && endDate != null) {
+            // Nếu có cả startDate và endDate, sử dụng chúng để xác định khoảng thời gian
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        } else if (startDate != null) {
+            // Nếu chỉ có startDate, tính từ đầu ngày đến cuối ngày đó
+            startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
+        } else {
+            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
+            startInstant = Instant.EPOCH;
+            endInstant = Instant.now();
+        }
+
+        return saleOrderRepository.findProductSales(
+                productName, productCode, startInstant, endInstant, pageable);
+    }
+
+
+
+
 
 
     // -------------------- Báo cáo nhà cung cấp --------------------
@@ -490,7 +562,7 @@ public class ReportServiceImpl implements ReportService {
             endInstant = Instant.now();  // Thời gian hiện tại
         }
 
-        // Số lượng nhà cung cấp mới
+        // Số lượng nhà cung cấp mới và tổng tiền
         long newSuppliers = 0;
         if (startDate != null && endDate != null) {
             newSuppliers = supplierRepository.countNewSuppliersBetweenDates(startInstant, endInstant);
@@ -499,7 +571,7 @@ public class ReportServiceImpl implements ReportService {
         report.setNewSuppliers(newSuppliers);
         report.setNewSuppliersAmount(totalImportNewAmount != null ? totalImportNewAmount : 0.0);
 
-        // Số lượng nhà cung cấp cũ
+        // Số lượng nhà cung cấp cũ và tổng tiền
         long oldSuppliers = supplierRepository.countOldSuppliersBeforeDate(startInstant);
         Double totalImportOldAmount = importRepository.sumTotalImportAmountBeforeDate(startInstant);
         report.setOldSuppliers(oldSuppliers);

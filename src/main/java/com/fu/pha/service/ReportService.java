@@ -3,7 +3,10 @@ package com.fu.pha.service;
 
 import com.fu.pha.dto.response.report.*;
 import com.fu.pha.dto.response.report.customer.CustomerInvoiceDto;
+import com.fu.pha.dto.response.report.product.ExpiredProductDto;
 import com.fu.pha.dto.response.report.product.InventoryProductReportDto;
+import com.fu.pha.dto.response.report.product.OutOfStockProductDto;
+import com.fu.pha.dto.response.report.product.ProductSalesDto;
 import com.fu.pha.dto.response.report.sale.SalesTransactionDto;
 import com.fu.pha.dto.response.report.supplier.SupplierInvoiceDto;
 import org.springframework.data.domain.Page;
@@ -21,12 +24,36 @@ public interface ReportService {
             int pageNumber, int pageSize
     );
 
+    Page<OutOfStockProductDto> getOutOfStockProducts(
+            Long categoryId,
+            String searchText,
+            int pageNumber,
+            int pageSize
+    );
+
+    Page<ExpiredProductDto> getExpiredProducts(
+            Long categoryId,
+            String searchText,
+            int warningDays,
+            int pageNumber,
+            int pageSize
+    );
+
     // Báo cáo bán hàng
     SalesReportDto getSalesReport(LocalDate startDate, LocalDate endDate);
 
     Page<SalesTransactionDto> getSalesTransactions(
             String paymentMethod,
             String voucherType,
+            LocalDate startDate,
+            LocalDate endDate,
+            int pageNumber,
+            int pageSize
+    );
+
+    Page<ProductSalesDto> getProductSales(
+            String productName,
+            String productCode,
             LocalDate startDate,
             LocalDate endDate,
             int pageNumber,

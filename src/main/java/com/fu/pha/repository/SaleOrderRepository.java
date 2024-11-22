@@ -2,6 +2,7 @@ package com.fu.pha.repository;
 
 import com.fu.pha.dto.response.SaleOrder.SaleOrderResponseDto;
 import com.fu.pha.dto.response.report.FinancialTransactionDto;
+import com.fu.pha.dto.response.report.product.ProductSalesDto;
 import com.fu.pha.dto.response.report.sale.SalesTransactionDto;
 import com.fu.pha.entity.SaleOrder;
 import com.fu.pha.enums.OrderType;
@@ -124,19 +125,20 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
 
 
     @Query(value = "SELECT * FROM (" +
-            // Nhập hàng (Purchases) - Phiếu chi
+            // Purchases (Nhập hàng) - Phiếu chi
             "    SELECT i.invoice_number AS invoiceNumber, " +
             "           'Phiếu chi' AS receiptType, " +
             "           i.import_date AS creationDate, " +
             "           'Nhập hàng' AS category, " +
             "           i.payment_method AS paymentMethod, " +
-            "           i.total_amount AS totalAmount " +
+            "           COALESCE(i.total_amount,0) AS totalAmount " +
             "    FROM import i " +
             "    WHERE i.import_date BETWEEN :startDate AND :endDate " +
+            "    AND i.status = 'CONFIRMED' " +  // Added condition for status
             "    AND (:paymentMethod IS NULL OR i.payment_method = :paymentMethod) " +
             "    AND (:category IS NULL OR :category = 'Nhập hàng') " +
             "    AND (:receiptType IS NULL OR :receiptType = 'Phiếu chi') " +
-            // Trả lại nhà cung cấp (Returns to Supplier) - Phiếu thu
+            // Returns to Supplier (Trả lại nhà cung cấp) - Phiếu thu
             "    UNION ALL " +
             "    SELECT e.invoice_number AS invoiceNumber, " +
             "           'Phiếu thu' AS receiptType, " +
@@ -146,10 +148,11 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
             "           e.total_amount AS totalAmount " +
             "    FROM export_slip e " +
             "    WHERE e.export_date BETWEEN :startDate AND :endDate " +
+            "    AND e.status = 'CONFIRMED' " +  // Added condition for status
             "    AND e.type_delivery = 'RETURN_TO_SUPPLIER' " +
             "    AND (:category IS NULL OR :category = 'Trả lại nhà cung cấp') " +
             "    AND (:receiptType IS NULL OR :receiptType = 'Phiếu thu') " +
-            // Bán hàng (Sales) - Phiếu thu
+            // Sales (Bán hàng) - Phiếu thu
             "    UNION ALL " +
             "    SELECT so.invoice_number AS invoiceNumber, " +
             "           'Phiếu thu' AS receiptType, " +
@@ -159,10 +162,11 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
             "           so.total_amount AS totalAmount " +
             "    FROM sale_order so " +
             "    WHERE so.sale_date BETWEEN :startDate AND :endDate " +
+            "    AND so.payment_status = 'PAID' " +  // Added condition for payment_status
             "    AND (:paymentMethod IS NULL OR so.payment_method = :paymentMethod) " +
             "    AND (:category IS NULL OR :category = 'Bán hàng') " +
             "    AND (:receiptType IS NULL OR :receiptType = 'Phiếu thu') " +
-            // Khách hàng trả lại (Returns from Customers) - Phiếu chi
+            // Returns from Customers (Khách hàng trả lại) - Phiếu chi
             "    UNION ALL " +
             "    SELECT ro.invoice_number AS invoiceNumber, " +
             "           'Phiếu chi' AS receiptType, " +
@@ -177,30 +181,33 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
             ") AS transactions " +
             "ORDER BY transactions.creationDate DESC",
             countQuery = "SELECT COUNT(*) FROM (" +
-                    // Nhập hàng (Purchases)
+                    // Purchases (Nhập hàng)
                     "    SELECT i.id " +
                     "    FROM import i " +
                     "    WHERE i.import_date BETWEEN :startDate AND :endDate " +
+                    "    AND i.status = 'CONFIRMED' " +  // Added condition for status
                     "    AND (:paymentMethod IS NULL OR i.payment_method = :paymentMethod) " +
                     "    AND (:category IS NULL OR :category = 'Nhập hàng') " +
                     "    AND (:receiptType IS NULL OR :receiptType = 'Phiếu chi') " +
-                    // Trả lại nhà cung cấp (Returns to Supplier)
+                    // Returns to Supplier (Trả lại nhà cung cấp)
                     "    UNION ALL " +
                     "    SELECT e.id " +
                     "    FROM export_slip e " +
                     "    WHERE e.export_date BETWEEN :startDate AND :endDate " +
+                    "    AND e.status = 'CONFIRMED' " +  // Added condition for status
                     "    AND e.type_delivery = 'RETURN_TO_SUPPLIER' " +
                     "    AND (:category IS NULL OR :category = 'Trả lại nhà cung cấp') " +
                     "    AND (:receiptType IS NULL OR :receiptType = 'Phiếu thu') " +
-                    // Bán hàng (Sales)
+                    // Sales (Bán hàng)
                     "    UNION ALL " +
                     "    SELECT so.id " +
                     "    FROM sale_order so " +
                     "    WHERE so.sale_date BETWEEN :startDate AND :endDate " +
+                    "    AND so.payment_status = 'PAID' " +  // Added condition for payment_status
                     "    AND (:paymentMethod IS NULL OR so.payment_method = :paymentMethod) " +
                     "    AND (:category IS NULL OR :category = 'Bán hàng') " +
                     "    AND (:receiptType IS NULL OR :receiptType = 'Phiếu thu') " +
-                    // Khách hàng trả lại (Returns from Customers)
+                    // Returns from Customers (Khách hàng trả lại)
                     "    UNION ALL " +
                     "    SELECT ro.id " +
                     "    FROM return_order ro " +
@@ -220,16 +227,17 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
 
 
     @Query(value = "SELECT * FROM (" +
-            // Sale Orders
+            // Sale Orders with payment_status = 'PAID'
             "SELECT so.invoice_number AS invoiceNumber, " +
             "       so.sale_date AS creationDate, " +
             "       c.customer_name AS customerName, " +
             "       'Bán hàng' AS voucherType, " +
             "       so.payment_method AS paymentMethod, " +
-            "       so.total_amount AS totalAmount " +
+            "       COALESCE(so.total_amount,0) AS totalAmount " +
             "FROM sale_order so " +
             "JOIN customer c ON so.customer_id = c.id " +
             "WHERE so.sale_date BETWEEN :startDate AND :endDate " +
+            "AND so.payment_status = 'PAID' " +  // Added condition for payment_status
             "AND (:paymentMethod IS NULL OR so.payment_method = :paymentMethod) " +
             "AND (:voucherType IS NULL OR :voucherType = 'Bán hàng') " +
             "UNION ALL " +
@@ -249,6 +257,7 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
             countQuery = "SELECT COUNT(*) FROM (" +
                     "SELECT so.id FROM sale_order so " +
                     "WHERE so.sale_date BETWEEN :startDate AND :endDate " +
+                    "AND so.payment_status = 'PAID' " +  // Added condition for payment_status
                     "AND (:paymentMethod IS NULL OR so.payment_method = :paymentMethod) " +
                     "AND (:voucherType IS NULL OR :voucherType = 'Bán hàng') " +
                     "UNION ALL " +
@@ -264,5 +273,46 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
             @Param("endDate") Instant endDate,
             Pageable pageable
     );
+
+
+    @Query(value = "SELECT p.product_code AS productCode, " +
+            "       p.product_name AS productName, " +
+            "       u.unit_name AS unit, " +
+            "       COUNT(DISTINCT so.id) AS transactionCount, " +
+            "       COALESCE(SUM(soi.quantity * soi.conversion_factor), 0) AS quantitySold, " +
+            "       COALESCE(SUM(soi.total_amount), 0) AS totalAmount " +
+            "FROM sale_order_item soi " +
+            "JOIN sale_order so ON soi.sale_order_id = so.id " +
+            "JOIN product p ON soi.product_id = p.id " +
+            "JOIN product_unit pu ON pu.product_id = p.id AND pu.conversion_factor = 1 " +
+            "JOIN unit u ON pu.unit_id = u.id " +
+            "WHERE so.sale_date BETWEEN :startDate AND :endDate " +
+            "AND so.payment_status = 'PAID' " +
+            "AND (:productName IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :productName, '%'))) " +
+            "AND (:productCode IS NULL OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :productCode, '%'))) " +
+            "GROUP BY p.product_code, p.product_name, u.unit_name " +
+            "ORDER BY p.product_name ASC",
+            countQuery = "SELECT COUNT(*) FROM (" +
+                    "SELECT p.id " +
+                    "FROM sale_order_item soi " +
+                    "JOIN sale_order so ON soi.sale_order_id = so.id " +
+                    "JOIN product p ON soi.product_id = p.id " +
+                    "JOIN product_unit pu ON pu.product_id = p.id AND pu.conversion_factor = 1 " +
+                    "JOIN unit u ON pu.unit_id = u.id " +
+                    "WHERE so.sale_date BETWEEN :startDate AND :endDate " +
+                    "AND so.payment_status = 'PAID' " +
+                    "AND (:productName IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :productName, '%'))) " +
+                    "AND (:productCode IS NULL OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :productCode, '%'))) " +
+                    "GROUP BY p.id) AS sub",
+            nativeQuery = true)
+    Page<ProductSalesDto> findProductSales(
+            @Param("productName") String productName,
+            @Param("productCode") String productCode,
+            @Param("startDate") Instant startDate,
+            @Param("endDate") Instant endDate,
+            Pageable pageable
+    );
+
+
 
 }
