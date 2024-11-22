@@ -38,6 +38,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                                                   @Param("status") Status status,
                                                   Pageable pageable);
 
+    @Query("SELECT new com.fu.pha.dto.response.ProductDTOResponse(p) FROM Product p WHERE " +
+            "((LOWER(p.productName) LIKE LOWER(CONCAT('%', :productName, '%')) OR :productName IS NULL OR :productName = '') AND " +
+            " (p.status = 'ACTIVE' )) " +
+            "ORDER BY p.lastModifiedDate DESC")
+    Page<ProductDTOResponse> getListProductForSaleOrderPaging(@Param("productName") String productName,
+                                                               Pageable pageable);
+
     @Query("SELECT new com.fu.pha.dto.response.ProductDTOResponse(p) FROM Product p WHERE (LOWER(p.productName) LIKE lower(concat('%', :productName, '%')))" +
             " and p.status = 'ACTIVE'")
     Optional<List<ProductDTOResponse>> findProductByProductName(String productName);

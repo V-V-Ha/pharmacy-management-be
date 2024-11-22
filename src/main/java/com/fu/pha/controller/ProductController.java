@@ -41,6 +41,22 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/get-all-product-sale-order-paging")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    public ResponseEntity<PageResponseModel<ProductDTOResponse>> getListProductForSaleOrderPaging(@RequestParam(defaultValue = "0") int page,
+                                                                                                  @RequestParam(defaultValue = "10") int size,
+                                                                                                  @RequestParam(required = false) String productName) {
+        Page<ProductDTOResponse> productDTOResponsePage = productService.getListProductForSaleOrderPaging(page, size, productName);
+
+        PageResponseModel<ProductDTOResponse> response = PageResponseModel.<ProductDTOResponse>builder()
+                .page(page)
+                .size(size)
+                .total(productDTOResponsePage.getTotalElements())
+                .listData(productDTOResponsePage.getContent())
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/create-product")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<?> createProduct(

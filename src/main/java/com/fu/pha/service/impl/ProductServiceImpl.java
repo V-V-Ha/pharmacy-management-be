@@ -276,6 +276,16 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size,  String productName) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProductDTOResponse> products = productRepository.getListProductForSaleOrderPaging(productName, pageable);
+        if (products.isEmpty()) {
+            throw new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND);
+        }
+        return products;
+    }
+
+    @Override
     public ProductDTOResponse getProductById(Long id) {
         Product product = productRepository.getProductById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
