@@ -18,6 +18,7 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import com.fu.pha.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -63,6 +64,9 @@ public class ExportSlipServiceImpl implements ExportSlipService {
     @Autowired
     private InventoryHistoryRepository inventoryHistoryRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     @Transactional
     @Override
     public void createExport(ExportSlipRequestDto exportDto) {
@@ -100,6 +104,13 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
 
         exportSlipRepository.save(exportSlip);
+
+        List<User> storeOwners = userRepository.findAllByRoles_Name(ERole.ROLE_PRODUCT_OWNER);
+        for (User storeOwner : storeOwners) {
+            String title = "Phiếu xuất mới";
+            String message = "Nhân viên " + currentUser.getUsername() + " đã tạo một phiếu xuất mới.";
+            notificationService.sendNotificationToUser(title, message, storeOwner);
+        }
     }
 
     @Transactional
@@ -300,9 +311,13 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         // Xử lý tồn kho
         for (ExportSlipItem exportSlipItem : exportSlip.getExportSlipItemList()) {
             processStockForConfirmedExport(exportSlipItem);
-
-
         }
+
+        // **Gửi thông báo cho nhân viên**
+        User creator = exportSlip.getUser();
+        String title = "Phiếu xuất đã được xác nhận";
+        String message = "Phiếu xuất của bạn đã được chủ cửa hàng xác nhận.";
+        notificationService.sendNotificationToUser(title, message, creator);
     }
 
     @Transactional
@@ -334,6 +349,12 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         exportSlip.setStatus(OrderStatus.REJECT);
         exportSlip.setNote(reason); // Ghi lý do từ chối vào trường note
         exportSlipRepository.save(exportSlip);
+
+        // **Gửi thông báo cho nhân viên**
+        User creator = exportSlip.getUser();
+        String title = "Phiếu xuất bị từ chối";
+        String message = "Phiếu xuất của bạn đã bị từ chối. Lý do: " + reason;
+        notificationService.sendNotificationToUser(title, message, creator);
     }
 
     private User getCurrentUser() {

@@ -65,7 +65,7 @@ public class ImportController {
 
     @PutMapping(value = "/update-import-receipt")
     public ResponseEntity<String> updateImportReceipt(@RequestParam Long importId,
-                                                      @Valid @RequestPart ImportDto importReceiptDto,
+                                                      @Valid @RequestPart("importRequestDto") ImportDto importReceiptDto,
                                                       @RequestPart(value = "image",required = false) MultipartFile image) {
         importService.updateImport(importId, importReceiptDto, image);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
