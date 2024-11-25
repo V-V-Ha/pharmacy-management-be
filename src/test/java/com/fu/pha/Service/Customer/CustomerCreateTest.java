@@ -52,6 +52,7 @@ public class CustomerCreateTest {
         customerDTORequest = new CustomerDTORequest();
         customerDTORequest.setCustomerName("Vũ Văn Hà");
         customerDTORequest.setPhoneNumber("0987654321");
+        customerDTORequest.setYob(1990);
 
     }
 

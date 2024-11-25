@@ -53,6 +53,7 @@ public class CustomerUpdateTest {
         customerDTORequest.setId(1L);
         customerDTORequest.setCustomerName("Vũ Văn Hà");
         customerDTORequest.setPhoneNumber("0987654321");
+        customerDTORequest.setYob(1990);
 
     }
 
