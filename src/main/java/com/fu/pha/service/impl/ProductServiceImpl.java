@@ -102,6 +102,7 @@ public class ProductServiceImpl implements ProductService {
         product.setDosageForms(productDTORequest.getDosageForms());
         product.setDescription(productDTORequest.getDescription());
         product.setPrescriptionDrug(productDTORequest.getPrescriptionDrug());
+        product.setNumberWarning(productDTORequest.getNumberWarning());
         product.setStatus(Status.ACTIVE);
         // Upload the image product if there is a file
         if (file != null && !file.isEmpty()) {
@@ -167,6 +168,7 @@ public class ProductServiceImpl implements ProductService {
         product.setDosageForms(productDTORequest.getDosageForms());
         product.setDescription(productDTORequest.getDescription());
         product.setPrescriptionDrug(productDTORequest.getPrescriptionDrug());
+        product.setNumberWarning(productDTORequest.getNumberWarning());
 
         // Upload the image product if there is a file
         if (file != null && !file.isEmpty()) {
@@ -229,7 +231,7 @@ public class ProductServiceImpl implements ProductService {
                 productDTORequest.getRegistrationNumber().isEmpty() || productDTORequest.getActiveIngredient().isEmpty() ||
                 productDTORequest.getDosageConcentration().isEmpty() || productDTORequest.getPackingMethod().isEmpty() ||
                 productDTORequest.getManufacturer().isEmpty() || productDTORequest.getCountryOfOrigin().isEmpty() ||
-                productDTORequest.getDosageForms().isEmpty()){
+                productDTORequest.getDosageForms().isEmpty() || productDTORequest.getNumberWarning() == null){
             throw new ResourceNotFoundException(Message.NULL_FILED);
         }
 

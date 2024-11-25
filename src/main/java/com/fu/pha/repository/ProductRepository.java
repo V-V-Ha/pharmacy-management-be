@@ -44,7 +44,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     @Query("SELECT new com.fu.pha.dto.response.ProductDTOResponse(p) FROM Product p WHERE " +
             "((LOWER(p.productName) LIKE LOWER(CONCAT('%', :productName, '%')) OR :productName IS NULL OR :productName = '') AND " +
-            " (p.status = 'ACTIVE' )) " +
+            " (p.status = 'ACTIVE' ) AND " +
+            " (p.totalQuantity >= 1))" +
             "ORDER BY p.lastModifiedDate DESC")
     Page<ProductDTOResponse> getListProductForSaleOrderPaging(@Param("productName") String productName,
                                                                Pageable pageable);
