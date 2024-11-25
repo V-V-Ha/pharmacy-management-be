@@ -9,8 +9,10 @@ import com.fu.pha.dto.response.report.product.OutOfStockProductDto;
 import com.fu.pha.dto.response.report.product.ProductSalesDto;
 import com.fu.pha.dto.response.report.sale.SalesTransactionDto;
 import com.fu.pha.dto.response.report.supplier.SupplierInvoiceDto;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -70,6 +72,11 @@ public interface ReportService {
             LocalDate endDate,
             int page,
             int size);
+
+    void exportCustomerReportToExcel(HttpServletResponse response, LocalDate fromDate, LocalDate toDate) throws IOException;
+    void exportSupplierReportToExcel(HttpServletResponse response, LocalDate fromDate, LocalDate toDate) throws IOException;
+    void exportFinancialReportToExcel(HttpServletResponse response, LocalDate fromDate, LocalDate toDate) throws IOException;
+    void exportSalesReportToExcel(HttpServletResponse response, LocalDate fromDate, LocalDate toDate) throws IOException;
 
     // Báo cáo khách hàng
     CustomerReportDto getCustomerReport(LocalDate startDate, LocalDate endDate);

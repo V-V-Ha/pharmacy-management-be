@@ -10,15 +10,18 @@ import com.fu.pha.dto.response.report.product.ProductSalesDto;
 import com.fu.pha.dto.response.report.sale.SalesTransactionDto;
 import com.fu.pha.dto.response.report.supplier.SupplierInvoiceDto;
 import com.fu.pha.service.ReportService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -89,8 +92,6 @@ public class ReportController {
         );
     }
 
-
-
     // Báo cáo bán hàng
     @GetMapping("/sales")
     public ResponseEntity<SalesReportDto> getSalesReport(
@@ -127,6 +128,22 @@ public class ReportController {
                 productName, productCode, startDate, endDate, pageNumber, pageSize);
     }
 
+    @GetMapping("/export-excel-sales-report")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    public void exportSalesReportToExcel(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            HttpServletResponse response) throws IOException {
+
+        // Set response type and headers for Excel download
+        response.setContentType("application/vnd.ms-excel");
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=sales_report.xlsx";
+        response.setHeader(headerKey, headerValue);
+
+        // Call the service to generate and write the Excel file
+        reportService.exportSalesReportToExcel(response, fromDate, toDate);
+    }
 
     // Báo cáo nhà cung cấp
     @GetMapping("/suppliers")
@@ -156,6 +173,23 @@ public class ReportController {
                 size);
 
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/export-excel-supplier-report")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public void exportSupplierReportToExcel(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            HttpServletResponse response) throws IOException {
+
+        // Set response type and headers for Excel download
+        response.setContentType("application/vnd.ms-excel");
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=supplier_report.xlsx";
+        response.setHeader(headerKey, headerValue);
+
+        // Call the service to generate and write the Excel file
+        reportService.exportSupplierReportToExcel(response, fromDate, toDate);
     }
 
     // Báo cáo khách hàng
@@ -190,6 +224,24 @@ public class ReportController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/export-excel-customer-report")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    public void exportCustomerReportToExcel(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            HttpServletResponse response) throws IOException {
+
+        // Set response type and headers for Excel download
+        response.setContentType("application/vnd.ms-excel");
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=customer_report.xlsx";
+        response.setHeader(headerKey, headerValue);
+
+        // Call the service to generate and write the Excel file
+        reportService.exportCustomerReportToExcel(response, fromDate, toDate);
+    }
+
+
     // Báo cáo thu chi
     @GetMapping("/financial")
     public ResponseEntity<FinancialReportDto> getFinancialReport(
@@ -212,5 +264,22 @@ public class ReportController {
 
         return reportService.getFinancialTransactions(
                 paymentMethod, category, receiptType, startDate, endDate, pageNumber, pageSize);
+    }
+
+    @GetMapping("/export-excel-financial-report")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    public void exportFinancialReportToExcel(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            HttpServletResponse response) throws IOException {
+
+        // Set response type and headers for Excel download
+        response.setContentType("application/vnd.ms-excel");
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=financial_report.xlsx";
+        response.setHeader(headerKey, headerValue);
+
+        // Call the service to generate and write the Excel file
+        reportService.exportFinancialReportToExcel(response, fromDate, toDate);
     }
 }
