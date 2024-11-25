@@ -11,6 +11,10 @@ import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.*;
 import com.fu.pha.service.ReturnOrderService;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,7 +22,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -356,5 +363,117 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
         }
         return returnOrderResponseDto;
     }
+
+    @Override
+    public void exportReturnOrdersToExcel(HttpServletResponse response, Instant fromInstant, Instant toInstant) throws IOException {
+        // Fetch return orders
+        List<ReturnOrderResponseDto> returnOrders = returnOrderRepository.getReturnOrdersByDateRange(fromInstant, toInstant);
+
+        // Check if there is data to export
+        if (returnOrders.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy dữ liệu phiếu trả hàng trong khoảng thời gian đã chọn.");
+        }
+
+        // Create workbook and sheet
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Danh sách phiếu trả hàng");
+
+        // Header styling
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerFont.setColor(IndexedColors.WHITE.getIndex());
+
+        CellStyle headerCellStyle = workbook.createCellStyle();
+        headerCellStyle.setFont(headerFont);
+        headerCellStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
+        headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerCellStyle.setBorderBottom(BorderStyle.THIN);
+        headerCellStyle.setBorderTop(BorderStyle.THIN);
+        headerCellStyle.setBorderLeft(BorderStyle.THIN);
+        headerCellStyle.setBorderRight(BorderStyle.THIN);
+        headerCellStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        // Data styling
+        CellStyle dataCellStyle = workbook.createCellStyle();
+        dataCellStyle.setBorderBottom(BorderStyle.THIN);
+        dataCellStyle.setBorderTop(BorderStyle.THIN);
+        dataCellStyle.setBorderLeft(BorderStyle.THIN);
+        dataCellStyle.setBorderRight(BorderStyle.THIN);
+        dataCellStyle.setAlignment(HorizontalAlignment.CENTER);
+        dataCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        // Date styling
+        CellStyle dateStyle = workbook.createCellStyle();
+        dateStyle.cloneStyleFrom(dataCellStyle);
+        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy"));
+
+        // Currency styling
+        CellStyle currencyStyle = workbook.createCellStyle();
+        currencyStyle.cloneStyleFrom(dataCellStyle);
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0"));
+
+        // Define column headers
+        String[] headers = {"STT", "Mã phiếu", "Ngày tạo phiếu", "Người tạo phiếu", "Khách hàng", "Tiền trả khách"};
+        Row headerRow = sheet.createRow(0);
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerCellStyle);
+        }
+
+        // Fill data rows
+        int rowNum = 1;
+        for (int i = 0; i < returnOrders.size(); i++) {
+            ReturnOrderResponseDto returnOrder = returnOrders.get(i);
+            Row row = sheet.createRow(rowNum++);
+
+            // STT
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(i + 1);
+            cell0.setCellStyle(dataCellStyle);
+
+            // Mã phiếu
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue(returnOrder.getInvoiceNumber());
+            cell1.setCellStyle(dataCellStyle);
+
+            // Ngày tạo phiếu
+            Cell cell2 = row.createCell(2);
+            cell2.setCellValue(DateTimeFormatter.ofPattern("dd-MM-yyyy")
+                    .withZone(ZoneOffset.ofHours(7))
+                    .format(returnOrder.getReturnDate()));
+            cell2.setCellStyle(dateStyle);
+
+            // Người tạo phiếu
+            Cell cell3 = row.createCell(3);
+            cell3.setCellValue(returnOrder.getCreatedBy());
+            cell3.setCellStyle(dataCellStyle);
+
+            // Khách hàng
+            Cell cell4 = row.createCell(4);
+            cell4.setCellValue(returnOrder.getCustomer() != null ? returnOrder.getCustomer().getCustomerName() : "Khách hàng lẻ");
+            cell4.setCellStyle(dataCellStyle);
+
+            // Tiền trả khách
+            Cell cell5 = row.createCell(5);
+            cell5.setCellValue(returnOrder.getRefundAmount());
+            cell5.setCellStyle(currencyStyle);
+        }
+
+        // Auto-size columns to fit the content
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Write workbook to response output stream
+        ServletOutputStream outputStream = response.getOutputStream();
+        workbook.write(outputStream);
+        workbook.close();
+
+        outputStream.flush();
+        outputStream.close();
+    }
+
 
 }

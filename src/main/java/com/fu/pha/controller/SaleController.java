@@ -15,6 +15,7 @@ import com.fu.pha.service.CustomerService;
 import com.fu.pha.service.DoctorService;
 import com.fu.pha.service.InvoiceService;
 import com.fu.pha.service.SaleOrderService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,9 +25,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @RestController
@@ -82,8 +85,8 @@ public class SaleController {
             @RequestParam(required = false, name = "fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false, name = "toDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
 
-        Instant fromDateStart = fromDate != null ? fromDate.atStartOfDay(ZoneId.systemDefault()).toInstant() : null;
-        Instant toDateEnd = toDate != null ? toDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant() : null;
+        Instant fromDateStart = fromDate != null ? fromDate.atStartOfDay(ZoneOffset.ofHours(7)).toInstant() : null;
+        Instant toDateEnd = toDate != null ? toDate.atTime(23, 59, 59).atZone(ZoneOffset.ofHours(7)).toInstant() : null;
 
         Page<SaleOrderResponseDto> saleOrderResponseDto = saleOrderService.getAllSaleOrderPaging(page, size, orderType, paymentMethod, invoiceNumber, fromDateStart, toDateEnd);
         PageResponseModel<SaleOrderResponseDto> response = PageResponseModel.<SaleOrderResponseDto>builder()
@@ -94,6 +97,27 @@ public class SaleController {
                 .build();
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/export-excel-sale-orders")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    public void exportSaleOrdersToExcel(
+            @RequestParam("fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam("toDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            HttpServletResponse response) throws IOException {
+
+        // Convert LocalDate to Instant
+        Instant fromDateStart = fromDate != null ? fromDate.atStartOfDay(ZoneOffset.ofHours(7)).toInstant() : null;
+        Instant toDateEnd = toDate != null ? toDate.atTime(23, 59, 59).atZone(ZoneOffset.ofHours(7)).toInstant() : null;
+
+        response.setContentType("application/vnd.ms-excel");
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=sale_orders.xlsx";
+        response.setHeader(headerKey, headerValue);
+
+        // Call the service to export data
+        saleOrderService.exportSaleOrdersToExcel(response, fromDateStart, toDateEnd);
+    }
+
 
     @GetMapping("/get-customer-by-customer-name")
     public ResponseEntity<List<CustomerDTOResponse>> getCustomerByCustomerName(@RequestParam String customerName) {
