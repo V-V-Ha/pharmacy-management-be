@@ -139,7 +139,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
 
         // Cập nhật tổng tiền cho SaleOrder
         saleOrder.setSaleOrderItemList(saleOrderItems);
-        saleOrder.setTotalAmount(totalOrderAmount - saleOrder.getDiscount());
+        saleOrder.setTotalAmount(totalOrderAmount);
         saleOrderRepository.save(saleOrder);
 
         // Nếu thanh toán là tiền mặt, thực hiện cập nhật kho
@@ -319,7 +319,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         }
 
         // Cập nhật tổng tiền
-        saleOrder.setTotalAmount(totalOrderAmount - saleOrder.getDiscount());
+        saleOrder.setTotalAmount(totalOrderAmount);
         saleOrderRepository.save(saleOrder);
     }
 
