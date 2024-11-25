@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -61,18 +62,29 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void createNearlyExpiredProductNotifications(List<ExpiredProductDto> products) {
+        Instant fiveDaysAgo = Instant.now().minus(5, ChronoUnit.DAYS);
+
         for (ExpiredProductDto product : products) {
-            Notification notification = Notification.builder()
-                    .title("Sản phẩm sắp hết hạn")
-                    .message("Sản phẩm " + product.getProductName() + " (Mã: " + product.getProductCode() + "), Lô: "
-                            + product.getBatchNumber() + " sắp hết hạn vào ngày " + product.getExpiryDate() + ".")
-                    .type(NotificationType.EXPIRED)
-                    .createdAt(Instant.now())
-                    .isRead(false)
-                    .build();
-            notificationRepository.save(notification);
+            // Kiểm tra nếu đã có thông báo trong vòng 5 ngày qua
+            boolean hasRecentNotification = notificationRepository.existsByBatchNumberAndTypeAndCreatedAtAfter(
+                    product.getBatchNumber(), NotificationType.EXPIRED, fiveDaysAgo);
+
+            if (!hasRecentNotification) {
+                // Tạo thông báo mới
+                Notification notification = Notification.builder()
+                        .title("Sản phẩm sắp hết hạn")
+                        .message("Sản phẩm " + product.getProductName() + " (Mã: " + product.getProductCode() +
+                                "), Lô: " + product.getBatchNumber() + " sắp hết hạn vào ngày " +
+                                product.getExpiryDate() + ".")
+                        .type(NotificationType.EXPIRED)
+                        .createdAt(Instant.now())
+                        .isRead(false)
+                        .build();
+                notificationRepository.save(notification);
+            }
         }
     }
+
 
     @Override
     public void createExpiredProductNotifications(List<ImportItem> expiredProducts) {
@@ -86,10 +98,12 @@ public class NotificationServiceImpl implements NotificationService {
                     .type(NotificationType.EXPIRED)
                     .createdAt(Instant.now())
                     .isRead(false)
+                    .importItem(importItem)
                     .build();
             notificationRepository.save(notification);
         }
     }
+
 
     @Override
     public void sendNotificationToUser(String title, String message, User user) {
@@ -109,12 +123,14 @@ public class NotificationServiceImpl implements NotificationService {
         return productRepository.findOutOfStockProducts(categoryId, searchText, PageRequest.of(pageNumber, pageSize));
     }
 
+
     @Override
     public Page<ExpiredProductDto> getExpiredProducts(Long categoryId, String searchText, int warningDays, int pageNumber, int pageSize) {
         Instant currentDate = Instant.now();
         Instant warningDate = currentDate.plus(Duration.ofDays(warningDays));
         return productRepository.findExpiredProducts(categoryId, searchText, warningDate, PageRequest.of(pageNumber, pageSize));
     }
+
 
 
 }
