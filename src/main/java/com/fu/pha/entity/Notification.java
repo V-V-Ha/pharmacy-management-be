@@ -1,5 +1,6 @@
 package com.fu.pha.entity;
 
+import com.fu.pha.enums.NotificationType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,6 +24,10 @@ public class Notification {
 
     @Column(name = "message", nullable = false)
     private String message;
+
+    @Column(name = "type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private NotificationType type;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();

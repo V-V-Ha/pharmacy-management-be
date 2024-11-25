@@ -70,6 +70,9 @@ public class ImportServiceImpl implements ImportService {
     @Autowired
     private InventoryHistoryRepository inventoryHistoryRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     @Override
     public List<UnitDto> getUnitByProductId(Long productId) {
         Optional<Product> product = productRepository.getProductById(productId);
@@ -215,6 +218,16 @@ public class ImportServiceImpl implements ImportService {
         // Cập nhật tổng tiền và lưu lại
         importReceipt.setTotalAmount(totalAmount);
         importRepository.save(importReceipt);
+
+        // Lấy danh sách chủ cửa hàng
+        List<User> storeOwners = userRepository.findAllByRoles_Name(ERole.ROLE_PRODUCT_OWNER);
+
+        // Gửi thông báo cho chủ cửa hàng
+        for (User storeOwner : storeOwners) {
+            String title = "Phiếu nhập mới";
+            String message = "Nhân viên " + currentUser.getUsername() + " đã tạo một phiếu nhập mới.";
+            notificationService.sendNotificationToUser(title, message, storeOwner);
+        }
     }
 
     @Override
@@ -434,6 +447,11 @@ public class ImportServiceImpl implements ImportService {
             int changeQuantity = itemDto.getQuantity() * itemDto.getConversionFactor();
             saveInventoryHistory(importItem, changeQuantity, "Confirmed Import");
         }
+
+        User importCreator = importReceipt.getUser();
+        String title = "Phiếu nhập đã được xác nhận";
+        String message = "Phiếu nhập của bạn đã được xác nhận bởi chủ cửa hàng.";
+        notificationService.sendNotificationToUser(title, message, importCreator);
     }
 
     @Transactional
@@ -465,6 +483,11 @@ public class ImportServiceImpl implements ImportService {
         importReceipt.setStatus(OrderStatus.REJECT);
         importReceipt.setNote(reason); // Ghi lý do từ chối vào trường note
         importRepository.save(importReceipt);
+
+        User importCreator = importReceipt.getUser();
+        String title = "Phiếu nhập bị từ chối";
+        String message = "Phiếu nhập của bạn đã bị từ chối. Lý do: " + reason;
+        notificationService.sendNotificationToUser(title, message, importCreator);
     }
 
     private User getCurrentUser() {

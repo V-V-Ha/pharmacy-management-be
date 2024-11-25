@@ -46,7 +46,6 @@ public class ImportDto {
 
     private String note;
 
-    @NotNull(message = Message.USER_NOT_NULL)
     private Long userId;
 
     @NotNull(message = Message.SUPPLIER_NOT_NULL)

@@ -60,15 +60,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     List<ProductDTOResponse> getListProduct();
 
     // report
-    @Query("SELECT new com.fu.pha.dto.response.report.reportEntity.ProductReportDto(p.id, p.productName, p.productCode, " +
-            "CAST(SUM(COALESCE(ii.remainingQuantity, 0)) AS integer), " +
-            "SUM(COALESCE(ii.remainingQuantity, 0) * COALESCE(ii.unitPrice, 0.0))) " +
-            "FROM Product p " +
-            "LEFT JOIN ImportItem ii ON ii.product.id = p.id " +
-            "GROUP BY p.id, p.productName, p.productCode")
-    List<ProductReportDto> findOutOfStockProducts();
 
-    @Query("SELECT COUNT(p) FROM Product p WHERE p.totalQuantity = 0")
+    @Query("SELECT COUNT(p) FROM Product p WHERE p.totalQuantity = 0 AND p.status = 'ACTIVE'")
     Integer countOutOfStock();
 
 
@@ -77,17 +70,16 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             "SUM(COALESCE(ii.remainingQuantity, 0) * COALESCE(ii.unitPrice, 0.0))) " +
             "FROM Product p " +
             "LEFT JOIN ImportItem ii ON ii.product.id = p.id " +
+            "WHERE p.status = 'ACTIVE' " +
             "GROUP BY p.id, p.productName, p.productCode " +
             "HAVING SUM(COALESCE(ii.remainingQuantity, 0)) <= :threshold")
     List<ProductReportDto> findNearlyOutOfStockProducts(@Param("threshold") int threshold);
 
 
 
+
     @Query("SELECT SUM(p.totalQuantity) FROM Product p")
     Integer calculateCurrentInventoryQuantity();
-
-    @Query("SELECT SUM(p.remainingQuantity * p.unitPrice / p.conversionFactor) FROM ImportItem p")
-    Double calculateCurrentInventoryAmount();
 
 
     @Query(value = "SELECT p.id AS productId, " +
@@ -102,12 +94,14 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             "JOIN product_unit pu ON pu.product_id = p.id AND pu.conversion_factor = 1 " +
             "JOIN unit u ON pu.unit_id = u.id " +
             "WHERE p.total_quantity <= p.number_warning " +
+            "AND p.status = 'ACTIVE' " +
             "AND (:categoryId IS NULL OR p.category_id = :categoryId) " +
             "AND (:searchText IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "     OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :searchText, '%'))) " +
             "ORDER BY p.product_name ASC",
             countQuery = "SELECT COUNT(*) FROM product p " +
                     "WHERE p.total_quantity <= p.number_warning " +
+                    "AND p.status = 'ACTIVE' " +
                     "AND (:categoryId IS NULL OR p.category_id = :categoryId) " +
                     "AND (:searchText IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
                     "     OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :searchText, '%')))",
@@ -117,6 +111,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             @Param("searchText") String searchText,
             Pageable pageable
     );
+
 
     @Query(value = "SELECT p.id AS productId, " +
             "       p.product_code AS productCode, " +
@@ -132,6 +127,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             "JOIN product_unit pu ON pu.product_id = p.id AND pu.conversion_factor = 1 " +
             "JOIN unit u ON pu.unit_id = u.id " +
             "WHERE ii.expiry_date <= :warningDate " +
+            "AND ii.remaining_quantity > 0 " +
+            "AND p.status = 'ACTIVE' " +
             "AND (:categoryId IS NULL OR p.category_id = :categoryId) " +
             "AND (:searchText IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "     OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :searchText, '%'))) " +
@@ -141,6 +138,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
                     "FROM import_item ii " +
                     "JOIN product p ON ii.product_id = p.id " +
                     "WHERE ii.expiry_date <= :warningDate " +
+                    "AND ii.remaining_quantity > 0 " +
+                    "AND p.status = 'ACTIVE' " +
                     "AND (:categoryId IS NULL OR p.category_id = :categoryId) " +
                     "AND (:searchText IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
                     "     OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :searchText, '%'))) " +
@@ -152,4 +151,10 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             @Param("warningDate") Instant warningDate,
             Pageable pageable
     );
+
+
+    @Query(value = "SELECT p FROM Product p WHERE p.totalQuantity < p.numberWarning AND p.status = 'ACTIVE'")
+    List<Product> findLowStockProducts();
+
+
 }

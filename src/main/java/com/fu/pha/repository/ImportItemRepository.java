@@ -82,4 +82,13 @@ public interface ImportItemRepository extends JpaRepository<ImportItem, Long> {
     @Query("SELECT COALESCE(SUM(ii.totalAmount), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     Integer sumTotalQuantityBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
+    @Query(value = "SELECT ii FROM ImportItem ii " +
+            "JOIN ii.product p " +
+            "WHERE ii.expiryDate <= CURRENT_DATE " +
+            "AND ii.remainingQuantity > 0 " +
+            "AND p.status = 'ACTIVE'")
+    List<ImportItem> findExpiredProducts();
+
+
+
 }

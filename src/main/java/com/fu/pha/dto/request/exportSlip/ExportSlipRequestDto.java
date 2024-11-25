@@ -28,7 +28,6 @@ public class ExportSlipRequestDto {
     @ValidTotalAmount
     private Double totalAmount;
     private String note;
-    @NotNull(message = "Người dùng không được để trống")
     private Long userId;
     private Long supplierId;
     @NotNull(message = "Danh sách sản phẩm nhập không được để trống")
