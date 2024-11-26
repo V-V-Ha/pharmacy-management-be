@@ -55,4 +55,11 @@ public interface ReturnOrderRepository extends JpaRepository<ReturnOrder, Long> 
                                                           @Param("fromDate") Instant fromDate,
                                                           @Param("toDate") Instant toDate,
                                                           Pageable pageable);
+
+    @Query("SELECT new com.fu.pha.dto.response.ReturnOrderResponseDto(r) " +
+            "FROM ReturnOrder r " +
+            "WHERE r.returnDate BETWEEN :fromDate AND :toDate")
+    List<ReturnOrderResponseDto> getReturnOrdersByDateRange(@Param("fromDate") Instant fromDate,
+                                                            @Param("toDate") Instant toDate);
+
 }

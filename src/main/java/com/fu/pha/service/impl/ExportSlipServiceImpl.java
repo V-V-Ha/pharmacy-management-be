@@ -14,6 +14,10 @@ import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.exception.UnauthorizedException;
 import com.fu.pha.repository.*;
 import com.fu.pha.service.ExportSlipService;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import com.fu.pha.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,7 +28,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -569,6 +577,116 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             throw new ResourceNotFoundException(Message.EXPORT_SLIP_NOT_FOUND);
         }
         return exportSlipResponseDto;
+    }
+
+    @Override
+    public void exportExportSlipsToExcel(HttpServletResponse response, Instant fromInstant, Instant toInstant) throws IOException {
+        List<ExportSlipResponseDto> exportSlips = exportSlipRepository.getExportSlipsByDateRange(fromInstant, toInstant);
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Danh sách phiếu xuất");
+
+        // Create header style with bold font, borders, and background color
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerFont.setColor(IndexedColors.WHITE.getIndex());
+
+        CellStyle headerCellStyle = workbook.createCellStyle();
+        headerCellStyle.setFont(headerFont);
+        headerCellStyle.setBorderBottom(BorderStyle.THIN);
+        headerCellStyle.setBorderTop(BorderStyle.THIN);
+        headerCellStyle.setBorderLeft(BorderStyle.THIN);
+        headerCellStyle.setBorderRight(BorderStyle.THIN);
+        headerCellStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
+        headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerCellStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        // Create cell style with borders and center alignment for data rows
+        CellStyle dataCellStyle = workbook.createCellStyle();
+        dataCellStyle.setBorderBottom(BorderStyle.THIN);
+        dataCellStyle.setBorderTop(BorderStyle.THIN);
+        dataCellStyle.setBorderLeft(BorderStyle.THIN);
+        dataCellStyle.setBorderRight(BorderStyle.THIN);
+        dataCellStyle.setAlignment(HorizontalAlignment.CENTER);
+        dataCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        // Create a cell style for monetary values without decimals
+        CellStyle currencyStyle = workbook.createCellStyle();
+        currencyStyle.cloneStyleFrom(dataCellStyle);
+        DataFormat format = workbook.createDataFormat();
+        currencyStyle.setDataFormat(format.getFormat("₫ #,##0"));
+
+        // Create a cell style for dates
+        CellStyle dateStyle = workbook.createCellStyle();
+        dateStyle.cloneStyleFrom(dataCellStyle);
+        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy     HH:mm"));
+
+        // Define column headers
+        Row headerRow = sheet.createRow(0);
+        String[] headers = {"STT", "Mã phiếu", "Ngày tạo phiếu", "Loại phiếu", "Số lượng sản phẩm", "Tổng tiền"};
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerCellStyle);
+        }
+
+        // Fill data rows
+        int rowNum = 1;
+        for (int i = 0; i < exportSlips.size(); i++) {
+            ExportSlipResponseDto slip = exportSlips.get(i);
+            Row row = sheet.createRow(rowNum++);
+
+            // STT
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(i + 1);
+            cell0.setCellStyle(dataCellStyle);
+
+            // Mã phiếu
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue(slip.getInvoiceNumber());
+            cell1.setCellStyle(dataCellStyle);
+
+            // Ngày tạo phiếu (formatted as dd-MM-yyyy)
+            Cell cell2 = row.createCell(2);
+            cell2.setCellValue(DateTimeFormatter.ofPattern("dd-MM-yyyy     HH:mm")
+                    .withZone(ZoneOffset.ofHours(7)).format(slip.getExportDate()));
+            cell2.setCellStyle(dateStyle);
+
+            // Loại phiếu (custom display)
+            Cell cell3 = row.createCell(3);
+            String typeDelivery = slip.getTypeDelivery() == null ? "N/A" :
+                    switch (slip.getTypeDelivery()) {
+                        case DESTROY -> "Phiếu hủy";
+                        case RETURN_TO_SUPPLIER -> "Phiếu trả nhà cung cấp";
+                        default -> slip.getTypeDelivery().name();
+                    };
+            cell3.setCellValue(typeDelivery);
+            cell3.setCellStyle(dataCellStyle);
+
+            // Số lượng sản phẩm
+            Cell cell4 = row.createCell(4);
+            cell4.setCellValue(slip.getProductCount());
+            cell4.setCellStyle(dataCellStyle);
+
+            // Tổng tiền (formatted as currency without decimals)
+            Cell cell5 = row.createCell(5);
+            cell5.setCellValue(slip.getTotalAmount());
+            cell5.setCellStyle(currencyStyle);
+        }
+
+        // Auto-size columns to fit the content
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Write workbook to response output stream
+        ServletOutputStream outputStream = response.getOutputStream();
+        workbook.write(outputStream);
+        workbook.close();
+
+        outputStream.flush();
+        outputStream.close();
     }
 
     public List<ExportSlipResponseDto> getAllActiveExportSlips() {

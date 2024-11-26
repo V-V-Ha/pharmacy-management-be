@@ -334,13 +334,14 @@ public class ProductServiceImpl implements ProductService {
     public ResponseEntity<byte[]> exportProductsToExcel() throws IOException {
         List<ProductDTOResponse> products = getAllProducts();
         Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Product List");
+        Sheet sheet = workbook.createSheet("Danh sách sản phẩm");
 
         // Define columns and create header row
         String[] columns = {"STT", "Mã", "Tên sản phẩm", "Nhóm sản phẩm", "Đơn vị sản phẩm", "Giá nhập", "Giá bán", "Số đăng kí", "Tồn"};
         Row headerRow = sheet.createRow(0);
         CellStyle headerCellStyle = createHeaderCellStyle(workbook);
         CellStyle borderedCellStyle = createBorderedAndCenteredCellStyle(workbook);
+        CellStyle currencyCellStyle = createCurrencyCellStyle(workbook); // Currency style
 
         // Set headers with borders
         for (int i = 0; i < columns.length; i++) {
@@ -362,8 +363,8 @@ public class ProductServiceImpl implements ProductService {
 
                 // Fill unit-specific data with borders
                 createCellWithStyle(row, 4, unit.getUnitName(), borderedCellStyle); // Đơn vị sản phẩm
-                createCellWithStyle(row, 5, unit.getImportPrice(), borderedCellStyle); // Giá nhập
-                createCellWithStyle(row, 6, unit.getRetailPrice(), borderedCellStyle); // Giá bán
+                createCellWithStyle(row, 5, unit.getImportPrice(), currencyCellStyle); // Giá nhập
+                createCellWithStyle(row, 6, unit.getRetailPrice(), currencyCellStyle); // Giá bán
             }
 
             // Fill product-specific data in the first row only
@@ -400,7 +401,7 @@ public class ProductServiceImpl implements ProductService {
         workbook.close();
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=product_list.xlsx")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Danh_sach_san_pham.xlsx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(out.toByteArray());
     }
@@ -458,6 +459,24 @@ public class ProductServiceImpl implements ProductService {
         headerCellStyle.setVerticalAlignment(VerticalAlignment.CENTER); // Middle align text
         return headerCellStyle;
     }
+
+    // Helper method for currency cell style (formatting as Vietnamese currency)
+    private CellStyle createCurrencyCellStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.THICK);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        // Vietnamese currency format (₫, no decimals)
+        DataFormat format = workbook.createDataFormat();
+        style.setDataFormat(format.getFormat("₫ #,##0"));
+
+        return style;
+    }
+
 
     @Override
     public void importProductsFromExcel(MultipartFile file) throws IOException {

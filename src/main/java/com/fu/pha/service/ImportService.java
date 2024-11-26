@@ -10,9 +10,11 @@ import com.fu.pha.dto.response.importPack.ImportItemResponseForExport;
 import com.fu.pha.dto.response.importPack.ImportResponseDto;
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.enums.OrderStatus;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 
@@ -39,12 +41,13 @@ public interface ImportService {
 
     Page<ImportViewListDto> getAllImportPaging(int page, int size, String supplierName, OrderStatus status, Instant fromDate, Instant toDate);
 
-
     ImportResponseDto getImportById(Long importId);
 
     List<SupplierDto> getSuppplierBySupplierName(String supplierName);
 //    List<ImportItemResponseForExport> getImportItemByProductName(String productName);
 
     List<ProductDtoResponseForExport> getProductImportByProductName(String productName);
+
+    void exportImportsToExcel(HttpServletResponse response, Instant fromInstant, Instant toInstant) throws IOException;
 
 }

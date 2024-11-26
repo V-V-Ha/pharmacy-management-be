@@ -313,6 +313,12 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
             Pageable pageable
     );
 
+    @Query("SELECT new com.fu.pha.dto.response.SaleOrder.SaleOrderResponseDto(s) " +
+            "FROM SaleOrder s " +
+            "WHERE s.saleDate BETWEEN :fromDate AND :toDate")
+    List<SaleOrderResponseDto> getSaleOrdersByDateRange(@Param("fromDate") Instant fromDate,
+                                                        @Param("toDate") Instant toDate);
+
 
 
 }
