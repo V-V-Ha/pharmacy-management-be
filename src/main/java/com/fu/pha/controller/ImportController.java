@@ -133,7 +133,7 @@ public class ImportController {
 
         response.setContentType("application/vnd.ms-excel");
         String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=import_data.xlsx";
+        String headerValue = "attachment; filename=Danh_sach_phieu_nhap.xlsx";
         response.setHeader(headerKey, headerValue);
 
         // Call the service to export data

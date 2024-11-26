@@ -111,7 +111,7 @@ public class SaleController {
 
         response.setContentType("application/vnd.ms-excel");
         String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=sale_orders.xlsx";
+        String headerValue = "attachment; filename=Danh_sach_ban_hang.xlsx";
         response.setHeader(headerKey, headerValue);
 
         // Call the service to export data

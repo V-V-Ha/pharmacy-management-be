@@ -108,7 +108,7 @@ public class ExportSlipController {
 
         response.setContentType("application/vnd.ms-excel");
         String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=export_slips.xlsx";
+        String headerValue = "attachment; filename=Danh_sach_phieu_xuat.xlsx";
         response.setHeader(headerKey, headerValue);
 
         //Instant fromDateTime = fromDate.atStartOfDay();

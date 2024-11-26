@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -606,7 +607,7 @@ public class ReportServiceImpl implements ReportService {
         // Currency styling
         CellStyle currencyStyle = workbook.createCellStyle();
         currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0"));
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0"));
 
         // Create header row
         Row headerRow = sheet.createRow(0);
@@ -662,7 +663,12 @@ public class ReportServiceImpl implements ReportService {
         // Currency styling
         CellStyle currencyStyle = workbook.createCellStyle();
         currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0"));
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0"));
+
+        // Date styling for date columns
+        CellStyle dateStyle = workbook.createCellStyle();
+        dateStyle.cloneStyleFrom(dataCellStyle);
+        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy     HH:mm"));  // Apply same date format as before
 
         // Create header row
         Row headerRow = sheet.createRow(0);
@@ -681,7 +687,11 @@ public class ReportServiceImpl implements ReportService {
 
             createCellWithStyle(row, 0, i + 1, dataCellStyle);
             createCellWithStyle(row, 1, transaction.getInvoiceNumber(), dataCellStyle);
-            createCellWithStyle(row, 2, transaction.getCreationDate().toString(), dataCellStyle);
+
+            // Apply date format to "Ngày tạo"
+            createCellWithStyle(row, 2, DateTimeFormatter.ofPattern("dd-MM-yyyy     HH:mm")
+                    .withZone(ZoneOffset.ofHours(7)).format(transaction.getCreationDate()), dateStyle);
+
             createCellWithStyle(row, 3, transaction.getCustomerName(), dataCellStyle);
             createCellWithStyle(row, 4, transaction.getVoucherType(), dataCellStyle);
             createCellWithStyle(row, 5, transaction.getPaymentMethod(), dataCellStyle);
@@ -725,7 +735,7 @@ public class ReportServiceImpl implements ReportService {
         // Currency styling
         CellStyle currencyStyle = workbook.createCellStyle();
         currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0"));
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0"));
 
         // Create header row
         Row headerRow = sheet.createRow(0);
@@ -925,7 +935,7 @@ public class ReportServiceImpl implements ReportService {
         // Currency styling
         CellStyle currencyStyle = workbook.createCellStyle();
         currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0")); // No decimals for currency
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0")); // No decimals for currency
 
         // Create header row
         Row headerRow = sheet.createRow(0);
@@ -985,7 +995,7 @@ public class ReportServiceImpl implements ReportService {
         // Currency styling
         CellStyle currencyStyle = workbook.createCellStyle();
         currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0")); // No decimals for currency
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0")); // No decimals for currency
 
         // Create header row
         Row headerRow = sheet.createRow(0);
@@ -1210,7 +1220,7 @@ public class ReportServiceImpl implements ReportService {
         // Currency styling
         CellStyle currencyStyle = workbook.createCellStyle();
         currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0")); // No decimals for currency
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0")); // No decimals for currency
 
         // Create header row
         Row headerRow = sheet.createRow(0);
@@ -1271,7 +1281,7 @@ public class ReportServiceImpl implements ReportService {
         // Currency styling
         CellStyle currencyStyle = workbook.createCellStyle();
         currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0")); // No decimals for currency
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0")); // No decimals for currency
 
         // Create header row
         Row headerRow = sheet.createRow(0);
@@ -1463,7 +1473,12 @@ public class ReportServiceImpl implements ReportService {
         // Currency styling
         CellStyle currencyStyle = workbook.createCellStyle();
         currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0")); // No decimals for currency
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0")); // No decimals for currency
+
+        // Date styling for date columns
+        CellStyle dateStyle = workbook.createCellStyle();
+        dateStyle.cloneStyleFrom(dataCellStyle);
+        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy     HH:mm"));  // Add space between date and time
 
         // Create header row
         Row headerRow = sheet.createRow(0);
@@ -1517,7 +1532,12 @@ public class ReportServiceImpl implements ReportService {
         // Currency styling
         CellStyle currencyStyle = workbook.createCellStyle();
         currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0")); // No decimals for currency
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0")); // No decimals for currency
+
+        // Date styling for date columns
+        CellStyle dateStyle = workbook.createCellStyle();
+        dateStyle.cloneStyleFrom(dataCellStyle);
+        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy     HH:mm"));  // Add space between date and time
 
         // Create header row
         Row headerRow = sheet.createRow(0);
@@ -1528,15 +1548,22 @@ public class ReportServiceImpl implements ReportService {
             cell.setCellStyle(headerCellStyle);
         }
 
+        // Define the date formatter
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy     HH:mm")
+                .withZone(ZoneOffset.ofHours(7)); // Adjust the zone offset as needed
+
         // Fill data rows
         int rowNum = 1;
-        for (int i = 0; i < transactions.size(); i++) {
-            FinancialTransactionDto transaction = transactions.get(i);
+        for (FinancialTransactionDto transaction : transactions) {
             Row row = sheet.createRow(rowNum++);
 
             createCellWithStyle(row, 0, transaction.getInvoiceNumber(), dataCellStyle); // Mã phiếu
             createCellWithStyle(row, 1, transaction.getReceiptType(), dataCellStyle); // Loại phiếu
-            createCellWithStyle(row, 2, transaction.getCreationDate().toString(), dataCellStyle); // Ngày
+
+            // Apply date format for the "Ngày" (Date) column
+            String formattedDate = formatter.format(transaction.getCreationDate());
+            createCellWithStyle(row, 2, formattedDate, dateStyle); // Ngày (formatted)
+
             createCellWithStyle(row, 3, transaction.getCategory(), dataCellStyle); // Danh mục
             createCellWithStyle(row, 4, transaction.getPaymentMethod(), dataCellStyle); // Phương thức thanh toán
             createCellWithStyle(row, 5, transaction.getTotalAmount(), currencyStyle); // Tổng tiền
@@ -1547,6 +1574,9 @@ public class ReportServiceImpl implements ReportService {
             sheet.autoSizeColumn(i);
         }
     }
+
+
+
 
 
 }

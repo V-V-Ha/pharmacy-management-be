@@ -748,12 +748,12 @@ public class ImportServiceImpl implements ImportService {
         // Date styling
         CellStyle dateStyle = workbook.createCellStyle();
         dateStyle.cloneStyleFrom(dataCellStyle);
-        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy"));
+        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy     HH:mm"));
 
         // Currency styling
         CellStyle currencyStyle = workbook.createCellStyle();
         currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0"));
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0"));
 
         // Define column headers
         String[] headers = {"STT", "Mã phiếu", "Ngày tạo phiếu", "Người tạo", "Số lượng sản phẩm", "Nhà cung cấp", "Tổng tiền"};
@@ -782,7 +782,7 @@ public class ImportServiceImpl implements ImportService {
 
             // Ngày tạo phiếu
             Cell cell2 = row.createCell(2);
-            cell2.setCellValue(DateTimeFormatter.ofPattern("dd-MM-yyyy")
+            cell2.setCellValue(DateTimeFormatter.ofPattern("dd-MM-yyyy     HH:mm")
                     .withZone(ZoneOffset.ofHours(7))
                     .format(importDto.getImportDate()));
             cell2.setCellStyle(dateStyle);

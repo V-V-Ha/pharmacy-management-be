@@ -584,7 +584,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         List<ExportSlipResponseDto> exportSlips = exportSlipRepository.getExportSlipsByDateRange(fromInstant, toInstant);
 
         Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Export Slips");
+        Sheet sheet = workbook.createSheet("Danh sách phiếu xuất");
 
         // Create header style with bold font, borders, and background color
         Font headerFont = workbook.createFont();
@@ -615,12 +615,12 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         CellStyle currencyStyle = workbook.createCellStyle();
         currencyStyle.cloneStyleFrom(dataCellStyle);
         DataFormat format = workbook.createDataFormat();
-        currencyStyle.setDataFormat(format.getFormat("#,##0"));
+        currencyStyle.setDataFormat(format.getFormat("₫ #,##0"));
 
         // Create a cell style for dates
         CellStyle dateStyle = workbook.createCellStyle();
         dateStyle.cloneStyleFrom(dataCellStyle);
-        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy"));
+        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy     HH:mm"));
 
         // Define column headers
         Row headerRow = sheet.createRow(0);
@@ -649,7 +649,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
             // Ngày tạo phiếu (formatted as dd-MM-yyyy)
             Cell cell2 = row.createCell(2);
-            cell2.setCellValue(DateTimeFormatter.ofPattern("dd-MM-yyyy")
+            cell2.setCellValue(DateTimeFormatter.ofPattern("dd-MM-yyyy     HH:mm")
                     .withZone(ZoneOffset.ofHours(7)).format(slip.getExportDate()));
             cell2.setCellStyle(dateStyle);
 

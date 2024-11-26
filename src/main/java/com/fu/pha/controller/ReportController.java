@@ -138,7 +138,7 @@ public class ReportController {
         // Set response type and headers for Excel download
         response.setContentType("application/vnd.ms-excel");
         String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=sales_report.xlsx";
+        String headerValue = "attachment; filename=Bao_cao_ban_hang.xlsx";
         response.setHeader(headerKey, headerValue);
 
         // Call the service to generate and write the Excel file
@@ -185,7 +185,7 @@ public class ReportController {
         // Set response type and headers for Excel download
         response.setContentType("application/vnd.ms-excel");
         String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=supplier_report.xlsx";
+        String headerValue = "attachment; filename=Bao_cao_nha_cung_cap.xlsx";
         response.setHeader(headerKey, headerValue);
 
         // Call the service to generate and write the Excel file
@@ -234,7 +234,7 @@ public class ReportController {
         // Set response type and headers for Excel download
         response.setContentType("application/vnd.ms-excel");
         String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=customer_report.xlsx";
+        String headerValue = "attachment; filename=Bao_cao_khach_hang.xlsx";
         response.setHeader(headerKey, headerValue);
 
         // Call the service to generate and write the Excel file
@@ -276,7 +276,7 @@ public class ReportController {
         // Set response type and headers for Excel download
         response.setContentType("application/vnd.ms-excel");
         String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=financial_report.xlsx";
+        String headerValue = "attachment; filename=Bao_cao_thu_chi.xlsx";
         response.setHeader(headerKey, headerValue);
 
         // Call the service to generate and write the Excel file

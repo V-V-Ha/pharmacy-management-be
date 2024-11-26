@@ -407,12 +407,12 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         // Date styling
         CellStyle dateStyle = workbook.createCellStyle();
         dateStyle.cloneStyleFrom(dataCellStyle);
-        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy"));
+        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy     HH:mm"));
 
         // Currency styling
         CellStyle currencyStyle = workbook.createCellStyle();
         currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0"));
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0"));
 
         // Define column headers
         String[] headers = {"STT", "Mã hóa đơn", "Ngày tạo hóa đơn", "Người bán", "Loại hóa đơn", "Phương thức thanh toán", "Tổng tiền"};
@@ -441,7 +441,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
 
             // Ngày tạo hóa đơn
             Cell cell2 = row.createCell(2);
-            cell2.setCellValue(DateTimeFormatter.ofPattern("dd-MM-yyyy")
+            cell2.setCellValue(DateTimeFormatter.ofPattern("dd-MM-yyyy     HH:mm")
                     .withZone(ZoneOffset.ofHours(7))
                     .format(saleOrder.getSaleDate()));
             cell2.setCellStyle(dateStyle);
