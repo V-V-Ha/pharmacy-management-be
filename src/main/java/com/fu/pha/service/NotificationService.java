@@ -15,10 +15,12 @@ public interface NotificationService {
     void createOutOfStockNotifications(List<OutOfStockProductDto> products);
 
     void createLowStockNotifications(List<Product> products);
-    void sendNotificationToUser(String title, String message, User user);
+    void sendNotificationToUser(String title, String message, User user,Long id);
 
     void createNearlyExpiredProductNotifications(List<ExpiredProductDto> products);
     void createExpiredProductNotifications(List<ImportItem> expiredProducts);
+
+    void markNotificationAsRead(Long notificationId);
 
     Page<OutOfStockProductDto> getOutOfStockProducts(Long categoryId, String searchText, int pageNumber, int pageSize);
 

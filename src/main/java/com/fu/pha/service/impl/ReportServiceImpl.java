@@ -105,64 +105,64 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
         }else {
-            startInstant = Instant.now().minus(1, ChronoUnit.DAYS);
+            startInstant = Instant.EPOCH;
             endInstant = Instant.now();
         }
 
         // Tính tồn kho đầu kỳ
         int beginningInventoryQuantity = calculateBeginningInventoryQuantity(startInstant);
         double beginningInventoryAmount = calculateBeginningInventoryAmount(startInstant);
-        report.setBeginningInventoryQuantity(beginningInventoryQuantity);
-        report.setBeginningInventoryAmount(beginningInventoryAmount);
+        report.setBeginningInventoryQuantity(!(beginningInventoryQuantity == 0) ? beginningInventoryQuantity : 0);
+        report.setBeginningInventoryAmount(beginningInventoryAmount != 0 ? beginningInventoryAmount : 0.0);
 
         // Tính nhập kho trong kỳ
         int goodsReceivedQuantity = calculateGoodsReceivedQuantity(startInstant, endInstant);
         double goodsReceivedAmount = calculateGoodsReceivedAmount(startInstant, endInstant);
-        report.setGoodsReceivedQuantity(goodsReceivedQuantity);
-        report.setGoodsReceivedAmount(goodsReceivedAmount);
+        report.setGoodsReceivedQuantity(!(goodsReceivedQuantity == 0) ? goodsReceivedQuantity : 0);
+        report.setGoodsReceivedAmount(goodsReceivedAmount != 0 ? goodsReceivedAmount : 0.0);
 
         // Tính xuất kho trong kỳ
         int goodsIssuedQuantity = calculateGoodsIssuedQuantity(startInstant, endInstant);
         double goodsIssuedAmount = calculateGoodsIssuedAmount(startInstant, endInstant);
-        report.setGoodsIssuedQuantity(goodsIssuedQuantity);
-        report.setGoodsIssuedAmount(goodsIssuedAmount);
+        report.setGoodsIssuedQuantity(!(goodsIssuedQuantity == 0) ? goodsIssuedQuantity : 0);
+        report.setGoodsIssuedAmount(goodsIssuedAmount != 0 ? goodsIssuedAmount : 0.0);
 
         // Tính xuất hủy
         int goodsDestroyedQuantity = calculateGoodsDestroyedQuantity(startInstant, endInstant);
         double goodsDestroyedAmount = calculateGoodsDestroyedAmount(startInstant, endInstant);
-        report.setGoodsDestroyedQuantity(goodsDestroyedQuantity);
-        report.setGoodsDestroyedAmount(goodsDestroyedAmount);
+        report.setGoodsDestroyedQuantity(!(goodsDestroyedQuantity == 0) ? goodsDestroyedQuantity : 0);
+        report.setGoodsDestroyedAmount(goodsDestroyedAmount != 0 ? goodsDestroyedAmount : 0.0);
 
         // Tính xuất trả
         int goodsReturnedQuantity = calculateGoodsReturnedQuantity(startInstant, endInstant);
         double goodsReturnedAmount = calculateGoodsReturnedAmount(startInstant, endInstant);
-        report.setGoodsReturnedQuantity(goodsReturnedQuantity);
-        report.setGoodsReturnedAmount(goodsReturnedAmount);
+        report.setGoodsReturnedQuantity(!(goodsReturnedQuantity == 0) ? goodsReturnedQuantity : 0);
+        report.setGoodsReturnedAmount(goodsReturnedAmount != 0 ? goodsReturnedAmount : 0.0);
 
         // Tính tồn kho hiện tại
         Integer currentInventoryQuantity = productRepository.calculateCurrentInventoryQuantity();
         double currentInventoryAmount = beginningInventoryAmount + goodsReceivedAmount - goodsIssuedAmount;
         report.setCurrentInventoryQuantity(currentInventoryQuantity != null ? currentInventoryQuantity : 0);
-        report.setCurrentInventoryAmount(currentInventoryAmount);
+        report.setCurrentInventoryAmount(currentInventoryAmount >= 0 ? currentInventoryAmount : 0.0);
 
         // Tính số lượng sản phẩm sắp hết hàng
         int nearlyOutOfStockProducts = productRepository.findNearlyOutOfStockProducts(10).size();
-        report.setNearlyOutOfStockProducts(nearlyOutOfStockProducts);
+        report.setNearlyOutOfStockProducts(!(nearlyOutOfStockProducts == 0) ? nearlyOutOfStockProducts : 0);
 
         // Tính số lượng sản phẩm hết hàng
         int outOfStockProducts = productRepository.countOutOfStock();
-        report.setOutOfStockProducts(outOfStockProducts);
+        report.setOutOfStockProducts(!(outOfStockProducts == 0) ? outOfStockProducts : 0);
 
 
         Instant thresholdDate = Instant.now().plus(60, ChronoUnit.DAYS);
 
         // Tính sản phẩm sắp hết hạn
         int nearlyExpiredItems = importItemRepository.findNearlyExpiredItems(Instant.now(),thresholdDate).size();
-        report.setNearlyExpiredItems(nearlyExpiredItems);
+        report.setNearlyExpiredItems(!(nearlyExpiredItems == 0) ? nearlyExpiredItems : 0);
 
         // Tính sản phẩm hết hạn
         int expiredItems = importItemRepository.findExpiredItems(Instant.now()).size();
-        report.setExpiredItems(expiredItems);
+        report.setExpiredItems(!(expiredItems == 0) ? expiredItems : 0);
 
 
         return report;
@@ -257,7 +257,7 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
         } else {
-            startInstant = Instant.now().minus(1, ChronoUnit.DAYS);
+            startInstant = Instant.EPOCH;
             endInstant = Instant.now();
         }
 
@@ -302,26 +302,26 @@ public class ReportServiceImpl implements ReportService {
             // Tồn đầu kỳ
             int beginningQuantity = calculateBeginningInventoryQuantityByProduct(productId, startInstant);
             double beginningAmount = calculateBeginningInventoryAmountByProduct(productId, startInstant);
-            report.setBeginningInventoryQuantity(beginningQuantity);
-            report.setBeginningInventoryAmount(beginningAmount);
+            report.setBeginningInventoryQuantity(Math.max(beginningQuantity, 0));
+            report.setBeginningInventoryAmount(beginningAmount >= 0 ? beginningAmount : 0.0);
 
             // Nhập kho
             int receivedQuantity = calculateGoodsReceivedQuantityByProduct(productId, startInstant, endInstant);
             double receivedAmount = calculateGoodsReceivedAmountByProduct(productId, startInstant, endInstant);
-            report.setGoodsReceivedQuantity(receivedQuantity);
-            report.setGoodsReceivedAmount(receivedAmount);
+            report.setGoodsReceivedQuantity(Math.max(receivedQuantity, 0));
+            report.setGoodsReceivedAmount(receivedAmount >= 0 ? receivedAmount : 0.0);
 
             // Xuất kho
             int issuedQuantity = calculateGoodsIssuedQuantityByProduct(productId, startInstant, endInstant);
             double issuedAmount = calculateGoodsIssuedAmountByProduct(productId, startInstant, endInstant);
-            report.setGoodsIssuedQuantity(issuedQuantity);
-            report.setGoodsIssuedAmount(issuedAmount);
+            report.setGoodsIssuedQuantity(Math.max(issuedQuantity, 0));
+            report.setGoodsIssuedAmount(issuedAmount >= 0 ? issuedAmount : 0.0);
 
             // Tồn cuối kỳ
             int endingQuantity = beginningQuantity + receivedQuantity - issuedQuantity;
             double endingAmount = beginningAmount + receivedAmount - issuedAmount;
-            report.setEndingInventoryQuantity(endingQuantity);
-            report.setEndingInventoryAmount(endingAmount);
+            report.setEndingInventoryQuantity(Math.max(endingQuantity, 0));
+            report.setEndingInventoryAmount(endingAmount >= 0 ? endingAmount : 0.0);
 
             reportList.add(report);
         }
@@ -568,18 +568,18 @@ public class ReportServiceImpl implements ReportService {
             newSuppliers = supplierRepository.countNewSuppliersBetweenDates(startInstant, endInstant);
         }
         Double totalImportNewAmount = importRepository.sumTotalImportNewAmountBetweenDates(startInstant, endInstant);
-        report.setNewSuppliers(newSuppliers);
+        report.setNewSuppliers(newSuppliers != 0L ? newSuppliers : 0);
         report.setNewSuppliersAmount(totalImportNewAmount != null ? totalImportNewAmount : 0.0);
 
         // Số lượng nhà cung cấp cũ và tổng tiền
         long oldSuppliers = supplierRepository.countOldSuppliersBeforeDate(startInstant);
         Double totalImportOldAmount = importRepository.sumTotalImportAmountBeforeDate(startInstant);
-        report.setOldSuppliers(oldSuppliers);
+        report.setOldSuppliers(oldSuppliers != 0L ? oldSuppliers : 0);
         report.setOldSuppliersAmount(totalImportOldAmount != null ? totalImportOldAmount : 0.0);
 
         // Tổng số nhà cung cấp
         long totalSuppliers = supplierRepository.countTotalSuppliers();
-        report.setTotalSuppliers(totalSuppliers);
+        report.setTotalSuppliers(totalSuppliers != 0L ? totalSuppliers : 0);
 
         // Tổng tiền đã nhập hàng từ nhà cung cấp
         Double totalImportAmount = importRepository.sumTotalImportAmountBetweenDates(startInstant, endInstant);
@@ -663,23 +663,23 @@ public class ReportServiceImpl implements ReportService {
 
         // Số lượng khách hàng mới
         long newCustomers = customerRepository.countNewCustomersBetweenDates(startInstant, endInstant);
-        report.setNewCustomers(newCustomers);
+        report.setNewCustomers(newCustomers != 0L ? newCustomers : 0);
 
         // Tổng tiền khách hàng mới
         Double amountNewCustomers = saleOrderRepository.sumTotalAmountFromNewCustomersBetweenDates(startInstant, endInstant);
-        report.setAmountNewCustomers(amountNewCustomers);
+        report.setAmountNewCustomers(amountNewCustomers != null ? amountNewCustomers : 0.0);
 
         // Số lượng khách hàng cũ
         long oldCustomers = customerRepository.countOldCustomersBeforeDate(startInstant);
-        report.setOldCustomers(oldCustomers);
+        report.setOldCustomers(oldCustomers != 0L ? oldCustomers : 0);
 
         // Tổng tiền khách hàng cũ
         Double amountOldCustomers = saleOrderRepository.sumTotalAmountFromOldCustomersBetweenDates(startInstant, endInstant);
-        report.setAmountOldCustomers(amountOldCustomers);
+        report.setAmountOldCustomers(amountOldCustomers != null ? amountOldCustomers : 0.0);
 
         // Tổng số khách hàng
         long totalCustomers = customerRepository.countTotalCustomers();
-        report.setTotalCustomers(totalCustomers);
+        report.setTotalCustomers(totalCustomers != 0L ? totalCustomers : 0);
 
         // Tổng tiền thu từ khách hàng
         Double totalRevenueFromCustomers = saleOrderRepository.sumTotalAmountByCustomersBetweenDates(startInstant, endInstant);
@@ -691,11 +691,11 @@ public class ReportServiceImpl implements ReportService {
 
         // Số lượng khách vãng lai (khách lẻ)
         long walkInCustomers = saleOrderRepository.countWalkInCustomersBetweenDates(startInstant, endInstant);
-        report.setWalkInCustomers(walkInCustomers);
+        report.setWalkInCustomers(walkInCustomers != 0L ? walkInCustomers : 0);
 
         //Tổng tiền khách vãng lai (khách lẻ)
         Double amountWalkinCustomer = saleOrderRepository.sumTotalAmountFromWalkInCustomersBetweenDates(startInstant, endInstant);
-        report.setAmountWalkInCustomers(amountWalkinCustomer);
+        report.setAmountWalkInCustomers(amountWalkinCustomer != null ? amountWalkinCustomer : 0.0);
 
 
         return report;

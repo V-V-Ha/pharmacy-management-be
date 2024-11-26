@@ -3,7 +3,9 @@ package com.fu.pha.controller;
 import com.fu.pha.dto.request.ChangePasswordDto;
 import com.fu.pha.dto.request.UserDto;
 import com.fu.pha.dto.response.PageResponseModel;
+import com.fu.pha.entity.User;
 import com.fu.pha.exception.Message;
+import com.fu.pha.repository.UserRepository;
 import com.fu.pha.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,6 +22,10 @@ public class UserController {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
+
     @PutMapping("/active-user")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<String> activeUser(@RequestBody UserDto request) {
@@ -92,5 +98,16 @@ public class UserController {
             // Gọi service để cập nhật user và upload avatar
             userService.updateUser(userDto, file);
             return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    }
+
+    @PutMapping("/{userId}/fcm-token")
+    public ResponseEntity<?> updateFcmToken(@PathVariable Long userId, @RequestBody String fcmToken) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException(Message.USER_NOT_FOUND));
+
+        user.setFcmToken(fcmToken);
+        userRepository.save(user);
+
+        return ResponseEntity.ok().build();
     }
 }

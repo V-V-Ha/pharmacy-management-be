@@ -131,8 +131,8 @@ public class ReportController {
     // Báo cáo nhà cung cấp
     @GetMapping("/suppliers")
     public ResponseEntity<SupplierReportDto> getSupplierReport(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
         SupplierReportDto report = reportService.getSupplierReport(startDate, endDate);
         return ResponseEntity.ok(report);
@@ -161,8 +161,8 @@ public class ReportController {
     // Báo cáo khách hàng
     @GetMapping("/customers")
     public ResponseEntity<CustomerReportDto> getCustomerReport(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
         CustomerReportDto report = reportService.getCustomerReport(startDate, endDate);
         return ResponseEntity.ok(report);
@@ -193,8 +193,8 @@ public class ReportController {
     // Báo cáo thu chi
     @GetMapping("/financial")
     public ResponseEntity<FinancialReportDto> getFinancialReport(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
         FinancialReportDto report = reportService.getFinancialReport(startDate, endDate);
         return ResponseEntity.ok(report);
