@@ -427,8 +427,205 @@ public class ReportServiceImpl implements ReportService {
         );
     }
 
+    private void createAllBorderCellStyle(CellStyle style, Workbook workbook) {
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+    }
 
+    @Override
+    public void exportInventoryReportToExcel(HttpServletResponse response, LocalDate fromDate, LocalDate toDate) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
 
+        // 1. Lấy dữ liệu
+        InventoryReportDto inventoryReport = getInventoryReport(fromDate, toDate, null, null);
+        Page<InventoryProductReportDto> productReportPage = getInventoryReportByProduct(
+                fromDate, toDate, null, null, null, null, null, 0, Integer.MAX_VALUE);
+        Page<OutOfStockProductDto> outOfStockPage = getOutOfStockProducts(null, null, 0, Integer.MAX_VALUE);
+        Page<ExpiredProductDto> expiredProductsPage = getExpiredProducts(null, null, 30, 0, Integer.MAX_VALUE);
+
+        // 2. Tạo sheet gộp dữ liệu
+        createCombinedInventorySheet(workbook, inventoryReport, productReportPage.getContent(),
+                outOfStockPage.getContent(), expiredProductsPage.getContent());
+
+        // 3. Ghi dữ liệu vào response
+        response.setContentType("application/vnd.ms-excel");
+        response.setHeader("Content-Disposition", "attachment; filename=Bao_cao_ton_kho.xlsx");
+
+        try (ServletOutputStream outputStream = response.getOutputStream()) {
+            workbook.write(outputStream);
+        }
+        workbook.close();
+    }
+
+    private void createCombinedInventorySheet(Workbook workbook, InventoryReportDto inventoryReport,
+                                              List<InventoryProductReportDto> products,
+                                              List<OutOfStockProductDto> outOfStockProducts,
+                                              List<ExpiredProductDto> expiredProducts) {
+        Sheet sheet = workbook.createSheet("Báo cáo tồn kho");
+
+        // Định dạng tiêu đề
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerFont.setColor(IndexedColors.DARK_BLUE.getIndex()); // Màu chữ #09446d
+
+        CellStyle headerCellStyle = workbook.createCellStyle();
+        headerCellStyle.setFont(headerFont);
+        headerCellStyle.setFillForegroundColor(IndexedColors.PALE_BLUE.getIndex()); // Màu nền #c6e1f8
+        headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerCellStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        headerCellStyle.setBorderTop(BorderStyle.THIN);
+        headerCellStyle.setBorderBottom(BorderStyle.THIN);
+        headerCellStyle.setBorderLeft(BorderStyle.THIN);
+        headerCellStyle.setBorderRight(BorderStyle.THIN);
+
+        // Định dạng dữ liệu
+        CellStyle dataCellStyle = workbook.createCellStyle();
+        dataCellStyle.setAlignment(HorizontalAlignment.CENTER);
+        dataCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        dataCellStyle.setBorderTop(BorderStyle.THIN);
+        dataCellStyle.setBorderBottom(BorderStyle.THIN);
+        dataCellStyle.setBorderLeft(BorderStyle.THIN);
+        dataCellStyle.setBorderRight(BorderStyle.THIN);
+
+        // Định dạng dữ liệu align left
+        CellStyle leftAlignCellStyle = workbook.createCellStyle();
+        leftAlignCellStyle.cloneStyleFrom(dataCellStyle);
+        leftAlignCellStyle.setAlignment(HorizontalAlignment.LEFT);
+
+        // Định dạng số tiền
+        CellStyle currencyStyle = workbook.createCellStyle();
+        currencyStyle.cloneStyleFrom(leftAlignCellStyle); // Hiển thị align left
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0"));
+
+        // Định dạng ngày tháng
+        CellStyle dateStyle = workbook.createCellStyle();
+        dateStyle.cloneStyleFrom(dataCellStyle);
+        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy   HH:mm"));
+
+        int currentRow = 0;
+
+        // Phần 1: Tổng hợp tồn kho
+        currentRow = writeInventorySummary(sheet, headerCellStyle, dataCellStyle, currencyStyle, inventoryReport, currentRow);
+
+        // Phần 2: Tồn kho theo sản phẩm
+        currentRow = writeInventoryProducts(sheet, headerCellStyle, dataCellStyle, currencyStyle, leftAlignCellStyle, products, currentRow);
+
+        // Phần 3: Hàng hết hàng
+        currentRow = writeOutOfStockProducts(sheet, headerCellStyle, dataCellStyle, outOfStockProducts, currentRow);
+
+        // Phần 4: Hàng hết hạn
+        currentRow = writeExpiredProducts(sheet, headerCellStyle, dataCellStyle, dateStyle, expiredProducts, currentRow);
+
+        // Tự động chỉnh kích thước các cột
+        for (int i = 0; i < 15; i++) {
+            sheet.autoSizeColumn(i);
+        }
+    }
+
+    private int writeInventorySummary(Sheet sheet, CellStyle headerStyle, CellStyle dataStyle, CellStyle currencyStyle, InventoryReportDto report, int startRow) {
+        String[] headers = {"Tồn đầu kỳ", "Tổng giá trị tồn đầu kỳ", "Tổng số lượng nhập", "Tổng giá trị nhập",
+                "Tổng số lượng xuất", "Tổng giá trị xuất", "Tồn cuối kỳ", "Tổng giá trị tồn cuối kỳ",
+                "Hết hàng", "Sắp hết hàng", "Hết hạn", "Sắp hết hạn"};
+        Row headerRow = sheet.createRow(startRow++);
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+        }
+
+        Row dataRow = sheet.createRow(startRow++);
+        createCellWithStyle(dataRow, 0, report.getBeginningInventoryQuantity(), dataStyle);
+        createCellWithStyle(dataRow, 1, report.getBeginningInventoryAmount(), currencyStyle);
+        createCellWithStyle(dataRow, 2, report.getGoodsReceivedQuantity(), dataStyle);
+        createCellWithStyle(dataRow, 3, report.getGoodsReceivedAmount(), currencyStyle);
+        createCellWithStyle(dataRow, 4, report.getGoodsIssuedQuantity(), dataStyle);
+        createCellWithStyle(dataRow, 5, report.getGoodsIssuedAmount(), currencyStyle);
+        createCellWithStyle(dataRow, 6, report.getCurrentInventoryQuantity(), dataStyle);
+        createCellWithStyle(dataRow, 7, report.getCurrentInventoryAmount(), currencyStyle);
+        createCellWithStyle(dataRow, 8, report.getOutOfStockProducts(), dataStyle);
+        createCellWithStyle(dataRow, 9, report.getNearlyOutOfStockProducts(), dataStyle);
+        createCellWithStyle(dataRow, 10, report.getExpiredItems(), dataStyle);
+        createCellWithStyle(dataRow, 11, report.getNearlyExpiredItems(), dataStyle);
+
+        return startRow + 1; // Dòng trống
+    }
+
+    private int writeInventoryProducts(Sheet sheet, CellStyle headerStyle, CellStyle dataStyle, CellStyle currencyStyle, CellStyle leftAlignCellStyle, List<InventoryProductReportDto> products, int startRow) {
+        String[] headers = {"Mã sản phẩm", "Tên sản phẩm", "Tồn đầu kỳ", "Giá trị tồn đầu kỳ", "Số lượng nhập", "Giá trị nhập",
+                "Số lượng xuất", "Giá trị xuất", "Tồn cuối kỳ", "Giá trị tồn cuối kỳ"};
+        Row headerRow = sheet.createRow(startRow++);
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+        }
+
+        for (InventoryProductReportDto product : products) {
+            Row row = sheet.createRow(startRow++);
+            createCellWithStyle(row, 0, product.getProductCode(), dataStyle);
+            createCellWithStyle(row, 1, product.getProductName(), leftAlignCellStyle); // Align left
+            createCellWithStyle(row, 2, product.getBeginningInventoryQuantity(), dataStyle);
+            createCellWithStyle(row, 3, product.getBeginningInventoryAmount(), currencyStyle); // Align left
+            createCellWithStyle(row, 4, product.getGoodsReceivedQuantity(), dataStyle);
+            createCellWithStyle(row, 5, product.getGoodsReceivedAmount(), currencyStyle); // Align left
+            createCellWithStyle(row, 6, product.getGoodsIssuedQuantity(), dataStyle);
+            createCellWithStyle(row, 7, product.getGoodsIssuedAmount(), currencyStyle); // Align left
+            createCellWithStyle(row, 8, product.getEndingInventoryQuantity(), dataStyle);
+            createCellWithStyle(row, 9, product.getEndingInventoryAmount(), currencyStyle); // Align left
+        }
+
+        return startRow + 1; // Dòng trống
+    }
+
+    private int writeOutOfStockProducts(Sheet sheet, CellStyle headerStyle, CellStyle dataStyle, List<OutOfStockProductDto> products, int startRow) {
+        String[] headers = {"Mã sản phẩm", "Tên sản phẩm", "Danh mục", "Đơn vị", "Số lượng cảnh báo", "Tổng số lượng"};
+        Row headerRow = sheet.createRow(startRow++);
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+        }
+
+        for (OutOfStockProductDto product : products) {
+            Row row = sheet.createRow(startRow++);
+            createCellWithStyle(row, 0, product.getProductCode(), dataStyle);
+            createCellWithStyle(row, 1, product.getProductName(), dataStyle);
+            createCellWithStyle(row, 2, product.getCategoryName(), dataStyle);
+            createCellWithStyle(row, 3, product.getUnitName(), dataStyle);
+            createCellWithStyle(row, 4, product.getNumberWarning(), dataStyle);
+            createCellWithStyle(row, 5, product.getTotalQuantity(), dataStyle);
+        }
+
+        return startRow + 1; // Dòng trống
+    }
+
+    private int writeExpiredProducts(Sheet sheet, CellStyle headerStyle, CellStyle dataStyle, CellStyle dateStyle, List<ExpiredProductDto> products, int startRow) {
+        String[] headers = {"Mã sản phẩm", "Tên sản phẩm", "Danh mục", "Đơn vị", "Số lô", "Ngày hết hạn", "Số ngày còn lại"};
+        Row headerRow = sheet.createRow(startRow++);
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+        }
+
+        for (ExpiredProductDto product : products) {
+            Row row = sheet.createRow(startRow++);
+            createCellWithStyle(row, 0, product.getProductCode(), dataStyle);
+            createCellWithStyle(row, 1, product.getProductName(), dataStyle);
+            createCellWithStyle(row, 2, product.getCategoryName(), dataStyle);
+            createCellWithStyle(row, 3, product.getUnitName(), dataStyle);
+            createCellWithStyle(row, 4, product.getBatchNumber(), dataStyle);
+            createCellWithStyle(row, 5, product.getExpiryDate().toString(), dateStyle);
+            createCellWithStyle(row, 6, product.getDaysRemaining(), dataStyle);
+        }
+
+        return startRow + 1; // Dòng trống
+    }
 
 
     // -------------------- Báo cáo bán hàng --------------------
@@ -543,7 +740,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public void exportSalesReportToExcel(HttpServletResponse response, LocalDate fromDate, LocalDate toDate) throws IOException {
-        // Step 1: Get report data
+        // Step 1: Get sales report data
         SalesReportDto salesReport = getSalesReport(fromDate, toDate);
 
         // Step 2: Get sales transactions
@@ -560,38 +757,32 @@ public class ReportServiceImpl implements ReportService {
         // Step 4: Create Excel workbook
         Workbook workbook = new XSSFWorkbook();
 
-        // Add sales summary sheet
-        createSalesSummarySheet(workbook, salesReport);
+        // Add the combined sales sheet
+        createCombinedSalesSheet(workbook, salesReport, salesTransactions, productSales);
 
-        // Add sales transactions sheet
-        createSalesTransactionsSheet(workbook, salesTransactions);
-
-        // Add product sales sheet
-        createProductSalesSheet(workbook, productSales);
-
-        // Write the workbook to response
+        // Write the workbook to the response
         try (ServletOutputStream outputStream = response.getOutputStream()) {
             workbook.write(outputStream);
         }
         workbook.close();
     }
 
-    private void createSalesSummarySheet(Workbook workbook, SalesReportDto report) {
-        Sheet sheet = workbook.createSheet("Tổng hợp bán hàng");
+    private void createCombinedSalesSheet(Workbook workbook, SalesReportDto report, List<SalesTransactionDto> transactions, List<ProductSalesDto> products) {
+        Sheet sheet = workbook.createSheet("Báo cáo bán hàng");
 
         // Header styling
         Font headerFont = workbook.createFont();
         headerFont.setBold(true);
-        headerFont.setColor(IndexedColors.WHITE.getIndex());
+        headerFont.setColor(IndexedColors.DARK_BLUE.getIndex());
 
         CellStyle headerCellStyle = workbook.createCellStyle();
         headerCellStyle.setFont(headerFont);
-        headerCellStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
+        headerCellStyle.setFillForegroundColor(IndexedColors.PALE_BLUE.getIndex());
         headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         headerCellStyle.setAlignment(HorizontalAlignment.CENTER);
         headerCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        headerCellStyle.setBorderBottom(BorderStyle.THIN);
         headerCellStyle.setBorderTop(BorderStyle.THIN);
+        headerCellStyle.setBorderBottom(BorderStyle.THIN);
         headerCellStyle.setBorderLeft(BorderStyle.THIN);
         headerCellStyle.setBorderRight(BorderStyle.THIN);
 
@@ -599,173 +790,114 @@ public class ReportServiceImpl implements ReportService {
         CellStyle dataCellStyle = workbook.createCellStyle();
         dataCellStyle.setAlignment(HorizontalAlignment.CENTER);
         dataCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        dataCellStyle.setBorderBottom(BorderStyle.THIN);
         dataCellStyle.setBorderTop(BorderStyle.THIN);
+        dataCellStyle.setBorderBottom(BorderStyle.THIN);
         dataCellStyle.setBorderLeft(BorderStyle.THIN);
         dataCellStyle.setBorderRight(BorderStyle.THIN);
 
-        // Currency styling
-        CellStyle currencyStyle = workbook.createCellStyle();
-        currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0"));
-
-        // Create header row
-        Row headerRow = sheet.createRow(0);
-        String[] headers = {"Tổng hóa đơn", "Doanh thu hóa đơn", "Số lượng đã bán", "Doanh thu tiền mặt", "Doanh thu chuyển khoản"};
-        for (int i = 0; i < headers.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(headers[i]);
-            cell.setCellStyle(headerCellStyle);
-        }
-
-        // Add data row
-        Row dataRow = sheet.createRow(1);
-        createCellWithStyle(dataRow, 0, report.getTotalInvoices(), dataCellStyle);
-        createCellWithStyle(dataRow, 1, report.getTotalRevenue(), currencyStyle);
-        createCellWithStyle(dataRow, 2, report.getTotalQuantitySold(), dataCellStyle);
-        createCellWithStyle(dataRow, 3, report.getCashRevenue(), currencyStyle);
-        createCellWithStyle(dataRow, 4, report.getTransferRevenue(), currencyStyle);
-
-        // Auto-size columns
-        for (int i = 0; i < headers.length; i++) {
-            sheet.autoSizeColumn(i);
-        }
-    }
-
-    private void createSalesTransactionsSheet(Workbook workbook, List<SalesTransactionDto> transactions) {
-        Sheet sheet = workbook.createSheet("Chi tiết bán hàng");
-
-        // Header styling
-        Font headerFont = workbook.createFont();
-        headerFont.setBold(true);
-        headerFont.setColor(IndexedColors.WHITE.getIndex());
-
-        CellStyle headerCellStyle = workbook.createCellStyle();
-        headerCellStyle.setFont(headerFont);
-        headerCellStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
-        headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        headerCellStyle.setAlignment(HorizontalAlignment.CENTER);
-        headerCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        headerCellStyle.setBorderBottom(BorderStyle.THIN);
-        headerCellStyle.setBorderTop(BorderStyle.THIN);
-        headerCellStyle.setBorderLeft(BorderStyle.THIN);
-        headerCellStyle.setBorderRight(BorderStyle.THIN);
-
-        // Data styling
-        CellStyle dataCellStyle = workbook.createCellStyle();
-        dataCellStyle.setAlignment(HorizontalAlignment.CENTER);
-        dataCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        dataCellStyle.setBorderBottom(BorderStyle.THIN);
-        dataCellStyle.setBorderTop(BorderStyle.THIN);
-        dataCellStyle.setBorderLeft(BorderStyle.THIN);
-        dataCellStyle.setBorderRight(BorderStyle.THIN);
+        // Left-aligned styling for specific columns
+        CellStyle leftAlignCellStyle = workbook.createCellStyle();
+        leftAlignCellStyle.setAlignment(HorizontalAlignment.LEFT);
+        leftAlignCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        leftAlignCellStyle.setBorderTop(BorderStyle.THIN);
+        leftAlignCellStyle.setBorderBottom(BorderStyle.THIN);
+        leftAlignCellStyle.setBorderLeft(BorderStyle.THIN);
+        leftAlignCellStyle.setBorderRight(BorderStyle.THIN);
 
         // Currency styling
         CellStyle currencyStyle = workbook.createCellStyle();
-        currencyStyle.cloneStyleFrom(dataCellStyle);
+        currencyStyle.cloneStyleFrom(leftAlignCellStyle);
         currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0"));
+        currencyStyle.setBorderTop(BorderStyle.THIN);
+        currencyStyle.setBorderBottom(BorderStyle.THIN);
+        currencyStyle.setBorderLeft(BorderStyle.THIN);
+        currencyStyle.setBorderRight(BorderStyle.THIN);
 
-        // Date styling for date columns
+        // Date styling
         CellStyle dateStyle = workbook.createCellStyle();
         dateStyle.cloneStyleFrom(dataCellStyle);
-        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy     HH:mm"));  // Apply same date format as before
+        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy   HH:mm"));
+        dateStyle.setBorderTop(BorderStyle.THIN);
+        dateStyle.setBorderBottom(BorderStyle.THIN);
+        dateStyle.setBorderLeft(BorderStyle.THIN);
+        dateStyle.setBorderRight(BorderStyle.THIN);
 
-        // Create header row
-        Row headerRow = sheet.createRow(0);
-        String[] headers = {"STT", "Mã hóa đơn", "Ngày tạo", "Khách hàng", "Loại hóa đơn", "Phương thức thanh toán", "Tổng tiền"};
-        for (int i = 0; i < headers.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(headers[i]);
+        int currentRow = 0;
+
+        // Part 1: Sales Summary
+        Row summaryHeaderRow = sheet.createRow(currentRow++);
+        String[] summaryHeaders = {"Tổng hóa đơn", "Doanh thu hóa đơn", "Số lượng đã bán", "Doanh thu tiền mặt", "Doanh thu chuyển khoản"};
+        for (int i = 0; i < summaryHeaders.length; i++) {
+            Cell cell = summaryHeaderRow.createCell(i);
+            cell.setCellValue(summaryHeaders[i]);
             cell.setCellStyle(headerCellStyle);
         }
 
-        // Fill data rows
-        int rowNum = 1;
+        Row summaryDataRow = sheet.createRow(currentRow++);
+        createCellWithStyle(summaryDataRow, 0, report.getTotalInvoices(), dataCellStyle);
+        createCellWithStyle(summaryDataRow, 1, report.getTotalRevenue(), currencyStyle);
+        createCellWithStyle(summaryDataRow, 2, report.getTotalQuantitySold(), dataCellStyle);
+        createCellWithStyle(summaryDataRow, 3, report.getCashRevenue(), currencyStyle);
+        createCellWithStyle(summaryDataRow, 4, report.getTransferRevenue(), currencyStyle);
+
+        currentRow++;
+
+        // Part 2: Sales Transactions
+        Row transactionHeaderRow = sheet.createRow(currentRow++);
+        String[] transactionHeaders = {"STT", "Mã hóa đơn", "Ngày tạo", "Khách hàng", "Loại hóa đơn", "Phương thức thanh toán", "Tổng tiền"};
+        for (int i = 0; i < transactionHeaders.length; i++) {
+            Cell cell = transactionHeaderRow.createCell(i);
+            cell.setCellValue(transactionHeaders[i]);
+            cell.setCellStyle(headerCellStyle);
+        }
+
         for (int i = 0; i < transactions.size(); i++) {
             SalesTransactionDto transaction = transactions.get(i);
-            Row row = sheet.createRow(rowNum++);
+            Row row = sheet.createRow(currentRow++);
 
             createCellWithStyle(row, 0, i + 1, dataCellStyle);
             createCellWithStyle(row, 1, transaction.getInvoiceNumber(), dataCellStyle);
 
-            // Apply date format to "Ngày tạo"
-            createCellWithStyle(row, 2, DateTimeFormatter.ofPattern("dd-MM-yyyy     HH:mm")
-                    .withZone(ZoneOffset.ofHours(7)).format(transaction.getCreationDate()), dateStyle);
+            // Convert Instant to formatted LocalDateTime
+            createCellWithStyle(row, 2, DateTimeFormatter.ofPattern("dd-MM-yyyy   HH:mm")
+                    .format(transaction.getCreationDate().atZone(ZoneId.systemDefault())), dateStyle);
 
-            createCellWithStyle(row, 3, transaction.getCustomerName(), dataCellStyle);
-            createCellWithStyle(row, 4, transaction.getVoucherType(), dataCellStyle);
-            createCellWithStyle(row, 5, transaction.getPaymentMethod(), dataCellStyle);
+            createCellWithStyle(row, 3, transaction.getCustomerName(), leftAlignCellStyle);
+            createCellWithStyle(row, 4, transaction.getVoucherType(), leftAlignCellStyle);
+            createCellWithStyle(row, 5, transaction.getPaymentMethod(), leftAlignCellStyle);
             createCellWithStyle(row, 6, transaction.getTotalAmount(), currencyStyle);
         }
 
-        // Auto-size columns
-        for (int i = 0; i < headers.length; i++) {
-            sheet.autoSizeColumn(i);
-        }
-    }
+        currentRow++;
 
-    private void createProductSalesSheet(Workbook workbook, List<ProductSalesDto> products) {
-        Sheet sheet = workbook.createSheet("Chi tiết sản phẩm bán");
-
-        // Header styling
-        Font headerFont = workbook.createFont();
-        headerFont.setBold(true);
-        headerFont.setColor(IndexedColors.WHITE.getIndex());
-
-        CellStyle headerCellStyle = workbook.createCellStyle();
-        headerCellStyle.setFont(headerFont);
-        headerCellStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
-        headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        headerCellStyle.setAlignment(HorizontalAlignment.CENTER);
-        headerCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        headerCellStyle.setBorderBottom(BorderStyle.THIN);
-        headerCellStyle.setBorderTop(BorderStyle.THIN);
-        headerCellStyle.setBorderLeft(BorderStyle.THIN);
-        headerCellStyle.setBorderRight(BorderStyle.THIN);
-
-        // Data styling
-        CellStyle dataCellStyle = workbook.createCellStyle();
-        dataCellStyle.setAlignment(HorizontalAlignment.CENTER);
-        dataCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        dataCellStyle.setBorderBottom(BorderStyle.THIN);
-        dataCellStyle.setBorderTop(BorderStyle.THIN);
-        dataCellStyle.setBorderLeft(BorderStyle.THIN);
-        dataCellStyle.setBorderRight(BorderStyle.THIN);
-
-        // Currency styling
-        CellStyle currencyStyle = workbook.createCellStyle();
-        currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0"));
-
-        // Create header row
-        Row headerRow = sheet.createRow(0);
-        String[] headers = {"STT", "Mã sản phẩm", "Tên sản phẩm", "Đơn vị", "Số lượng bán", "Số giao dịch", "Tổng tiền"};
-        for (int i = 0; i < headers.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(headers[i]);
+        // Part 3: Product Sales
+        Row productHeaderRow = sheet.createRow(currentRow++);
+        String[] productHeaders = {"STT", "Mã sản phẩm", "Tên sản phẩm", "Đơn vị", "Số lượng bán", "Số giao dịch", "Tổng tiền"};
+        for (int i = 0; i < productHeaders.length; i++) {
+            Cell cell = productHeaderRow.createCell(i);
+            cell.setCellValue(productHeaders[i]);
             cell.setCellStyle(headerCellStyle);
         }
 
-        // Fill data rows
-        int rowNum = 1;
         for (int i = 0; i < products.size(); i++) {
             ProductSalesDto product = products.get(i);
-            Row row = sheet.createRow(rowNum++);
+            Row row = sheet.createRow(currentRow++);
 
             createCellWithStyle(row, 0, i + 1, dataCellStyle);
             createCellWithStyle(row, 1, product.getProductCode(), dataCellStyle);
-            createCellWithStyle(row, 2, product.getProductName(), dataCellStyle);
+            createCellWithStyle(row, 2, product.getProductName(), leftAlignCellStyle);
             createCellWithStyle(row, 3, product.getUnit(), dataCellStyle);
             createCellWithStyle(row, 4, product.getQuantitySold(), dataCellStyle);
             createCellWithStyle(row, 5, product.getTransactionCount(), dataCellStyle);
             createCellWithStyle(row, 6, product.getTotalAmount(), currencyStyle);
         }
 
-        // Auto-size columns
-        for (int i = 0; i < headers.length; i++) {
+        // Auto-size all columns
+        for (int i = 0; i < Math.max(summaryHeaders.length, Math.max(transactionHeaders.length, productHeaders.length)); i++) {
             sheet.autoSizeColumn(i);
         }
     }
+
 
     // -------------------- Báo cáo nhà cung cấp --------------------
 
@@ -865,7 +997,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public void exportSupplierReportToExcel(HttpServletResponse response, LocalDate fromDate, LocalDate toDate) throws IOException {
-        // Step 1: Get report data
+        // Step 1: Get supplier report data
         SupplierReportDto supplierReport = getSupplierReport(fromDate, toDate);
 
         // Step 2: Get supplier invoices data
@@ -875,8 +1007,8 @@ public class ReportServiceImpl implements ReportService {
         List<SupplierInvoiceDto> supplierInvoices = supplierRepository.findSupplierInvoices(
                         null, null,
                         Timestamp.from(startInstant), Timestamp.from(endInstant),
-                        PageRequest.of(0, Integer.MAX_VALUE)
-                ).stream()
+                        PageRequest.of(0, Integer.MAX_VALUE))
+                .stream()
                 .map(projection -> new SupplierInvoiceDto(
                         projection.getSupplierId(),
                         projection.getSupplierName(),
@@ -884,18 +1016,14 @@ public class ReportServiceImpl implements ReportService {
                         projection.getInvoiceCount(),
                         projection.getTotalProductQuantity(),
                         projection.getTotalReturnAmount(),
-                        projection.getTotalImportAmount()
-                ))
+                        projection.getTotalImportAmount()))
                 .collect(Collectors.toList());
 
         // Step 3: Create Excel workbook
         Workbook workbook = new XSSFWorkbook();
 
-        // Add the supplier summary sheet
-        createSupplierSummarySheet(workbook, supplierReport);
-
-        // Add the supplier invoice details sheet
-        createSupplierInvoiceSheet(workbook, supplierInvoices);
+        // Add the combined sheet
+        createCombinedSupplierSheet(workbook, supplierReport, supplierInvoices);
 
         // Write the workbook to response
         try (ServletOutputStream outputStream = response.getOutputStream()) {
@@ -904,22 +1032,22 @@ public class ReportServiceImpl implements ReportService {
         workbook.close();
     }
 
-    private void createSupplierSummarySheet(Workbook workbook, SupplierReportDto report) {
-        Sheet sheet = workbook.createSheet("Tổng hợp nhà cung cấp");
+    private void createCombinedSupplierSheet(Workbook workbook, SupplierReportDto report, List<SupplierInvoiceDto> invoices) {
+        Sheet sheet = workbook.createSheet("Báo cáo nhà cung cấp");
 
         // Header styling
         Font headerFont = workbook.createFont();
         headerFont.setBold(true);
-        headerFont.setColor(IndexedColors.WHITE.getIndex());
+        headerFont.setColor(IndexedColors.DARK_BLUE.getIndex());
 
         CellStyle headerCellStyle = workbook.createCellStyle();
         headerCellStyle.setFont(headerFont);
-        headerCellStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
+        headerCellStyle.setFillForegroundColor(IndexedColors.PALE_BLUE.getIndex());
         headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         headerCellStyle.setAlignment(HorizontalAlignment.CENTER);
         headerCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        headerCellStyle.setBorderBottom(BorderStyle.THIN);
         headerCellStyle.setBorderTop(BorderStyle.THIN);
+        headerCellStyle.setBorderBottom(BorderStyle.THIN);
         headerCellStyle.setBorderLeft(BorderStyle.THIN);
         headerCellStyle.setBorderRight(BorderStyle.THIN);
 
@@ -927,110 +1055,75 @@ public class ReportServiceImpl implements ReportService {
         CellStyle dataCellStyle = workbook.createCellStyle();
         dataCellStyle.setAlignment(HorizontalAlignment.CENTER);
         dataCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        dataCellStyle.setBorderBottom(BorderStyle.THIN);
         dataCellStyle.setBorderTop(BorderStyle.THIN);
+        dataCellStyle.setBorderBottom(BorderStyle.THIN);
         dataCellStyle.setBorderLeft(BorderStyle.THIN);
         dataCellStyle.setBorderRight(BorderStyle.THIN);
 
-        // Currency styling
-        CellStyle currencyStyle = workbook.createCellStyle();
-        currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0")); // No decimals for currency
-
-        // Create header row
-        Row headerRow = sheet.createRow(0);
-        String[] headers = {"Nhà cung cấp mới", "Tổng tiền nhập từ nhà cung cấp mới",
-                "Nhà cung cấp cũ", "Tổng tiền nhập từ nhà cung cấp cũ",
-                "Tổng số nhà cung cấp", "Tổng tiền nhập hàng", "Tổng số lượng sản phẩm"};
-        for (int i = 0; i < headers.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(headers[i]);
-            cell.setCellStyle(headerCellStyle);
-        }
-
-        // Add data row
-        Row dataRow = sheet.createRow(1);
-        createCellWithStyle(dataRow, 0, report.getNewSuppliers(), dataCellStyle);
-        createCellWithStyle(dataRow, 1, report.getNewSuppliersAmount(), currencyStyle);
-        createCellWithStyle(dataRow, 2, report.getOldSuppliers(), dataCellStyle);
-        createCellWithStyle(dataRow, 3, report.getOldSuppliersAmount(), currencyStyle);
-        createCellWithStyle(dataRow, 4, report.getTotalSuppliers(), dataCellStyle);
-        createCellWithStyle(dataRow, 5, report.getTotalImportAmount(), currencyStyle);
-        createCellWithStyle(dataRow, 6, report.getTotalImportQuantity(), dataCellStyle);
-
-        // Auto-size columns
-        for (int i = 0; i < headers.length; i++) {
-            sheet.autoSizeColumn(i);
-        }
-    }
-
-    private void createSupplierInvoiceSheet(Workbook workbook, List<SupplierInvoiceDto> supplierInvoices) {
-        Sheet sheet = workbook.createSheet("Chi tiết nhà cung cấp");
-
-        // Header styling
-        Font headerFont = workbook.createFont();
-        headerFont.setBold(true);
-        headerFont.setColor(IndexedColors.WHITE.getIndex());
-
-        CellStyle headerCellStyle = workbook.createCellStyle();
-        headerCellStyle.setFont(headerFont);
-        headerCellStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
-        headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        headerCellStyle.setAlignment(HorizontalAlignment.CENTER);
-        headerCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        headerCellStyle.setBorderBottom(BorderStyle.THIN);
-        headerCellStyle.setBorderTop(BorderStyle.THIN);
-        headerCellStyle.setBorderLeft(BorderStyle.THIN);
-        headerCellStyle.setBorderRight(BorderStyle.THIN);
-
-        // Data styling
-        CellStyle dataCellStyle = workbook.createCellStyle();
-        dataCellStyle.setAlignment(HorizontalAlignment.CENTER);
-        dataCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        dataCellStyle.setBorderBottom(BorderStyle.THIN);
-        dataCellStyle.setBorderTop(BorderStyle.THIN);
-        dataCellStyle.setBorderLeft(BorderStyle.THIN);
-        dataCellStyle.setBorderRight(BorderStyle.THIN);
+        // Left-aligned styling for specific columns
+        CellStyle leftAlignCellStyle = workbook.createCellStyle();
+        leftAlignCellStyle.setAlignment(HorizontalAlignment.LEFT);
+        leftAlignCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        leftAlignCellStyle.setBorderTop(BorderStyle.THIN);
+        leftAlignCellStyle.setBorderBottom(BorderStyle.THIN);
+        leftAlignCellStyle.setBorderLeft(BorderStyle.THIN);
+        leftAlignCellStyle.setBorderRight(BorderStyle.THIN);
 
         // Currency styling
         CellStyle currencyStyle = workbook.createCellStyle();
-        currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0")); // No decimals for currency
+        currencyStyle.cloneStyleFrom(leftAlignCellStyle);
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0"));
 
-        // Create header row
-        Row headerRow = sheet.createRow(0);
-        String[] headers = {"STT", "Tên nhà cung cấp", "Số điện thoại",
-                "Tổng hóa đơn", "Tổng sản phẩm",
-                "Tổng tiền trả hàng", "Tổng tiền nhập hàng"};
-        for (int i = 0; i < headers.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(headers[i]);
+        // Part 1: Supplier Summary
+        int currentRow = 0;
+        Row summaryHeaderRow = sheet.createRow(currentRow++);
+        String[] summaryHeaders = {"Nhà cung cấp mới", "Tổng tiền nhập từ nhà cung cấp mới", "Nhà cung cấp cũ",
+                "Tổng tiền nhập từ nhà cung cấp cũ", "Tổng số nhà cung cấp", "Tổng tiền nhập hàng",
+                "Tổng số lượng sản phẩm"};
+        for (int i = 0; i < summaryHeaders.length; i++) {
+            Cell cell = summaryHeaderRow.createCell(i);
+            cell.setCellValue(summaryHeaders[i]);
             cell.setCellStyle(headerCellStyle);
         }
 
-        // Fill data rows
-        int rowNum = 1;
-        for (int i = 0; i < supplierInvoices.size(); i++) {
-            SupplierInvoiceDto invoice = supplierInvoices.get(i);
-            Row row = sheet.createRow(rowNum++);
+        Row summaryDataRow = sheet.createRow(currentRow++);
+        createCellWithStyle(summaryDataRow, 0, report.getNewSuppliers(), dataCellStyle);
+        createCellWithStyle(summaryDataRow, 1, report.getNewSuppliersAmount(), currencyStyle);
+        createCellWithStyle(summaryDataRow, 2, report.getOldSuppliers(), dataCellStyle);
+        createCellWithStyle(summaryDataRow, 3, report.getOldSuppliersAmount(), currencyStyle);
+        createCellWithStyle(summaryDataRow, 4, report.getTotalSuppliers(), dataCellStyle);
+        createCellWithStyle(summaryDataRow, 5, report.getTotalImportAmount(), currencyStyle);
+        createCellWithStyle(summaryDataRow, 6, report.getTotalImportQuantity(), dataCellStyle);
+
+        // Part 2: Supplier Invoices
+        int invoiceStartRow = currentRow + 1;
+        Row invoiceHeaderRow = sheet.createRow(invoiceStartRow++);
+        String[] invoiceHeaders = {"STT", "Tên nhà cung cấp", "Số điện thoại", "Tổng hóa đơn",
+                "Tổng sản phẩm", "Tổng tiền trả hàng", "Tổng tiền nhập hàng"};
+        for (int i = 0; i < invoiceHeaders.length; i++) {
+            Cell cell = invoiceHeaderRow.createCell(i);
+            cell.setCellValue(invoiceHeaders[i]);
+            cell.setCellStyle(headerCellStyle);
+        }
+
+        for (int i = 0; i < invoices.size(); i++) {
+            SupplierInvoiceDto invoice = invoices.get(i);
+            Row row = sheet.createRow(invoiceStartRow++);
 
             createCellWithStyle(row, 0, i + 1, dataCellStyle); // STT
-            createCellWithStyle(row, 1, invoice.getSupplierName(), dataCellStyle); // Tên nhà cung cấp
-            createCellWithStyle(row, 2, invoice.getPhoneNumber(), dataCellStyle); // Số điện thoại
+            createCellWithStyle(row, 1, invoice.getSupplierName(), leftAlignCellStyle); // Tên nhà cung cấp
+            createCellWithStyle(row, 2, invoice.getPhoneNumber(), leftAlignCellStyle); // Số điện thoại
             createCellWithStyle(row, 3, invoice.getInvoiceCount(), dataCellStyle); // Tổng hóa đơn
             createCellWithStyle(row, 4, invoice.getTotalProductQuantity(), dataCellStyle); // Tổng sản phẩm
             createCellWithStyle(row, 5, invoice.getTotalReturnAmount(), currencyStyle); // Tổng tiền trả hàng
             createCellWithStyle(row, 6, invoice.getTotalImportAmount(), currencyStyle); // Tổng tiền nhập hàng
         }
 
-        // Auto-size columns
-        for (int i = 0; i < headers.length; i++) {
+        // Auto-size all columns
+        for (int i = 0; i < Math.max(summaryHeaders.length, invoiceHeaders.length); i++) {
             sheet.autoSizeColumn(i);
         }
     }
-
-
-
 
     // -------------------- Báo cáo khách hàng --------------------
 
@@ -1151,7 +1244,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public void exportCustomerReportToExcel(HttpServletResponse response, LocalDate fromDate, LocalDate toDate) throws IOException {
-        // Step 1: Get report data
+        // Step 1: Get customer report data
         CustomerReportDto customerReport = getCustomerReport(fromDate, toDate);
 
         // Step 2: Get customer invoices data
@@ -1176,11 +1269,8 @@ public class ReportServiceImpl implements ReportService {
         // Step 3: Create Excel workbook
         Workbook workbook = new XSSFWorkbook();
 
-        // Add the customer summary sheet
-        createCustomerSummarySheet(workbook, customerReport);
-
-        // Add the customer invoice details sheet
-        createCustomerInvoiceSheet(workbook, customerInvoices);
+        // Add the combined sheet
+        createCombinedCustomerSheet(workbook, customerReport, customerInvoices);
 
         // Write the workbook to response
         try (ServletOutputStream outputStream = response.getOutputStream()) {
@@ -1189,22 +1279,22 @@ public class ReportServiceImpl implements ReportService {
         workbook.close();
     }
 
-    private void createCustomerSummarySheet(Workbook workbook, CustomerReportDto report) {
-        Sheet sheet = workbook.createSheet("Tổng hợp khách hàng");
+    private void createCombinedCustomerSheet(Workbook workbook, CustomerReportDto report, List<CustomerInvoiceDto> customerInvoices) {
+        Sheet sheet = workbook.createSheet("Báo cáo khách hàng");
 
         // Header styling
         Font headerFont = workbook.createFont();
         headerFont.setBold(true);
-        headerFont.setColor(IndexedColors.WHITE.getIndex());
+        headerFont.setColor(IndexedColors.DARK_BLUE.getIndex());
 
         CellStyle headerCellStyle = workbook.createCellStyle();
         headerCellStyle.setFont(headerFont);
-        headerCellStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
+        headerCellStyle.setFillForegroundColor(IndexedColors.PALE_BLUE.getIndex());
         headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         headerCellStyle.setAlignment(HorizontalAlignment.CENTER);
         headerCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        headerCellStyle.setBorderBottom(BorderStyle.THIN);
         headerCellStyle.setBorderTop(BorderStyle.THIN);
+        headerCellStyle.setBorderBottom(BorderStyle.THIN);
         headerCellStyle.setBorderLeft(BorderStyle.THIN);
         headerCellStyle.setBorderRight(BorderStyle.THIN);
 
@@ -1212,104 +1302,82 @@ public class ReportServiceImpl implements ReportService {
         CellStyle dataCellStyle = workbook.createCellStyle();
         dataCellStyle.setAlignment(HorizontalAlignment.CENTER);
         dataCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        dataCellStyle.setBorderBottom(BorderStyle.THIN);
         dataCellStyle.setBorderTop(BorderStyle.THIN);
+        dataCellStyle.setBorderBottom(BorderStyle.THIN);
         dataCellStyle.setBorderLeft(BorderStyle.THIN);
         dataCellStyle.setBorderRight(BorderStyle.THIN);
 
-        // Currency styling
-        CellStyle currencyStyle = workbook.createCellStyle();
-        currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0")); // No decimals for currency
+        // Left-aligned styling
+        CellStyle leftAlignCellStyle = workbook.createCellStyle();
+        leftAlignCellStyle.setAlignment(HorizontalAlignment.LEFT);
+        leftAlignCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        leftAlignCellStyle.setBorderTop(BorderStyle.THIN);
+        leftAlignCellStyle.setBorderBottom(BorderStyle.THIN);
+        leftAlignCellStyle.setBorderLeft(BorderStyle.THIN);
+        leftAlignCellStyle.setBorderRight(BorderStyle.THIN);
 
-        // Create header row
-        Row headerRow = sheet.createRow(0);
-        String[] headers = {"Khách hàng mới", "Doanh thu từ khách mới", "Khách hàng cũ", "Doanh thu từ khách cũ",
+        // Currency styling with left alignment
+        CellStyle leftAlignCurrencyStyle = workbook.createCellStyle();
+        leftAlignCurrencyStyle.cloneStyleFrom(leftAlignCellStyle);
+        leftAlignCurrencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0"));
+
+        // Part 1: Customer summary
+        int currentRow = 0;
+        Row summaryHeaderRow = sheet.createRow(currentRow++);
+        String[] summaryHeaders = {"Khách hàng mới", "Doanh thu từ khách mới", "Khách hàng cũ", "Doanh thu từ khách cũ",
                 "Khách vãng lai", "Doanh thu từ khách vãng lai", "Tổng khách hàng", "Tổng doanh thu", "Tổng sản phẩm bán"};
-        for (int i = 0; i < headers.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(headers[i]);
+        for (int i = 0; i < summaryHeaders.length; i++) {
+            Cell cell = summaryHeaderRow.createCell(i);
+            cell.setCellValue(summaryHeaders[i]);
             cell.setCellStyle(headerCellStyle);
         }
 
-        // Add data row
-        Row dataRow = sheet.createRow(1);
-        createCellWithStyle(dataRow, 0, report.getNewCustomers(), dataCellStyle);
-        createCellWithStyle(dataRow, 1, report.getAmountNewCustomers() != null ? report.getAmountNewCustomers() : 0.0, currencyStyle);
-        createCellWithStyle(dataRow, 2, report.getOldCustomers(), dataCellStyle);
-        createCellWithStyle(dataRow, 3, report.getAmountOldCustomers() != null ? report.getAmountOldCustomers() : 0.0, currencyStyle);
-        createCellWithStyle(dataRow, 4, report.getWalkInCustomers(), dataCellStyle);
-        createCellWithStyle(dataRow, 5, report.getAmountWalkInCustomers() != null ? report.getAmountWalkInCustomers() : 0.0, currencyStyle);
-        createCellWithStyle(dataRow, 6, report.getTotalCustomers(), dataCellStyle);
-        createCellWithStyle(dataRow, 7, report.getTotalRevenueFromCustomers(), currencyStyle);
-        createCellWithStyle(dataRow, 8, report.getTotalQuantitySoldToCustomers(), dataCellStyle);
+        Row summaryDataRow = sheet.createRow(currentRow++);
+        createCellWithStyle(summaryDataRow, 0, report.getNewCustomers(), dataCellStyle);
+        createCellWithStyle(summaryDataRow, 1, report.getAmountNewCustomers() != null ? report.getAmountNewCustomers() : 0.0, leftAlignCurrencyStyle);
+        createCellWithStyle(summaryDataRow, 2, report.getOldCustomers(), dataCellStyle);
+        createCellWithStyle(summaryDataRow, 3, report.getAmountOldCustomers() != null ? report.getAmountOldCustomers() : 0.0, leftAlignCurrencyStyle);
+        createCellWithStyle(summaryDataRow, 4, report.getWalkInCustomers(), dataCellStyle);
+        createCellWithStyle(summaryDataRow, 5, report.getAmountWalkInCustomers() != null ? report.getAmountWalkInCustomers() : 0.0, leftAlignCurrencyStyle);
+        createCellWithStyle(summaryDataRow, 6, report.getTotalCustomers(), dataCellStyle);
+        createCellWithStyle(summaryDataRow, 7, report.getTotalRevenueFromCustomers(), leftAlignCurrencyStyle);
+        createCellWithStyle(summaryDataRow, 8, report.getTotalQuantitySoldToCustomers(), dataCellStyle);
 
-        // Auto-size columns
-        for (int i = 0; i < headers.length; i++) {
+        // Auto-size columns after data insertion
+        for (int i = 0; i < summaryHeaders.length; i++) {
             sheet.autoSizeColumn(i);
         }
-    }
 
-    private void createCustomerInvoiceSheet(Workbook workbook, List<CustomerInvoiceDto> customerInvoices) {
-        Sheet sheet = workbook.createSheet("Chi tiết khách hàng");
+        // Add a blank row for spacing
+        currentRow++;
 
-        // Header styling
-        Font headerFont = workbook.createFont();
-        headerFont.setBold(true);
-        headerFont.setColor(IndexedColors.WHITE.getIndex());
-
-        CellStyle headerCellStyle = workbook.createCellStyle();
-        headerCellStyle.setFont(headerFont);
-        headerCellStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
-        headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        headerCellStyle.setAlignment(HorizontalAlignment.CENTER);
-        headerCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        headerCellStyle.setBorderBottom(BorderStyle.THIN);
-        headerCellStyle.setBorderTop(BorderStyle.THIN);
-        headerCellStyle.setBorderLeft(BorderStyle.THIN);
-        headerCellStyle.setBorderRight(BorderStyle.THIN);
-
-        // Data styling
-        CellStyle dataCellStyle = workbook.createCellStyle();
-        dataCellStyle.setAlignment(HorizontalAlignment.CENTER);
-        dataCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        dataCellStyle.setBorderBottom(BorderStyle.THIN);
-        dataCellStyle.setBorderTop(BorderStyle.THIN);
-        dataCellStyle.setBorderLeft(BorderStyle.THIN);
-        dataCellStyle.setBorderRight(BorderStyle.THIN);
-
-        // Currency styling
-        CellStyle currencyStyle = workbook.createCellStyle();
-        currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0")); // No decimals for currency
-
-        // Create header row
-        Row headerRow = sheet.createRow(0);
-        String[] headers = {"STT", "Tên khách hàng", "Số điện thoại", "Tổng hóa đơn", "Tổng sản phẩm", "Tổng giá trị"};
-        for (int i = 0; i < headers.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(headers[i]);
+        // Part 2: Customer invoices
+        int invoiceStartRow = currentRow;
+        Row invoiceHeaderRow = sheet.createRow(invoiceStartRow++);
+        String[] invoiceHeaders = {"STT", "Tên khách hàng", "Số điện thoại", "Tổng hóa đơn", "Tổng sản phẩm", "Tổng giá trị"};
+        for (int i = 0; i < invoiceHeaders.length; i++) {
+            Cell cell = invoiceHeaderRow.createCell(i);
+            cell.setCellValue(invoiceHeaders[i]);
             cell.setCellStyle(headerCellStyle);
         }
 
-        // Fill data rows
-        int rowNum = 1;
         for (int i = 0; i < customerInvoices.size(); i++) {
             CustomerInvoiceDto invoice = customerInvoices.get(i);
-            Row row = sheet.createRow(rowNum++);
+            Row row = sheet.createRow(invoiceStartRow++);
 
             createCellWithStyle(row, 0, i + 1, dataCellStyle); // STT
-            createCellWithStyle(row, 1, invoice.getCustomerName(), dataCellStyle); // Tên khách hàng
-            createCellWithStyle(row, 2, invoice.getPhoneNumber(), dataCellStyle); // Số điện thoại
+            createCellWithStyle(row, 1, invoice.getCustomerName(), leftAlignCellStyle); // Tên khách hàng
+            createCellWithStyle(row, 2, invoice.getPhoneNumber(), leftAlignCellStyle); // Số điện thoại
             createCellWithStyle(row, 3, invoice.getInvoiceCount(), dataCellStyle); // Tổng hóa đơn
             createCellWithStyle(row, 4, invoice.getTotalProductQuantity(), dataCellStyle); // Tổng sản phẩm
-            createCellWithStyle(row, 5, invoice.getTotalAmount(), currencyStyle); // Tổng giá trị
+            createCellWithStyle(row, 5, invoice.getTotalAmount(), leftAlignCurrencyStyle); // Tổng giá trị
         }
 
-        // Auto-size columns
-        for (int i = 0; i < headers.length; i++) {
+        // Auto-size columns after data insertion
+        for (int i = 0; i < invoiceHeaders.length; i++) {
             sheet.autoSizeColumn(i);
         }
+
     }
 
     private void createCellWithStyle(Row row, int column, Object value, CellStyle style) {
@@ -1429,11 +1497,8 @@ public class ReportServiceImpl implements ReportService {
         // Step 3: Create Excel workbook
         Workbook workbook = new XSSFWorkbook();
 
-        // Add the financial summary sheet
-        createFinancialSummarySheet(workbook, financialReport);
-
-        // Add the financial transactions sheet
-        createFinancialTransactionSheet(workbook, financialTransactions);
+        // Add the combined sheet
+        createCombinedFinancialSheet(workbook, financialReport, financialTransactions);
 
         // Write the workbook to the response
         try (ServletOutputStream outputStream = response.getOutputStream()) {
@@ -1442,141 +1507,117 @@ public class ReportServiceImpl implements ReportService {
         workbook.close();
     }
 
-    private void createFinancialSummarySheet(Workbook workbook, FinancialReportDto report) {
-        Sheet sheet = workbook.createSheet("Tổng hợp thu chi");
+    private void createCombinedFinancialSheet(Workbook workbook, FinancialReportDto report, List<FinancialTransactionDto> transactions) {
+        Sheet sheet = workbook.createSheet("Báo cáo tài chính");
 
         // Header styling
         Font headerFont = workbook.createFont();
         headerFont.setBold(true);
-        headerFont.setColor(IndexedColors.WHITE.getIndex());
+        headerFont.setColor(IndexedColors.DARK_BLUE.getIndex()); // Text color close to #09446D
 
         CellStyle headerCellStyle = workbook.createCellStyle();
         headerCellStyle.setFont(headerFont);
-        headerCellStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
+        headerCellStyle.setFillForegroundColor(IndexedColors.PALE_BLUE.getIndex()); // Background color close to #C6E1F8
         headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         headerCellStyle.setAlignment(HorizontalAlignment.CENTER);
         headerCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        headerCellStyle.setBorderBottom(BorderStyle.THIN);
         headerCellStyle.setBorderTop(BorderStyle.THIN);
+        headerCellStyle.setBorderBottom(BorderStyle.THIN);
         headerCellStyle.setBorderLeft(BorderStyle.THIN);
         headerCellStyle.setBorderRight(BorderStyle.THIN);
 
-        // Data styling
+        // Data styling for numeric values (aligned center)
         CellStyle dataCellStyle = workbook.createCellStyle();
         dataCellStyle.setAlignment(HorizontalAlignment.CENTER);
         dataCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        dataCellStyle.setBorderBottom(BorderStyle.THIN);
         dataCellStyle.setBorderTop(BorderStyle.THIN);
+        dataCellStyle.setBorderBottom(BorderStyle.THIN);
         dataCellStyle.setBorderLeft(BorderStyle.THIN);
         dataCellStyle.setBorderRight(BorderStyle.THIN);
 
-        // Currency styling
-        CellStyle currencyStyle = workbook.createCellStyle();
-        currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0")); // No decimals for currency
-
-        // Date styling for date columns
-        CellStyle dateStyle = workbook.createCellStyle();
-        dateStyle.cloneStyleFrom(dataCellStyle);
-        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy     HH:mm"));  // Add space between date and time
-
-        // Create header row
-        Row headerRow = sheet.createRow(0);
-        String[] headers = {"Tổng thu", "Tổng chi", "Lợi nhuận"};
-        for (int i = 0; i < headers.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(headers[i]);
-            cell.setCellStyle(headerCellStyle);
-        }
-
-        // Add data row
-        Row dataRow = sheet.createRow(1);
-        createCellWithStyle(dataRow, 0, report.getTotalIncome(), currencyStyle);
-        createCellWithStyle(dataRow, 1, report.getTotalExpense(), currencyStyle);
-        createCellWithStyle(dataRow, 2, report.getProfit(), currencyStyle);
-
-        // Auto-size columns
-        for (int i = 0; i < headers.length; i++) {
-            sheet.autoSizeColumn(i);
-        }
-    }
-
-    private void createFinancialTransactionSheet(Workbook workbook, List<FinancialTransactionDto> transactions) {
-        Sheet sheet = workbook.createSheet("Chi tiết thu chi");
-
-        // Header styling
-        Font headerFont = workbook.createFont();
-        headerFont.setBold(true);
-        headerFont.setColor(IndexedColors.WHITE.getIndex());
-
-        CellStyle headerCellStyle = workbook.createCellStyle();
-        headerCellStyle.setFont(headerFont);
-        headerCellStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
-        headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        headerCellStyle.setAlignment(HorizontalAlignment.CENTER);
-        headerCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        headerCellStyle.setBorderBottom(BorderStyle.THIN);
-        headerCellStyle.setBorderTop(BorderStyle.THIN);
-        headerCellStyle.setBorderLeft(BorderStyle.THIN);
-        headerCellStyle.setBorderRight(BorderStyle.THIN);
-
-        // Data styling
-        CellStyle dataCellStyle = workbook.createCellStyle();
-        dataCellStyle.setAlignment(HorizontalAlignment.CENTER);
-        dataCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        dataCellStyle.setBorderBottom(BorderStyle.THIN);
-        dataCellStyle.setBorderTop(BorderStyle.THIN);
-        dataCellStyle.setBorderLeft(BorderStyle.THIN);
-        dataCellStyle.setBorderRight(BorderStyle.THIN);
+        // Left-aligned styling for specific columns
+        CellStyle leftAlignCellStyle = workbook.createCellStyle();
+        leftAlignCellStyle.setAlignment(HorizontalAlignment.LEFT);
+        leftAlignCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        leftAlignCellStyle.setBorderTop(BorderStyle.THIN);
+        leftAlignCellStyle.setBorderBottom(BorderStyle.THIN);
+        leftAlignCellStyle.setBorderLeft(BorderStyle.THIN);
+        leftAlignCellStyle.setBorderRight(BorderStyle.THIN);
 
         // Currency styling
         CellStyle currencyStyle = workbook.createCellStyle();
-        currencyStyle.cloneStyleFrom(dataCellStyle);
-        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0")); // No decimals for currency
+        currencyStyle.cloneStyleFrom(leftAlignCellStyle);
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0"));
+        currencyStyle.setBorderTop(BorderStyle.THIN);
+        currencyStyle.setBorderBottom(BorderStyle.THIN);
+        currencyStyle.setBorderLeft(BorderStyle.THIN);
+        currencyStyle.setBorderRight(BorderStyle.THIN);
 
-        // Date styling for date columns
+        // Date styling
         CellStyle dateStyle = workbook.createCellStyle();
         dateStyle.cloneStyleFrom(dataCellStyle);
-        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy     HH:mm"));  // Add space between date and time
+        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("dd-MM-yyyy     HH:mm"));
+        dateStyle.setBorderTop(BorderStyle.THIN);
+        dateStyle.setBorderBottom(BorderStyle.THIN);
+        dateStyle.setBorderLeft(BorderStyle.THIN);
+        dateStyle.setBorderRight(BorderStyle.THIN);
 
-        // Create header row
-        Row headerRow = sheet.createRow(0);
-        String[] headers = {"Mã phiếu", "Loại phiếu", "Ngày", "Danh mục", "Phương thức thanh toán", "Tổng tiền"};
-        for (int i = 0; i < headers.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(headers[i]);
+        // Part 1: Financial summary
+        int currentRow = 0;
+        Row summaryHeaderRow = sheet.createRow(currentRow++);
+        String[] summaryHeaders = {"Tổng thu", "Tổng chi", "Lợi nhuận"};
+        for (int i = 0; i < summaryHeaders.length; i++) {
+            Cell cell = summaryHeaderRow.createCell(i);
+            cell.setCellValue(summaryHeaders[i]);
             cell.setCellStyle(headerCellStyle);
         }
 
-        // Define the date formatter
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy     HH:mm")
-                .withZone(ZoneOffset.ofHours(7)); // Adjust the zone offset as needed
+        Row summaryDataRow = sheet.createRow(currentRow++);
+        createCellWithStyle(summaryDataRow, 0, report.getTotalIncome(), currencyStyle);
+        createCellWithStyle(summaryDataRow, 1, report.getTotalExpense(), currencyStyle);
+        createCellWithStyle(summaryDataRow, 2, report.getProfit(), currencyStyle);
 
-        // Fill data rows
-        int rowNum = 1;
-        for (FinancialTransactionDto transaction : transactions) {
-            Row row = sheet.createRow(rowNum++);
+        // Add a blank row for spacing
+        currentRow++;
 
-            createCellWithStyle(row, 0, transaction.getInvoiceNumber(), dataCellStyle); // Mã phiếu
-            createCellWithStyle(row, 1, transaction.getReceiptType(), dataCellStyle); // Loại phiếu
-
-            // Apply date format for the "Ngày" (Date) column
-            String formattedDate = formatter.format(transaction.getCreationDate());
-            createCellWithStyle(row, 2, formattedDate, dateStyle); // Ngày (formatted)
-
-            createCellWithStyle(row, 3, transaction.getCategory(), dataCellStyle); // Danh mục
-            createCellWithStyle(row, 4, transaction.getPaymentMethod(), dataCellStyle); // Phương thức thanh toán
-            createCellWithStyle(row, 5, transaction.getTotalAmount(), currencyStyle); // Tổng tiền
+        // Part 2: Financial transactions
+        int transactionStartRow = currentRow;
+        Row transactionHeaderRow = sheet.createRow(transactionStartRow++);
+        String[] transactionHeaders = {"STT", "Mã phiếu", "Loại phiếu", "Ngày", "Danh mục", "Phương thức thanh toán", "Tổng tiền"};
+        for (int i = 0; i < transactionHeaders.length; i++) {
+            Cell cell = transactionHeaderRow.createCell(i);
+            cell.setCellValue(transactionHeaders[i]);
+            cell.setCellStyle(headerCellStyle);
         }
 
-        // Auto-size columns
-        for (int i = 0; i < headers.length; i++) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy     HH:mm").withZone(ZoneId.systemDefault());
+
+        for (int i = 0; i < transactions.size(); i++) {
+            FinancialTransactionDto transaction = transactions.get(i);
+            Row row = sheet.createRow(transactionStartRow++);
+
+            createCellWithStyle(row, 0, i + 1, dataCellStyle); // STT
+            createCellWithStyle(row, 1, transaction.getInvoiceNumber(), dataCellStyle); // Mã phiếu
+            createCellWithStyle(row, 2, transaction.getReceiptType(), dataCellStyle); // Loại phiếu
+            createCellWithStyle(row, 3, formatter.format(transaction.getCreationDate()), dateStyle); // Ngày
+            createCellWithStyle(row, 4, transaction.getCategory(), leftAlignCellStyle); // Danh mục
+
+            // Map payment method
+            String paymentMethod = transaction.getPaymentMethod();
+            if ("TRANSFER".equals(paymentMethod)) {
+                paymentMethod = "Chuyển khoản";
+            } else if ("CASH".equals(paymentMethod)) {
+                paymentMethod = "Tiền mặt";
+            }
+            createCellWithStyle(row, 5, paymentMethod, leftAlignCellStyle); // Phương thức thanh toán
+            createCellWithStyle(row, 6, transaction.getTotalAmount(), currencyStyle); // Tổng tiền
+        }
+
+        // Auto-size all columns
+        for (int i = 0; i < transactionHeaders.length; i++) {
             sheet.autoSizeColumn(i);
         }
     }
-
-
-
 
 
 }

@@ -36,11 +36,14 @@ public class CustomerServiceImpl implements CustomerService {
             throw new ResourceNotFoundException(Message.EXIST_PHONE);
         }
 
-        int yob = customerDTORequest.getYob();
+        Integer yob = customerDTORequest.getYob();
 
-        // Validate Year of Birth (should be greater than 1900 and not in the future)
-        if (yob <= 1900 || yob > Year.now().getValue()) {
-            throw new BadRequestException(Message.INVALID_YOB);
+        // Kiểm tra nếu người dùng nhập `yob` thì mới thực hiện validate
+        if (yob != null) {
+            // Validate Year of Birth (should be greater than 1900 and not in the future)
+            if (yob <= 1900 || yob > Year.now().getValue()) {
+                throw new BadRequestException(Message.INVALID_YOB);
+            }
         }
 
         Customer customer = new Customer();
@@ -68,11 +71,14 @@ public class CustomerServiceImpl implements CustomerService {
             throw new ResourceNotFoundException(Message.EXIST_PHONE);
         }
 
-        int yob = customerDTORequest.getYob();
+        Integer yob = customerDTORequest.getYob();
 
-        // Validate Year of Birth (should be greater than 1900 and not in the future)
-        if (yob <= 1900 || yob > Year.now().getValue()) {
-            throw new BadRequestException(Message.INVALID_YOB);
+        // Kiểm tra nếu người dùng nhập `yob` thì mới thực hiện validate
+        if (yob != null) {
+            // Validate Year of Birth (should be greater than 1900 and not in the future)
+            if (yob <= 1900 || yob > Year.now().getValue()) {
+                throw new BadRequestException(Message.INVALID_YOB);
+            }
         }
 
         Customer customer = customerOptional.get();

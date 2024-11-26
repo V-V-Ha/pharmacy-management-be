@@ -92,6 +92,23 @@ public class ReportController {
         );
     }
 
+    @GetMapping("/export-inventory-report")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    public void exportInventoryReportToExcel(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            HttpServletResponse response) throws IOException {
+
+        // Set response type and headers for Excel download
+        response.setContentType("application/vnd.ms-excel");
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=Bao_cao_kho.xlsx";
+        response.setHeader(headerKey, headerValue);
+
+        // Call the service to generate and write the Excel file
+        reportService.exportInventoryReportToExcel(response, fromDate, toDate);
+    }
+
     // Báo cáo bán hàng
     @GetMapping("/sales")
     public ResponseEntity<SalesReportDto> getSalesReport(

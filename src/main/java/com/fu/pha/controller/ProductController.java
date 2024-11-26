@@ -3,17 +3,26 @@ package com.fu.pha.controller;
 import com.fu.pha.dto.request.ProductDTORequest;
 import com.fu.pha.dto.response.PageResponseModel;
 import com.fu.pha.dto.response.ProductDTOResponse;
+import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.service.ProductService;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -100,14 +109,51 @@ public class ProductController {
         return productService.exportProductsToExcel();
     }
 
-    @PostMapping("/import-excel")
-    public ResponseEntity<?> importProductsFromExcel(@RequestParam("file") MultipartFile file) {
+    @GetMapping("/download-template")
+    public ResponseEntity<Resource> downloadExcelTemplate() {
         try {
-            productService.importProductsFromExcel(file);
-            return ResponseEntity.ok("Products imported successfully.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to import products: " + e.getMessage());
+            // Gọi service để tạo file Excel template
+            productService.exportExcelTemplate();
+
+            // Đường dẫn file template đã được tạo
+            String filePath = "product_template.xlsx";
+            Path path = Paths.get(filePath).toAbsolutePath();
+
+            // Kiểm tra file tồn tại
+            if (!Files.exists(path)) {
+                throw new RuntimeException("File template không tồn tại.");
+            }
+
+            // Tạo Resource từ file
+            Resource resource = new UrlResource(path.toUri());
+
+            // Kiểm tra resource hợp lệ
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new RuntimeException("Không thể đọc file template.");
+            }
+
+            // Trả file về client với header tải xuống
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + path.getFileName() + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(resource);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Lỗi khi tạo hoặc tải xuống file template: " + e.getMessage());
         }
     }
+
+
+    // API tải lên file Excel và xử lý
+//    @PostMapping("/upload-excel")
+//    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+//    public ResponseEntity<?> uploadExcel(@RequestParam("file") MultipartFile file) throws Exception {
+//        if (file.isEmpty()) {
+//            throw new BadRequestException("No file uploaded.");
+//        }
+//
+//        productService.processExcelFile(file);  // Gọi service để xử lý file
+//        return ResponseEntity.ok(Message.CREATE_SUCCESS);
+//    }
 
 }

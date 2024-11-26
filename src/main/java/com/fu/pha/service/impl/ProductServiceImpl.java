@@ -22,6 +22,7 @@ import com.fu.pha.service.ProductService;
 import com.fu.pha.util.FileUploadUtil;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -35,8 +36,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -446,11 +449,11 @@ public class ProductServiceImpl implements ProductService {
     private CellStyle createHeaderCellStyle(Workbook workbook) {
         Font headerFont = workbook.createFont();
         headerFont.setBold(true);
-        headerFont.setColor(IndexedColors.WHITE.getIndex());
+        headerFont.setColor(IndexedColors.DARK_BLUE.getIndex());
 
         CellStyle headerCellStyle = workbook.createCellStyle();
         headerCellStyle.setFont(headerFont);
-        headerCellStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
+        headerCellStyle.setFillForegroundColor(IndexedColors.PALE_BLUE.getIndex());
         headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         headerCellStyle.setBorderTop(BorderStyle.THIN); // Thin top border
         headerCellStyle.setBorderLeft(BorderStyle.THIN);
@@ -477,62 +480,130 @@ public class ProductServiceImpl implements ProductService {
         return style;
     }
 
-
     @Override
-    public void importProductsFromExcel(MultipartFile file) throws IOException {
-        if (file.isEmpty() || !file.getOriginalFilename().endsWith(".xlsx")) {
-            throw new BadRequestException("Invalid file. Please upload an Excel file.");
+    public void exportExcelTemplate() throws IOException {
+        // Lấy danh sách categories từ bảng Category
+        List<String> categories = categoryRepository.findAll()
+                .stream()
+                .map(Category::getCategoryName)
+                .collect(Collectors.toList());
+
+        // Lấy danh sách units từ bảng Unit
+        List<String> units = unitRepository.findAll()
+                .stream()
+                .map(Unit::getUnitName)
+                .collect(Collectors.toList());
+
+        // Tạo file Excel template
+        createExcelTemplateWithValidation(categories, units);
+    }
+
+    private void createExcelTemplateWithValidation(List<String> categories, List<String> units) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Mẫu thêm sản phẩm");
+
+        // Tạo dòng tiêu đề
+        Row headerRow = sheet.createRow(0);
+        String[] headers = {
+                "Tên sản phẩm *", "Nhóm sản phẩm *", "Số đăng ký *", "Thành phần hoạt tính *",
+                "Liều lượng", "Phương pháp đóng gói", "Nhà sản xuất *", "Xuất xứ *", "Dạng bào chế *",
+                "Hạn mức thông báo *", "Đơn vị sản phẩm *", "Giá nhập", "Giá bán lẻ",
+                "Hệ số chuyển đổi", "Thuốc kê theo đơn", "Chỉ định", "Chống chỉ định",
+                "Tác dụng phụ", "Mô tả"
+        };
+
+        // Gán tiêu đề và định dạng
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font font = workbook.createFont();
+            font.setBold(true);
+            font.setColor(IndexedColors.DARK_BLUE.getIndex());
+            headerStyle.setFont(font);
+            headerStyle.setFillForegroundColor(IndexedColors.PALE_BLUE.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+            cell.setCellStyle(headerStyle);
         }
 
-        Workbook workbook = new XSSFWorkbook(file.getInputStream());
-        Sheet sheet = workbook.getSheetAt(0);
+        // Thêm danh sách thả xuống cho "Nhóm sản phẩm" và "Đơn vị sản phẩm"
+        DataValidationHelper validationHelper = sheet.getDataValidationHelper();
 
-        List<Product> products = new ArrayList<>();
+        // Tạo danh sách từ categories (Category table)
+        String[] categoryArray = categories.toArray(new String[0]);
+        String categoryRange = createExcelDropdownList(workbook, categoryArray, "Categories");
 
-        int rowNum = 1; // Skip header row
-        while (rowNum <= sheet.getLastRowNum()) {
-            Row row = sheet.getRow(rowNum);
+        CellRangeAddressList categoryAddressList = new CellRangeAddressList(1, 100, 1, 1); // Áp dụng cho cột "Nhóm sản phẩm"
+        DataValidationConstraint categoryConstraint = validationHelper.createFormulaListConstraint(categoryRange);
+        DataValidation categoryValidation = validationHelper.createValidation(categoryConstraint, categoryAddressList);
+        sheet.addValidationData(categoryValidation);
 
-            // Read product-level data
-            String productCode = row.getCell(1).getStringCellValue();
-            Product product = new Product();
-            product.setProductCode(productCode);
-            product.setProductName(row.getCell(2).getStringCellValue());
-          //  product.setCategoryName(row.getCell(3).getStringCellValue());
-            product.setRegistrationNumber(row.getCell(7).getStringCellValue());
-            product.setTotalQuantity((int) row.getCell(8).getNumericCellValue());
+        // Tạo danh sách từ units (Unit table)
+        String[] unitArray = units.toArray(new String[0]);
+        String unitRange = createExcelDropdownList(workbook, unitArray, "Units");
 
-            List<ProductUnit> units = new ArrayList<>();
+        CellRangeAddressList unitAddressList = new CellRangeAddressList(1, 100, 10, 10); // Áp dụng cho cột "Đơn vị sản phẩm"
+        DataValidationConstraint unitConstraint = validationHelper.createFormulaListConstraint(unitRange);
+        DataValidation unitValidation = validationHelper.createValidation(unitConstraint, unitAddressList);
+        sheet.addValidationData(unitValidation);
 
-            // Loop to read all units for this product
-            do {
-                ProductUnit unit = new ProductUnit();
-            //    unit.setUnitName(row.getCell(4).getStringCellValue()); // Đơn vị sản phẩm
-                unit.setImportPrice(row.getCell(5).getNumericCellValue()); // Giá nhập
-                unit.setRetailPrice(row.getCell(6).getNumericCellValue()); // Giá bán
-                units.add(unit);
+        // Thêm danh sách thả xuống cho "Thuốc kê theo đơn"
+        String[] prescriptionOptions = {"Có", "Không"};
+        String prescriptionRange = createExcelDropdownList(workbook, prescriptionOptions, "Prescription");
 
-                rowNum++; // Move to the next row
+        CellRangeAddressList prescriptionAddressList = new CellRangeAddressList(1, 100, 14, 14); // Áp dụng cho cột "Thuốc kê theo đơn"
+        DataValidationConstraint prescriptionConstraint = validationHelper.createFormulaListConstraint(prescriptionRange);
+        DataValidation prescriptionValidation = validationHelper.createValidation(prescriptionConstraint, prescriptionAddressList);
+        sheet.addValidationData(prescriptionValidation);
 
-                // Stop if it's the last row or we encounter a new product
-                row = (rowNum <= sheet.getLastRowNum()) ? sheet.getRow(rowNum) : null;
-            } while (row != null && row.getCell(1) == null); // Continue if productCode cell is empty
-
-            // Save product and units
-       //     product.setProductUnits(units);
-            products.add(product);
-        }
-
-        workbook.close();
-
-        // Save all products in the database
-        for (Product product : products) {
-            productRepository.save(product);
-        //    for (ProductUnit unit : product.getProductUnits()) {
-           //     unit.setProduct(product); // Set the relationship
-             //   productUnitRepository.save(unit);
+        // Gộp các ô cho những cột cần gộp 3 hàng
+        for (int rowIndex = 1; rowIndex <= 100; rowIndex += 3) {
+            for (int colIndex : new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 14, 15, 16, 17, 18}) {
+                sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex + 2, colIndex, colIndex));
             }
         }
+
+        // Định dạng các cột "Đơn vị sản phẩm", "Giá nhập", "Giá bán lẻ", "Hệ số chuyển đổi" (mỗi ô tương ứng một hàng)
+        for (int colIndex : new int[]{10, 11, 12, 13}) {
+            for (int rowIndex = 1; rowIndex <= 100; rowIndex++) {
+                Row row = sheet.getRow(rowIndex);
+                if (row == null) {
+                    row = sheet.createRow(rowIndex);
+                }
+                row.createCell(colIndex);
+            }
+        }
+
+        // Định dạng tự động kích thước cột
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Ghi Workbook ra file
+        try (FileOutputStream fileOut = new FileOutputStream("product_template.xlsx")) {
+            workbook.write(fileOut);
+        }
+        workbook.close();
+    }
+
+
+    // Tạo danh sách dropdown trong Excel
+    private String createExcelDropdownList(Workbook workbook, String[] values, String listName) {
+        Name namedRange = workbook.createName();
+        namedRange.setNameName(listName);
+        Sheet hiddenSheet = workbook.createSheet(listName);
+        for (int i = 0; i < values.length; i++) {
+            Row row = hiddenSheet.createRow(i);
+            Cell cell = row.createCell(0);
+            cell.setCellValue(values[i]);
+        }
+        String reference = listName + "!$A$1:$A$" + values.length;
+        namedRange.setRefersToFormula(reference);
+        workbook.setSheetHidden(workbook.getSheetIndex(hiddenSheet), true); // Ẩn sheet
+        return listName;
+    }
+
     }
 
 

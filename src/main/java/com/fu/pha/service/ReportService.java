@@ -77,6 +77,7 @@ public interface ReportService {
     void exportSupplierReportToExcel(HttpServletResponse response, LocalDate fromDate, LocalDate toDate) throws IOException;
     void exportFinancialReportToExcel(HttpServletResponse response, LocalDate fromDate, LocalDate toDate) throws IOException;
     void exportSalesReportToExcel(HttpServletResponse response, LocalDate fromDate, LocalDate toDate) throws IOException;
+    void exportInventoryReportToExcel(HttpServletResponse response, LocalDate fromDate, LocalDate toDate) throws IOException;
 
     // Báo cáo khách hàng
     CustomerReportDto getCustomerReport(LocalDate startDate, LocalDate endDate);
