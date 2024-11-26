@@ -56,7 +56,7 @@ public class ImportController {
     @PostMapping(value = "/create-import-receipt")
     public ResponseEntity<?> createImport(
             @Valid @RequestPart("importRequestDto") ImportDto importRequestDto,
-            @RequestPart("image") MultipartFile image) {
+            @RequestPart(value = "image",required = false) MultipartFile image) {
 
         // Gọi service để tạo phiếu nhập
         importService.createImport(importRequestDto , image);

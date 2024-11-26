@@ -109,7 +109,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         for (User storeOwner : storeOwners) {
             String title = "Phiếu xuất mới";
             String message = "Nhân viên " + currentUser.getUsername() + " đã tạo một phiếu xuất mới.";
-            notificationService.sendNotificationToUser(title, message, storeOwner);
+            notificationService.sendNotificationToUser(title, message, storeOwner , exportSlip.getId());
         }
     }
 
@@ -317,7 +317,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         User creator = exportSlip.getUser();
         String title = "Phiếu xuất đã được xác nhận";
         String message = "Phiếu xuất của bạn đã được chủ cửa hàng xác nhận.";
-        notificationService.sendNotificationToUser(title, message, creator);
+        notificationService.sendNotificationToUser(title, message, creator, exportSlip.getId());
     }
 
     @Transactional
@@ -354,7 +354,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         User creator = exportSlip.getUser();
         String title = "Phiếu xuất bị từ chối";
         String message = "Phiếu xuất của bạn đã bị từ chối. Lý do: " + reason;
-        notificationService.sendNotificationToUser(title, message, creator);
+        notificationService.sendNotificationToUser(title, message, creator , exportSlip.getId());
     }
 
     private User getCurrentUser() {

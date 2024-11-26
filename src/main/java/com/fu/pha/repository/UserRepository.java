@@ -2,6 +2,7 @@ package com.fu.pha.repository;
 
 
 import com.fu.pha.dto.request.UserDto;
+import com.fu.pha.entity.Role;
 import com.fu.pha.entity.User;
 import com.fu.pha.enums.ERole;
 import com.fu.pha.enums.Status;

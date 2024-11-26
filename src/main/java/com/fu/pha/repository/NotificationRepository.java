@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.List;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
@@ -20,4 +21,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
                                                         @Param("type") NotificationType type,
                                                         @Param("since") Instant since);
 
+    List<Notification> findByUserId(Long userId);
 }

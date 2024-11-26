@@ -16,18 +16,18 @@ spring:
       max-request-size: 2MB
 
 
-   #DB Postgres SQL
-  datasource:
-    url: jdbc:postgresql://139.180.155.250:5432/pha
-    username: postgres
-    password: 12345
-    driver-class-name: org.postgresql.Driver
-
+#   #DB Postgres SQL
 #  datasource:
-#    url: jdbc:postgresql://localhost:5432/pha
+#    url: jdbc:postgresql://139.180.155.250:5432/pha
 #    username: postgres
-#    password: 12345678
+#    password: 12345
 #    driver-class-name: org.postgresql.Driver
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: 23112002
+    driver-class-name: org.postgresql.Driver
 
   # JPA Setting
   jpa:

@@ -40,10 +40,13 @@ public class Notification {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = true)
+    @JoinColumn(name = "product_id")
     private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "import_item_id", nullable = true)
+    @JoinColumn(name = "import_item_id")
     private ImportItem importItem;
+
+    @Column(name = "receipt_id")
+    private Long receiptId;
 }

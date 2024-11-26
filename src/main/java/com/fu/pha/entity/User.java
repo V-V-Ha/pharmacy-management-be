@@ -84,6 +84,10 @@ public class User extends BaseEntity {
     @JsonManagedReference
     private List<SaleOrder> saleOrderList;
 
+    @Column(name = "fcm_token")
+    private String fcmToken;
+
+
     public User(LoginDtoRequest request){
         this.username = request.getUsername();
         this.password = request.getPassword();
