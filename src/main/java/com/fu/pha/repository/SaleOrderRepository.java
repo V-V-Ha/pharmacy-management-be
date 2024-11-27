@@ -110,7 +110,7 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
     @Query("SELECT COALESCE(SUM(so.totalAmount), 0) FROM SaleOrder so WHERE so.customer IS NOT NULL AND so.saleDate BETWEEN :startDate AND :endDate AND so.paymentStatus = com.fu.pha.enums.PaymentStatus.PAID")
     Double sumTotalAmountByCustomersBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
-    @Query("SELECT COUNT(DISTINCT so.customer.id) " +
+    @Query("SELECT COUNT(so.id) " +
             "FROM SaleOrder so " +
             "WHERE so.customer.id = 1 " +
             "AND so.saleDate BETWEEN :startDate AND :endDate AND so.paymentStatus = com.fu.pha.enums.PaymentStatus.PAID")
