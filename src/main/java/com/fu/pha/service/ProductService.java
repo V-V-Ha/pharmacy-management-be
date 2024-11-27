@@ -16,10 +16,10 @@ public interface ProductService {
     Page<ProductDTOResponse> getAllProductPaging(int size, int index, String productName, String category, String status);
     ProductDTOResponse getProductById(Long id);
     void updateProductStatus(Long id);
-    List<UnitDto> getAllUnit();
     List<ProductDTOResponse> getAllProducts();
     ResponseEntity<byte[]> exportProductsToExcel() throws IOException;
     void exportExcelTemplate() throws IOException;
+    void importProductsFromExcel(MultipartFile file) throws IOException;
    // void processExcelFile(MultipartFile file) throws Exception;
     Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size,  String productName);
 }

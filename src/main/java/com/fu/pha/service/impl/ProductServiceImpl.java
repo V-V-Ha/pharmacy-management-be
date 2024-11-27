@@ -1,6 +1,7 @@
 package com.fu.pha.service.impl;
 
 import com.fu.pha.convert.GenerateCode;
+import com.fu.pha.dto.request.CategoryDto;
 import com.fu.pha.dto.request.ProductDTORequest;
 import com.fu.pha.dto.request.ProductUnitDTORequest;
 import com.fu.pha.dto.request.UnitDto;
@@ -23,6 +24,7 @@ import com.fu.pha.util.FileUploadUtil;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
+import org.apache.poi.ss.util.RegionUtil;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -132,6 +134,177 @@ public class ProductServiceImpl implements ProductService {
             productUnitList.add(productUnit);
         }
         productUnitRepository.saveAll(productUnitList);
+    }
+
+    @Transactional
+    @Override
+    public void importProductsFromExcel(MultipartFile file) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0);
+
+            // Lặp qua các dòng dữ liệu, bắt đầu từ dòng 1 (bỏ dòng header)
+            for (int rowIndex = 1; rowIndex < sheet.getPhysicalNumberOfRows(); rowIndex += 3) {
+                Row row = sheet.getRow(rowIndex);
+
+                // Kiểm tra dòng trống (tất cả các ô trong dòng là trống)
+                if (row == null || isRowEmpty(row)) {
+                    break;  // Nếu dòng trống, thoát khỏi vòng lặp
+                }
+
+                // Tạo đối tượng ProductDTORequest cho từng dòng
+                ProductDTORequest productDTORequest = new ProductDTORequest();
+
+                // Lấy các giá trị từ các ô trong dòng (Cột theo chỉ số)
+                String productName = getCellValueAsString(row.getCell(0));
+                String categoryName = getCellValueAsString(row.getCell(1));
+                String registrationNumber = getCellValueAsString(row.getCell(2));
+                String activeIngredient = getCellValueAsString(row.getCell(3));
+                String dosageConcentration = getCellValueAsString(row.getCell(4));
+                String packingMethod = getCellValueAsString(row.getCell(5));
+                String manufacturer = getCellValueAsString(row.getCell(6));
+                String origin = getCellValueAsString(row.getCell(7));
+                String dosageForm = getCellValueAsString(row.getCell(8));
+                Integer limitNotification = getCellValueAsInteger(row.getCell(9));
+                Boolean prescriptionDrug;
+                String cellValue = getCellValueAsString(row.getCell(14)).trim(); // Lấy giá trị và loại bỏ khoảng trắng thừa
+
+                if ("Có".equalsIgnoreCase(cellValue)) {
+                    prescriptionDrug = true;
+                } else if ("Không".equalsIgnoreCase(cellValue)) {
+                    prescriptionDrug = false;
+                } else {
+                    // Xử lý khi giá trị không phải "Có" hoặc "Không"
+                    throw new IllegalArgumentException("Giá trị không hợp lệ: " + cellValue);
+                }
+                String indication = getCellValueAsString(row.getCell(15));
+                String contraindication = getCellValueAsString(row.getCell(16));
+                String sideEffect = getCellValueAsString(row.getCell(17));
+                String description = getCellValueAsString(row.getCell(18));
+
+                Category category = categoryRepository.findByCategoryName(categoryName).orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
+
+                productDTORequest.setProductName(productName);
+                productDTORequest.setCategoryId(category.getId());
+                productDTORequest.setRegistrationNumber(registrationNumber);
+                productDTORequest.setActiveIngredient(activeIngredient);
+                productDTORequest.setDosageConcentration(dosageConcentration);
+                productDTORequest.setPackingMethod(packingMethod);
+                productDTORequest.setManufacturer(manufacturer);
+                productDTORequest.setCountryOfOrigin(origin);
+                productDTORequest.setDosageForms(dosageForm);
+                productDTORequest.setNumberWarning(limitNotification);
+                productDTORequest.setPrescriptionDrug(prescriptionDrug);
+                productDTORequest.setIndication(indication);
+                productDTORequest.setContraindication(contraindication);
+                productDTORequest.setSideEffect(sideEffect);
+                productDTORequest.setDescription(description);
+
+                // Lấy thông tin đơn vị và các giá trị liên quan
+                List<ProductUnitDTORequest> productUnitListDTO = new ArrayList<>();
+
+                // Mỗi sản phẩm sẽ có 3 đơn vị, với mỗi đơn vị có 3 hàng (từ rowIndex)
+                for (int unitRowIndex = rowIndex; unitRowIndex < rowIndex + 3 && unitRowIndex < sheet.getPhysicalNumberOfRows(); unitRowIndex++) {
+                    Row unitRow = sheet.getRow(unitRowIndex);
+
+                    if (unitRow == null || isRowEmpty(unitRow)) break;
+
+                    // Lấy thông tin cho mỗi đơn vị (từ cột 10 đến cột 13) cho mỗi dòng
+                    String unitNameStr = getCellValueAsString(unitRow.getCell(10));  // Đơn vị (cột 10)
+                    Double importPrice = getCellValueAsDouble(unitRow.getCell(11));  // Giá nhập (cột 11)
+                    Double retailPrice = getCellValueAsDouble(unitRow.getCell(12));  // Giá bán lẻ (cột 12)
+                    Integer conversionFactor = getCellValueAsInteger(unitRow.getCell(13));  // Hệ số chuyển đổi (cột 13)
+
+                    // Tìm đơn vị từ DB
+                    Unit unit = unitRepository.findByUnitName(unitNameStr);
+                    if (unit == null) {
+                        throw new ResourceNotFoundException("Không tìm thấy đơn vị: " + unitNameStr);
+                    }
+
+                    // Tạo đối tượng ProductUnitDTORequest cho mỗi đơn vị
+                    ProductUnitDTORequest productUnitDTORequest = new ProductUnitDTORequest();
+                    productUnitDTORequest.setUnitId(unit.getId());
+                    productUnitDTORequest.setImportPrice(importPrice);
+                    productUnitDTORequest.setRetailPrice(retailPrice);
+                    productUnitDTORequest.setConversionFactor(conversionFactor);
+
+                    productUnitListDTO.add(productUnitDTORequest);
+                }
+
+                productDTORequest.setProductUnitListDTO(productUnitListDTO);
+
+                // Sau khi tạo ProductDTORequest, gọi service để lưu vào DB
+                createProduct(productDTORequest, null);  // Nếu không có file đính kèm
+            }
+        }
+    }
+
+    private boolean isRowEmpty(Row row) {
+        for (int cellIndex = 0; cellIndex < row.getPhysicalNumberOfCells(); cellIndex++) {
+            Cell cell = row.getCell(cellIndex);
+            if (cell != null && !getCellValueAsString(cell).trim().isEmpty()) {
+                return false;  // Nếu có ô có dữ liệu, trả về false
+            }
+        }
+        return true;  // Nếu tất cả các ô đều trống, trả về true
+    }
+
+    private String getCellValueAsString(Cell cell) {
+        if (cell == null) {
+            return "";  // Trả về chuỗi rỗng nếu ô là null
+        }
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue().trim();  // Trim nếu là String
+            case NUMERIC:
+                return String.valueOf(cell.getNumericCellValue());
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            default:
+                return "";  // Trả về chuỗi rỗng nếu không phải String, Numeric hoặc Boolean
+        }
+    }
+
+    private Integer getCellValueAsInteger(Cell cell) {
+        if (cell == null) {
+            return null;
+        }
+        switch (cell.getCellType()) {
+            case NUMERIC:
+                return (int) cell.getNumericCellValue();
+            case STRING:
+                String cellValue = cell.getStringCellValue().trim();
+                try {
+                    return Integer.parseInt(cellValue);
+                } catch (NumberFormatException e) {
+                    // Handle specific cases for "Không" and "Có"
+                    if ("Không".equalsIgnoreCase(cellValue)) {
+                        return 0; // or any other value that represents false
+                    } else if ("Có".equalsIgnoreCase(cellValue)) {
+                        return 1; // or any other value that represents true
+                    }
+                    throw new IllegalStateException("Cannot get a NUMERIC value from a STRING cell", e);
+                }
+            default:
+                return null;
+        }
+    }
+
+    private Double getCellValueAsDouble(Cell cell) {
+        if (cell == null) {
+            return null;
+        }
+        switch (cell.getCellType()) {
+            case NUMERIC:
+                return cell.getNumericCellValue();
+            case STRING:
+                try {
+                    return Double.parseDouble(cell.getStringCellValue().trim());
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("Invalid double value: " + cell.getStringCellValue());
+                }
+            default:
+                return null;
+        }
     }
 
     @Override
@@ -311,19 +484,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<UnitDto> getAllUnit() {
-        List<Unit> units = unitRepository.findAll();
-        List<UnitDto> unitDtos = new ArrayList<>();
-        for (Unit unit : units) {
-            UnitDto unitDto = new UnitDto();
-            unitDto.setId(unit.getId());
-            unitDto.setUnitName(unit.getUnitName());
-            unitDtos.add(unitDto);
-        }
-        return unitDtos;
-    }
-
-    @Override
     public List<ProductDTOResponse> getAllProducts() {
         List<Product> products = productRepository.findAll();
         List<ProductDTOResponse> productDTOResponses = new ArrayList<>();
@@ -483,15 +643,15 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void exportExcelTemplate() throws IOException {
         // Lấy danh sách categories từ bảng Category
-        List<String> categories = categoryRepository.findAll()
+        List<String> categories = categoryRepository.findAllCategory()
                 .stream()
-                .map(Category::getCategoryName)
+                .map(CategoryDto::getName)
                 .collect(Collectors.toList());
 
         // Lấy danh sách units từ bảng Unit
-        List<String> units = unitRepository.findAll()
+        List<String> units = unitRepository.getAllUnit()
                 .stream()
-                .map(Unit::getUnitName)
+                .map(UnitDto::getUnitName)
                 .collect(Collectors.toList());
 
         // Tạo file Excel template
@@ -506,44 +666,95 @@ public class ProductServiceImpl implements ProductService {
         Row headerRow = sheet.createRow(0);
         String[] headers = {
                 "Tên sản phẩm *", "Nhóm sản phẩm *", "Số đăng ký *", "Thành phần hoạt tính *",
-                "Liều lượng", "Phương pháp đóng gói", "Nhà sản xuất *", "Xuất xứ *", "Dạng bào chế *",
-                "Hạn mức thông báo *", "Đơn vị sản phẩm *", "Giá nhập", "Giá bán lẻ",
-                "Hệ số chuyển đổi", "Thuốc kê theo đơn", "Chỉ định", "Chống chỉ định",
+                "Liều lượng *", "Phương pháp đóng gói *", "Nhà sản xuất *", "Xuất xứ *", "Dạng bào chế *",
+                "Hạn mức thông báo *", "Đơn vị sản phẩm", "Giá nhập", "Giá bán lẻ",
+                "Hệ số chuyển đổi", "Thuốc kê theo đơn *", "Chỉ định", "Chống chỉ định",
                 "Tác dụng phụ", "Mô tả"
         };
 
-        // Gán tiêu đề và định dạng
+        // Định dạng tiêu đề
+        CellStyle headerStyle = workbook.createCellStyle();
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerFont.setColor(IndexedColors.DARK_BLUE.getIndex());
+        headerStyle.setFont(headerFont);
+        headerStyle.setFillForegroundColor(IndexedColors.PALE_BLUE.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
-            CellStyle headerStyle = workbook.createCellStyle();
-            Font font = workbook.createFont();
-            font.setBold(true);
-            font.setColor(IndexedColors.DARK_BLUE.getIndex());
-            headerStyle.setFont(font);
-            headerStyle.setFillForegroundColor(IndexedColors.PALE_BLUE.getIndex());
-            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-            headerStyle.setAlignment(HorizontalAlignment.CENTER);
             cell.setCellStyle(headerStyle);
         }
 
-        // Thêm danh sách thả xuống cho "Nhóm sản phẩm" và "Đơn vị sản phẩm"
-        DataValidationHelper validationHelper = sheet.getDataValidationHelper();
 
-        // Tạo danh sách từ categories (Category table)
+
+        // Định dạng ô dữ liệu
+        CellStyle dataStyle = workbook.createCellStyle();
+        dataStyle.setAlignment(HorizontalAlignment.CENTER);
+        dataStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        dataStyle.setBorderTop(BorderStyle.THIN);
+        dataStyle.setBorderBottom(BorderStyle.THIN);
+        dataStyle.setBorderLeft(BorderStyle.THIN);
+        dataStyle.setBorderRight(BorderStyle.THIN);
+        dataStyle.setFillForegroundColor(IndexedColors.WHITE.getIndex());
+        dataStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND); // Đảm bảo màu nền là trắng
+        Font dataFont = workbook.createFont();
+        dataFont.setColor(IndexedColors.BLACK.getIndex()); // Đảm bảo màu chữ là đen
+        dataStyle.setFont(dataFont);
+
+        CellStyle currencyStyle = workbook.createCellStyle();
+        currencyStyle.cloneStyleFrom(dataStyle);
+        currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0"));
+
+        // Tạo 10 nhóm dữ liệu lớn (mỗi nhóm 3 hàng)
+        for (int rowIndex = 1; rowIndex <= 60; rowIndex++) {
+            Row row = sheet.createRow(rowIndex);
+            for (int colIndex = 0; colIndex < headers.length; colIndex++) {
+                Cell cell = row.createCell(colIndex);
+                cell.setCellStyle(dataStyle);
+                Cell cellGiaNhap = row.createCell(11);  // Cột "Giá nhập"
+                cellGiaNhap.setCellStyle(currencyStyle);
+                Cell cellGiaBanLe = row.createCell(12);  // Cột "Giá bán lẻ"
+                cellGiaBanLe.setCellStyle(currencyStyle);
+            }
+        }
+
+        // Gộp ô cho các cột cần gộp 3 hàng
+        for (int rowIndex = 1; rowIndex <= 60; rowIndex += 3) {
+            for (int colIndex : new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 14, 15, 16, 17, 18}) {
+                sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex + 2, colIndex, colIndex));
+            }
+
+            // Thêm viền dưới dày (thick bottom border) cho nhóm
+            CellRangeAddress thickBottomRange = new CellRangeAddress(rowIndex, rowIndex + 2, 0, headers.length - 1);
+            RegionUtil.setBorderBottom(BorderStyle.THICK, thickBottomRange, sheet);
+        }
+
+        // Thêm viền ngoài dày cho toàn bộ bảng
+        CellRangeAddress thickRange = new CellRangeAddress(0, 60, 0, headers.length - 1);
+        RegionUtil.setBorderTop(BorderStyle.THICK, thickRange, sheet);
+        RegionUtil.setBorderBottom(BorderStyle.THICK, thickRange, sheet);
+        RegionUtil.setBorderLeft(BorderStyle.THICK, thickRange, sheet);
+        RegionUtil.setBorderRight(BorderStyle.THICK, thickRange, sheet);
+
+        // Thêm danh sách thả xuống cho "Nhóm sản phẩm"
+        DataValidationHelper validationHelper = sheet.getDataValidationHelper();
         String[] categoryArray = categories.toArray(new String[0]);
         String categoryRange = createExcelDropdownList(workbook, categoryArray, "Categories");
 
-        CellRangeAddressList categoryAddressList = new CellRangeAddressList(1, 100, 1, 1); // Áp dụng cho cột "Nhóm sản phẩm"
+        CellRangeAddressList categoryAddressList = new CellRangeAddressList(1, 60, 1, 1);
         DataValidationConstraint categoryConstraint = validationHelper.createFormulaListConstraint(categoryRange);
         DataValidation categoryValidation = validationHelper.createValidation(categoryConstraint, categoryAddressList);
         sheet.addValidationData(categoryValidation);
 
-        // Tạo danh sách từ units (Unit table)
+        // Thêm danh sách thả xuống cho "Đơn vị sản phẩm"
         String[] unitArray = units.toArray(new String[0]);
         String unitRange = createExcelDropdownList(workbook, unitArray, "Units");
 
-        CellRangeAddressList unitAddressList = new CellRangeAddressList(1, 100, 10, 10); // Áp dụng cho cột "Đơn vị sản phẩm"
+        CellRangeAddressList unitAddressList = new CellRangeAddressList(1, 60, 10, 10);
         DataValidationConstraint unitConstraint = validationHelper.createFormulaListConstraint(unitRange);
         DataValidation unitValidation = validationHelper.createValidation(unitConstraint, unitAddressList);
         sheet.addValidationData(unitValidation);
@@ -552,28 +763,10 @@ public class ProductServiceImpl implements ProductService {
         String[] prescriptionOptions = {"Có", "Không"};
         String prescriptionRange = createExcelDropdownList(workbook, prescriptionOptions, "Prescription");
 
-        CellRangeAddressList prescriptionAddressList = new CellRangeAddressList(1, 100, 14, 14); // Áp dụng cho cột "Thuốc kê theo đơn"
+        CellRangeAddressList prescriptionAddressList = new CellRangeAddressList(1, 60, 14, 14);
         DataValidationConstraint prescriptionConstraint = validationHelper.createFormulaListConstraint(prescriptionRange);
         DataValidation prescriptionValidation = validationHelper.createValidation(prescriptionConstraint, prescriptionAddressList);
         sheet.addValidationData(prescriptionValidation);
-
-        // Gộp các ô cho những cột cần gộp 3 hàng
-        for (int rowIndex = 1; rowIndex <= 100; rowIndex += 3) {
-            for (int colIndex : new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 14, 15, 16, 17, 18}) {
-                sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex + 2, colIndex, colIndex));
-            }
-        }
-
-        // Định dạng các cột "Đơn vị sản phẩm", "Giá nhập", "Giá bán lẻ", "Hệ số chuyển đổi" (mỗi ô tương ứng một hàng)
-        for (int colIndex : new int[]{10, 11, 12, 13}) {
-            for (int rowIndex = 1; rowIndex <= 100; rowIndex++) {
-                Row row = sheet.getRow(rowIndex);
-                if (row == null) {
-                    row = sheet.createRow(rowIndex);
-                }
-                row.createCell(colIndex);
-            }
-        }
 
         // Định dạng tự động kích thước cột
         for (int i = 0; i < headers.length; i++) {
@@ -581,12 +774,11 @@ public class ProductServiceImpl implements ProductService {
         }
 
         // Ghi Workbook ra file
-        try (FileOutputStream fileOut = new FileOutputStream("product_template.xlsx")) {
+        try (FileOutputStream fileOut = new FileOutputStream("Mau_them_san_pham.xlsx")) {
             workbook.write(fileOut);
         }
         workbook.close();
     }
-
 
     // Tạo danh sách dropdown trong Excel
     private String createExcelDropdownList(Workbook workbook, String[] values, String listName) {
@@ -604,6 +796,8 @@ public class ProductServiceImpl implements ProductService {
         return listName;
     }
 
-    }
+
+
+}
 
 

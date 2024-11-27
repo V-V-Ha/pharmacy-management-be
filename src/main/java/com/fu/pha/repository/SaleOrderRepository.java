@@ -30,7 +30,6 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
             " AND (:paymentMethod IS NULL OR s.paymentMethod = :paymentMethod OR :paymentMethod = '') " +
             " AND (LOWER(s.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
             " AND (s.saleDate IS NULL OR s.saleDate BETWEEN :startOfDay AND :endOfDay) " +
-            " AND (s.paymentStatus = 'PAID') " +
             " ORDER BY s.lastModifiedDate DESC")
     Page<SaleOrderResponseDto> getListSaleOrderPagingWithoutDate(@Param("orderType") OrderType orderType,
                                                                  @Param("paymentMethod") PaymentMethod paymentMethod,
@@ -45,7 +44,6 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
             " AND (:paymentMethod IS NULL OR s.paymentMethod = :paymentMethod OR :paymentMethod = '') " +
             " AND (LOWER(s.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
             " AND s.saleDate >= :fromDate " +
-            " AND (s.paymentStatus = 'PAID') " +
             " ORDER BY s.lastModifiedDate DESC")
     Page<SaleOrderResponseDto> getListSaleOrderPagingFromDate(@Param("orderType") OrderType orderType,
                                                       @Param("paymentMethod") PaymentMethod paymentMethod,
@@ -59,7 +57,6 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
                   " AND (:paymentMethod IS NULL OR s.paymentMethod = :paymentMethod OR :paymentMethod = '') " +
                   " AND (LOWER(s.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
                   " AND s.saleDate <= :toDate " +
-                  " AND (s.paymentStatus = 'PAID') " +
                   " ORDER BY s.lastModifiedDate DESC")
     Page<SaleOrderResponseDto> getListSaleOrderPagingToDate(@Param("orderType") OrderType orderType,
                                                               @Param("paymentMethod") PaymentMethod paymentMethod,
@@ -73,7 +70,6 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
             " AND (:paymentMethod IS NULL OR s.paymentMethod = :paymentMethod OR :paymentMethod = '') " +
             " AND (LOWER(s.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
             " AND (s.saleDate IS NULL OR s.saleDate BETWEEN :fromDate AND :toDate)" +
-            " AND (s.paymentStatus = 'PAID') " +
             " ORDER BY s.lastModifiedDate DESC")
     Page<SaleOrderResponseDto> getListSaleOrderPaging(@Param("orderType") OrderType orderType,
                                                       @Param("paymentMethod") PaymentMethod paymentMethod,

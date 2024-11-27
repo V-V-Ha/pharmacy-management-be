@@ -75,6 +75,17 @@ public class ProductController {
         return ResponseEntity.ok(Message.CREATE_SUCCESS);
     }
 
+    @PostMapping("/import-products")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<?> importProducts(@RequestParam("file") MultipartFile file) {
+        try {
+            productService.importProductsFromExcel(file);
+            return ResponseEntity.ok(Message.CREATE_SUCCESS);
+        } catch (IOException e) {
+            throw new BadRequestException("Lỗi khi nhập file Excel: " + e.getMessage());
+        }
+    }
+
     @PutMapping("/update-product")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<?> updateProduct(
@@ -97,26 +108,20 @@ public class ProductController {
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
-    @GetMapping("/get-all-unit")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<?> getAllUnit() {
-        return ResponseEntity.ok(productService.getAllUnit());
-    }
-
     @GetMapping("/export-excel")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<byte[]> exportToExcel() throws IOException {
         return productService.exportProductsToExcel();
     }
 
-    @GetMapping("/download-template")
+    @GetMapping("/download-template-import")
     public ResponseEntity<Resource> downloadExcelTemplate() {
         try {
             // Gọi service để tạo file Excel template
             productService.exportExcelTemplate();
 
             // Đường dẫn file template đã được tạo
-            String filePath = "product_template.xlsx";
+            String filePath = "Mau_them_san_pham.xlsx";
             Path path = Paths.get(filePath).toAbsolutePath();
 
             // Kiểm tra file tồn tại
@@ -142,18 +147,5 @@ public class ProductController {
             throw new RuntimeException("Lỗi khi tạo hoặc tải xuống file template: " + e.getMessage());
         }
     }
-
-
-    // API tải lên file Excel và xử lý
-//    @PostMapping("/upload-excel")
-//    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-//    public ResponseEntity<?> uploadExcel(@RequestParam("file") MultipartFile file) throws Exception {
-//        if (file.isEmpty()) {
-//            throw new BadRequestException("No file uploaded.");
-//        }
-//
-//        productService.processExcelFile(file);  // Gọi service để xử lý file
-//        return ResponseEntity.ok(Message.CREATE_SUCCESS);
-//    }
 
 }

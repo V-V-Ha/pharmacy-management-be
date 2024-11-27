@@ -1,5 +1,6 @@
 package com.fu.pha.repository;
 
+import com.fu.pha.dto.request.CategoryDto;
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.entity.Unit;
 import com.fu.pha.enums.Status;
@@ -26,14 +27,12 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
     @Override
     Optional<Unit> findById(Long id);
 
-    Unit findUnitById(Long id);
-
 //
 //    //get all unit
 //    @Query("SELECT u FROM Unit u WHERE u.deleted = false ORDER BY u.lastModifiedDate DESC")
 //    List<UnitDto> getAllUnit();
 
-    @Query("SELECT new com.fu.pha.dto.request.UnitDto(u.id, u.unitName) FROM Unit u")
+    @Query("SELECT new com.fu.pha.dto.request.UnitDto(u.id, u.unitName) FROM Unit u WHERE u.status = 'ACTIVE'")
     List<UnitDto> getAllUnit();
 
 

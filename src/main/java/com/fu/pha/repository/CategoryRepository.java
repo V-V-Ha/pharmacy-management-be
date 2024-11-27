@@ -28,7 +28,7 @@ public interface CategoryRepository extends JpaRepository<Category,Long> {
                                               @Param("status") Status status,
                                               Pageable pageable);
 
-    @Query("SELECT new com.fu.pha.dto.request.CategoryDto(c.id, c.categoryName) FROM Category c")
+    @Query("SELECT new com.fu.pha.dto.request.CategoryDto(c.id, c.categoryName) FROM Category c WHERE c.status = 'ACTIVE'")
     List<CategoryDto> findAllCategory();
 
     @Query("SELECT c FROM Category c WHERE c.id = :id")
