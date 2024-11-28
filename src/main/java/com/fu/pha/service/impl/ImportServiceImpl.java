@@ -41,6 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -357,7 +358,9 @@ public class ImportServiceImpl implements ImportService {
                 importItem.setDiscount(itemDto.getDiscount());
                 importItem.setTax(itemDto.getTax());
                 importItem.setBatchNumber(itemDto.getBatchNumber());
-                importItem.setExpiryDate(itemDto.getExpiryDate());
+                importItem.setExpiryDate((itemDto.getExpiryDate() == null)
+                        ? LocalDate.now().plusYears(100).atStartOfDay(ZoneId.systemDefault()).toInstant()
+                        : itemDto.getExpiryDate());
                 itemDto.setTotalAmount(itemTotalAmount);
                 importItem.setConversionFactor(itemDto.getConversionFactor());
                 importItem.setRemainingQuantity(smallestQuantity);
@@ -596,7 +599,9 @@ public class ImportServiceImpl implements ImportService {
         importItem.setDiscount(itemDto.getDiscount());
         importItem.setTax(itemDto.getTax());
         importItem.setBatchNumber(itemDto.getBatchNumber());
-        importItem.setExpiryDate(itemDto.getExpiryDate());
+        importItem.setExpiryDate((itemDto.getExpiryDate() == null)
+                ? LocalDate.now().plusYears(100).atStartOfDay(ZoneId.systemDefault()).toInstant()
+                : itemDto.getExpiryDate());
         importItem.setTotalAmount(itemDto.getTotalAmount()); // Sử dụng totalAmount đã tính
         importItem.setConversionFactor(itemDto.getConversionFactor());
         importItem.setRemainingQuantity(smallestQuantity);
@@ -676,7 +681,9 @@ public class ImportServiceImpl implements ImportService {
         itemDto.setDiscount(importItem.getDiscount());
         itemDto.setTax(importItem.getTax());
         itemDto.setBatchNumber(importItem.getBatchNumber());
-        itemDto.setExpiryDate(importItem.getExpiryDate());
+        itemDto.setExpiryDate((itemDto.getExpiryDate() == null)
+                ? LocalDate.now().plusYears(100).atStartOfDay(ZoneId.systemDefault()).toInstant()
+                : itemDto.getExpiryDate());
         itemDto.setTotalAmount(importItem.getTotalAmount());
         itemDto.setConversionFactor(importItem.getConversionFactor());
         return itemDto;
@@ -691,7 +698,9 @@ public class ImportServiceImpl implements ImportService {
         itemDto.setDiscount(importItem.getDiscount());
         itemDto.setTax(importItem.getTax());
         itemDto.setBatchNumber(importItem.getBatchNumber());
-        itemDto.setExpiryDate(importItem.getExpiryDate());
+        itemDto.setExpiryDate((itemDto.getExpiryDate() == null)
+                ? LocalDate.now().plusYears(100).atStartOfDay(ZoneId.systemDefault()).toInstant()
+                : itemDto.getExpiryDate());
         itemDto.setTotalAmount(importItem.getTotalAmount());
         itemDto.setConversionFactor(importItem.getConversionFactor());
         return itemDto;

@@ -90,5 +90,5 @@ public interface ImportItemRepository extends JpaRepository<ImportItem, Long> {
     List<ImportItem> findExpiredProducts();
 
 
-
+    List<ImportItem> findByProductId(Long id);
 }

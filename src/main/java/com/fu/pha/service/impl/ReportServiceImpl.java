@@ -1440,6 +1440,8 @@ public class ReportServiceImpl implements ReportService {
         double totalExpense = totalImports + totalRefunds ;
         report.setTotalExpense(totalExpense);
 
+
+
         // Lợi nhuận
         double profit = totalIncome - totalExpense;
         report.setProfit(profit);

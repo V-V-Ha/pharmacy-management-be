@@ -14,10 +14,7 @@ import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.MaxUploadSizeExceededException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
-import com.fu.pha.repository.CategoryRepository;
-import com.fu.pha.repository.ProductRepository;
-import com.fu.pha.repository.ProductUnitRepository;
-import com.fu.pha.repository.UnitRepository;
+import com.fu.pha.repository.*;
 import com.fu.pha.service.CloudinaryService;
 import com.fu.pha.service.ProductService;
 import com.fu.pha.util.FileUploadUtil;
@@ -40,6 +37,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,6 +62,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     CloudinaryService cloudinaryService;
+
+    @Autowired
+    private ImportItemRepository importItemRepository;
 
     @Transactional
     @Override
@@ -453,21 +455,61 @@ public class ProductServiceImpl implements ProductService {
         return products;
     }
 
+//    @Override
+//    public Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size,  String productName) {
+//        Pageable pageable = PageRequest.of(page, size);
+//        Page<ProductDTOResponse> products = productRepository.getListProductForSaleOrderPaging(productName, pageable);
+//        if (products.isEmpty()) {
+//            throw new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND);
+//        }
+//        return products;
+//    }
+
     @Override
-    public Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size,  String productName) {
+    public Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size, String productName) {
         Pageable pageable = PageRequest.of(page, size);
+
+        // Lấy danh sách sản phẩm với các điều kiện đã lọc trong repository
         Page<ProductDTOResponse> products = productRepository.getListProductForSaleOrderPaging(productName, pageable);
+
+        // Nếu không có sản phẩm, throw exception
         if (products.isEmpty()) {
             throw new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND);
         }
+
+        // Cập nhật lại totalQuantity cho từng sản phẩm
+        for (ProductDTOResponse productDTO : products) {
+            Integer totalQuantity = 0;
+
+            // Lấy tất cả ImportItem của sản phẩm này
+            List<ImportItem> importItems = importItemRepository.findByProductId(productDTO.getId());
+
+            // Tính tổng số lượng còn hạn
+            for (ImportItem importItem : importItems) {
+                if (importItem.getExpiryDate().isAfter(Instant.now())) {
+                    totalQuantity += importItem.getRemainingQuantity();
+                }
+            }
+            productDTO.setTotalQuantity(totalQuantity);
+        }
+
         return products;
     }
+
 
     @Override
     public ProductDTOResponse getProductById(Long id) {
         Product product = productRepository.getProductById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
         return new ProductDTOResponse(product);
+    }
+
+    @Override
+    public void setWarningNumber(Long id, Integer numberWarning) {
+        Product product = productRepository.getProductById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
+        product.setNumberWarning(numberWarning);
+        productRepository.save(product);
     }
 
     @Override

@@ -100,6 +100,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             saleOrder.setPaymentStatus(PaymentStatus.UNPAID);
         }
 
+
         // Lưu SaleOrder
         saleOrderRepository.save(saleOrder);
 
@@ -164,6 +165,11 @@ public class SaleOrderServiceImpl implements SaleOrderService {
 
 
             for (ImportItem batch : batches) {
+
+                if (batch.getExpiryDate() != null && batch.getExpiryDate().isBefore(Instant.now())) {
+                    // Bỏ qua lô hàng này nếu đã hết hạn
+                    continue;
+                }
                 if (batch.getRemainingQuantity() > 0) {
                     int quantityFromBatch = Math.min(batch.getRemainingQuantity(), remainingQuantity);
                     batch.setRemainingQuantity(batch.getRemainingQuantity() - quantityFromBatch);

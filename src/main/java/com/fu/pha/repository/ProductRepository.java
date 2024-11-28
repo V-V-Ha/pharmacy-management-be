@@ -50,6 +50,16 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     Page<ProductDTOResponse> getListProductForSaleOrderPaging(@Param("productName") String productName,
                                                                Pageable pageable);
 
+//    @Query("SELECT new com.fu.pha.dto.response.ProductDTOResponse(p) FROM Product p " +
+//            "JOIN p.importItems i " +
+//            "WHERE ((LOWER(p.productName) LIKE LOWER(CONCAT('%', :productName, '%')) OR :productName IS NULL OR :productName = '') " +
+//            "AND p.status = 'ACTIVE' " +
+//            "AND i.expiryDate > CURRENT_TIMESTAMP) " +
+//            "GROUP BY p.id " +
+//            "ORDER BY p.lastModifiedDate DESC")
+//    Page<ProductDTOResponse> getListProductForSaleOrderPaging(@Param("productName") String productName, Pageable pageable);
+
+
     @Query("SELECT new com.fu.pha.dto.response.ProductDTOResponse(p) FROM Product p WHERE (LOWER(p.productName) LIKE lower(concat('%', :productName, '%')))" +
             " and p.status = 'ACTIVE'")
     Optional<List<ProductDTOResponse>> findProductByProductName(String productName);
@@ -121,7 +131,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             "       u.unit_name AS unitName, " +
             "       ii.batch_number AS batchNumber, " +
             "       ii.expiry_date AS expiryDate, " +
-            "       FLOOR(EXTRACT(EPOCH FROM ii.expiry_date - NOW()) / 86400) AS daysRemaining " +
+            "       GREATEST(FLOOR(EXTRACT(EPOCH FROM ii.expiry_date - NOW()) / 86400), 0) AS daysRemaining " +
             "FROM import_item ii " +
             "JOIN product p ON ii.product_id = p.id " +
             "JOIN category c ON p.category_id = c.id " +
