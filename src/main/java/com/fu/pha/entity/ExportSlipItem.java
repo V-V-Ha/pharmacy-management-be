@@ -56,7 +56,4 @@ public class ExportSlipItem extends BaseEntity{
 
     @Column(name = "conversion_factor")
     private Integer conversionFactor;
-
-    @Column(name = "is_deleted")
-    private Boolean isDeleted = false;
 }

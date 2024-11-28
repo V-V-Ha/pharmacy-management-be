@@ -529,11 +529,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         ExportSlip exportSlip = exportSlipRepository.findById(exportSlipId)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.EXPORT_SLIP_NOT_FOUND));
 
-        // Kiểm tra xem phiếu xuất kho có bị xóa mềm không
-        if (Boolean.TRUE.equals(exportSlip.getIsDeleted())) {
-            throw new ResourceNotFoundException(Message.EXPORT_SLIP_NOT_FOUND);
-        }
-
         // Chuyển đổi từ ExportSlip sang DTO và trả về DTO
         return new ExportSlipResponseDto(exportSlip);
     }

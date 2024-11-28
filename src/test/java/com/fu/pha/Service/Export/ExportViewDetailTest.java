@@ -44,7 +44,6 @@ public class ExportViewDetailTest {
 
         exportSlip = new ExportSlip();
         exportSlip.setId(1L);
-        exportSlip.setIsDeleted(false);
         exportSlip.setUser(user);
 
         // Thiết lập đối t��ợng Category

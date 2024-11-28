@@ -21,7 +21,7 @@ public interface ExportSlipRepository extends JpaRepository<ExportSlip, Long> {
     @Query("SELECT e.invoiceNumber FROM ExportSlip e ORDER BY e.invoiceNumber DESC LIMIT 1")
     String getLastInvoiceNumber();
 
-    @Query("SELECT e FROM ExportSlip e WHERE e.isDeleted = false")
+    @Query("SELECT e FROM ExportSlip e")
     List<ExportSlip> findAllActive();
 
     @Query("SELECT new com.fu.pha.dto.response.exportSlip.ExportSlipResponseDto(e) " +

@@ -58,8 +58,4 @@ public class ExportSlip extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supplier_id")
     private Supplier supplier;
-
-    @Column(name = "is_deleted")
-    private Boolean isDeleted = false;
-
 }
