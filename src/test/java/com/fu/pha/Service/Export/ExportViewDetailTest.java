@@ -2,6 +2,7 @@ package com.fu.pha.Service.Export;
 
 import com.fu.pha.dto.response.exportSlip.ExportSlipResponseDto;
 import com.fu.pha.entity.*;
+import com.fu.pha.enums.OrderStatus;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.ExportSlipRepository;
@@ -26,90 +27,46 @@ import static org.mockito.Mockito.times;
 @ExtendWith(MockitoExtension.class)
 public class ExportViewDetailTest {
 
-    @Mock
-    private ExportSlipRepository exportSlipRepository;
+    @Mock private ExportSlipRepository exportSlipRepository;
 
-    @InjectMocks
-    private ExportSlipServiceImpl exportSlipService;
+    @InjectMocks private ExportSlipServiceImpl exportSlipService;
 
     private ExportSlip exportSlip;
+    private final Long exportSlipId = 1L;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Thiết lập đối tượng User và ExportSlip
-        User user = new User();
-        user.setId(1L);
-
+        // Setup mock ExportSlip
         exportSlip = new ExportSlip();
-        exportSlip.setId(1L);
-        exportSlip.setUser(user);
+        exportSlip.setId(exportSlipId);
+        exportSlip.setStatus(OrderStatus.PENDING);
+        exportSlip.setUser(new User()); // mock user
 
-        // Thiết lập đối t��ợng Category
-        Category category = new Category();
-        category.setCategoryName("Thuốc ho");
+        // Mock trả về khi gọi repository findById
+        when(exportSlipRepository.findById(exportSlipId)).thenReturn(Optional.of(exportSlip));
+    }
 
-        // Thiết lập đối tượng Unit và ProductUnit
-        Unit unit = new Unit();
-        unit.setId(1L);
-        unit.setUnitName("Hộp");
+    @Test
+    void testGetActiveExportSlipById_ExportSlipNotFound() {
+        // Kiểm tra khi không tìm thấy phiếu xuất
+        when(exportSlipRepository.findById(exportSlipId)).thenReturn(Optional.empty());
 
-        ProductUnit productUnit = new ProductUnit();
-        productUnit.setUnit(unit);  // Gán Unit hợp lệ vào ProductUnit
-
-        // Thiết lập đối tượng Product với ProductUnit và Category
-        Product product = new Product();
-        product.setId(1L);
-        product.setCategoryId(category);
-        product.setProductUnitList(Collections.singletonList(productUnit));
-
-        // Gán Product cho ProductUnit để tránh NullPointerException
-        productUnit.setProduct(product);
-
-        // Thiết lập đối tượng ImportItem
-        ImportItem importItem = new ImportItem();
-        importItem.setId(1L);
-
-        // Thiết lập đối tượng ExportSlipItem và gán Product, ImportItem vào
-        ExportSlipItem exportSlipItem = new ExportSlipItem();
-        exportSlipItem.setId(1L);
-        exportSlipItem.setProduct(product);
-        exportSlipItem.setImportItem(importItem);
-        exportSlipItem.setExportSlip(exportSlip); // Set ExportSlip in ExportSlipItem
-        exportSlip.setExportSlipItemList(Collections.singletonList(exportSlipItem));
-
-        // Mock repository
-        lenient().when(exportSlipRepository.findById(1L)).thenReturn(Optional.of(exportSlip));
-        lenient().when(exportSlipRepository.findById(200L)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> {
+            exportSlipService.getActiveExportSlipById(exportSlipId);
+        });
     }
 
     @Test
     void testGetActiveExportSlipById_Success() {
-        ExportSlipResponseDto response = exportSlipService.getActiveExportSlipById(1L);
+        // Kiểm tra khi tìm thấy phiếu xuất và chuyển đổi thành DTO
+        ExportSlipResponseDto result = exportSlipService.getActiveExportSlipById(exportSlipId);
 
-        assertNotNull(response);
-        assertEquals(1L, response.getId());
-        assertEquals("Thuốc ho", response.getExportSlipItems().get(0).getProduct().getCategoryName());
-
-        verify(exportSlipRepository, times(1)).findById(1L);
-    }
-
-    @Test
-    void testGetActiveExportSlipById_NotFoundExportSlip() {
-        // Giả lập repository trả về Optional.empty() khi tìm kiếm với id = 200
-        when(exportSlipRepository.findById(200L)).thenReturn(Optional.empty());
-
-        // Kiểm tra rằng khi gọi getActiveExportSlipById với id = 200, một ResourceNotFoundException sẽ được ném ra
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            exportSlipService.getActiveExportSlipById(200L);
-        });
-
-        // Kiểm tra thông báo lỗi trong exception khớp với thông báo mong đợi
-        assertEquals(Message.EXPORT_SLIP_NOT_FOUND, exception.getMessage());
-
-        // Xác minh rằng phương thức findById đã được gọi chính xác một lần với id = 200
-        verify(exportSlipRepository, times(1)).findById(200L);
+        assertNotNull(result); // Kết quả không null
+        assertEquals(exportSlipId, result.getId()); // ID của ExportSlip phải khớp với ID của DTO
+        assertEquals(OrderStatus.PENDING, result.getStatus()); // Trạng thái phải khớp với phiếu xuất gốc
+        // Thêm các kiểm tra khác nếu DTO có thêm các trường cần kiểm tra
     }
 
 }

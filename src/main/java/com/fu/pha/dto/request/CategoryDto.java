@@ -38,4 +38,9 @@ public class CategoryDto {
         this.name = name;
     }
 
+    public CategoryDto(long id, String name, Status status) {
+        this.id = id;
+        this.name = name;
+        this.status = status;
+    }
 }

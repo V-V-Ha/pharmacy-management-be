@@ -33,4 +33,11 @@ public class DoctorDTOResponse {
         this.id = id;
         this.fullName = fullName;
     }
+
+    public DoctorDTOResponse(long id, String name, String phone, Status status) {
+        this.id = id;
+        this.fullName = name;
+        this.phoneNumber = phone;
+        this.status = status;
+    }
 }

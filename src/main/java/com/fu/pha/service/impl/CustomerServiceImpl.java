@@ -128,6 +128,9 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String phoneNumber, String status) {
+        if (size < 1 || index < 0) {
+            throw new IllegalArgumentException("Page size must be greater than 0 and index must be >= 0.");
+        }
         Pageable pageable = PageRequest.of(size, index);
         Status customerStatus = null;
         if (status != null) {
@@ -142,22 +145,6 @@ public class CustomerServiceImpl implements CustomerService {
             throw new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND);
         }
         return customerDTOResponses;
-    }
-
-    private void checkValidateCustomer(CustomerDTORequest customerDTORequest) {
-
-        if(customerDTORequest.getCustomerName().isEmpty() || customerDTORequest.getPhoneNumber().isEmpty()) {
-            throw new BadRequestException(Message.NULL_FILED);
-        }
-
-       // if ()
-
-        int yob = customerDTORequest.getYob();
-
-        // Validate Year of Birth (should be greater than 1900 and not in the future)
-        if (yob <= 1900 || yob > Year.now().getValue()) {
-            throw new BadRequestException(Message.INVALID_YOB);
-        }
     }
 
     //find customer by phone number
