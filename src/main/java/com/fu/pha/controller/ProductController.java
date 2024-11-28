@@ -101,6 +101,13 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
+    @PutMapping("/set-warning-number")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    public ResponseEntity<String> setWarningNumber(@RequestParam Long id, @RequestParam Integer numberWarning) {
+        productService.setWarningNumber(id, numberWarning);
+        return ResponseEntity.ok(Message.UPDATE_SUCCESS);
+    }
+
     @PutMapping("/change-status-product")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<String> updateProductStatus(@RequestParam Long id) {

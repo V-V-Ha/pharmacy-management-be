@@ -505,6 +505,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public void setWarningNumber(Long id, Integer numberWarning) {
+        Product product = productRepository.getProductById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
+        product.setNumberWarning(numberWarning);
+        productRepository.save(product);
+    }
+
+    @Override
     public void updateProductStatus(Long id) {
         Product product = productRepository.getProductById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));

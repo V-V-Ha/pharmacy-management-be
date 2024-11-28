@@ -131,7 +131,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             "       u.unit_name AS unitName, " +
             "       ii.batch_number AS batchNumber, " +
             "       ii.expiry_date AS expiryDate, " +
-            "       FLOOR(EXTRACT(EPOCH FROM ii.expiry_date - NOW()) / 86400) AS daysRemaining " +
+            "       GREATEST(FLOOR(EXTRACT(EPOCH FROM ii.expiry_date - NOW()) / 86400), 0) AS daysRemaining " +
             "FROM import_item ii " +
             "JOIN product p ON ii.product_id = p.id " +
             "JOIN category c ON p.category_id = c.id " +
