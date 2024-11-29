@@ -98,6 +98,7 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
         return new JwtResponse(
                 jwt,
+                loginDtoRequest.getFcmToken(),
                 userDetails.getUser().getId(),
                 userDetails.getUsername(),
                 userDetails.getUser().getEmail(),
