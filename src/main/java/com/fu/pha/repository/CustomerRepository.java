@@ -71,8 +71,8 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
                     "    WHERE so.payment_status = 'PAID' " +
                     "    GROUP BY so.customer_id " +
                     ") sub ON c.id = sub.customer_id " +
-                    "WHERE (:name IS NULL OR LOWER(c.customer_name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
-                    "AND (:phone IS NULL OR c.phone_number LIKE CONCAT('%', :phone, '%')) " +
+                    "WHERE (:searchTerm IS NULL OR LOWER(c.customer_name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
+                    "       OR c.phone_number LIKE CONCAT('%', :searchTerm, '%')) " +
                     "AND (:isNewCustomer IS NULL OR " +
                     "     (:isNewCustomer = TRUE AND c.create_date BETWEEN :startDate AND :endDate) OR " +
                     "     (:isNewCustomer = FALSE AND c.create_date < :startDate))",
@@ -83,18 +83,19 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
                     "    WHERE so.payment_status = 'PAID' " +
                     "    GROUP BY so.customer_id " +
                     ") sub ON c.id = sub.customer_id " +
-                    "WHERE (:name IS NULL OR LOWER(c.customer_name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
-                    "AND (:phone IS NULL OR c.phone_number LIKE CONCAT('%', :phone, '%')) " +
+                    "WHERE (:searchTerm IS NULL OR LOWER(c.customer_name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
+                    "       OR c.phone_number LIKE CONCAT('%', :searchTerm, '%')) " +
                     "AND (:isNewCustomer IS NULL OR " +
                     "     (:isNewCustomer = TRUE AND c.create_date BETWEEN :startDate AND :endDate) OR " +
                     "     (:isNewCustomer = FALSE AND c.create_date < :startDate))",
-            nativeQuery = true)
+            nativeQuery = true
+    )
     Page<CustomerInvoiceProjection> findCustomerInvoices(
-            @Param("name") String name,
-            @Param("phone") String phone,
+            @Param("searchTerm") String searchTerm,
             @Param("isNewCustomer") Boolean isNewCustomer,
             @Param("startDate") Timestamp startDate,
             @Param("endDate") Timestamp endDate,
             Pageable pageable);
+
 
 }

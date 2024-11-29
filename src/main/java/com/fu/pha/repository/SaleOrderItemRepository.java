@@ -22,7 +22,7 @@ public interface SaleOrderItemRepository extends JpaRepository<SaleOrderItem, Lo
 
     List<SaleOrderItem> findBySaleOrderIdAndProductId(Long saleOrderId, Long productId);
 
-    List<SaleOrderItem> findBySaleOrderIdAndProductIdOrderByIdAsc(Long id, Long productId);
+    List<SaleOrderItem> findBySaleOrderIdAndProductIdOrderByIdDesc(Long id, Long productId);
 
     //report
 

@@ -23,7 +23,6 @@ public class ExportSlipRequestDto {
     private Instant exportDate;
     @NotNull(message = "Loại phiếu xuất không được để trống")
     private ExportType typeDelivery;
-    @ValidDiscount
     private Double discount;
     @ValidTotalAmount
     private Double totalAmount;

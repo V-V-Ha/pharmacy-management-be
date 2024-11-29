@@ -127,6 +127,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+
     public Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String keyword, String status) {
         Pageable pageable = PageRequest.of(size, index);
         Status customerStatus = null;

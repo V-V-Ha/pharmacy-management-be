@@ -9,4 +9,5 @@ import lombok.*;
 public class LoginDtoRequest {
     private String username;
     private String password;
+    private String fcmToken;
 }

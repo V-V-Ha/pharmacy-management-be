@@ -222,7 +222,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
                 exportSlipItem.setUnit(itemDto.getUnit());
                 exportSlipItem.setBatch_number(itemDto.getBatchNumber());
                 exportSlipItem.setConversionFactor(itemDto.getConversionFactor());
-                exportSlipItem.setExpiryDate(itemDto.getExpiryDate());
                 exportSlipItem.setUnitPrice(itemDto.getUnitPrice());
                 exportSlipItem.setDiscount(itemDto.getDiscount());
                 exportSlipItem.setTotalAmount(itemTotalAmount);
@@ -448,25 +447,27 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
     private void processStockForConfirmedExport(ExportSlipItem exportSlipItem) {
         Product product = exportSlipItem.getProduct();
-        Integer currentTotalQuantity = product.getTotalQuantity();
-        int smallestQuantity = exportSlipItem.getQuantity() * exportSlipItem.getConversionFactor();
+        ImportItem importItem = exportSlipItem.getImportItem(); // Lấy ImportItem tương ứng
 
-        // Kiểm tra tồn kho
+        // Kiểm tra tồn kho trong ImportItem thay vì Product
+        Integer currentTotalQuantity = importItem.getRemainingQuantity(); // Tồn kho của lô
+        int smallestQuantity = exportSlipItem.getQuantity() * exportSlipItem.getConversionFactor(); // Số lượng thực tế cần xuất
+
+        // Kiểm tra số lượng tồn kho của ImportItem
         if (currentTotalQuantity == null || currentTotalQuantity < smallestQuantity) {
-            throw new BadRequestException(Message.NOT_ENOUGH_STOCK);
+            throw new BadRequestException(Message.NOT_ENOUGH_STOCK_IN_BATCH); // Không đủ tồn kho trong lô
         }
 
-        // Cập nhật lại số lượng sản phẩm trong Product
-        product.setTotalQuantity(currentTotalQuantity - smallestQuantity);
-        productRepository.save(product);
+        // Cập nhật lại số lượng sản phẩm trong ImportItem (remainingQuantity)
+        importItem.setRemainingQuantity(currentTotalQuantity - smallestQuantity);
+        importItemRepository.save(importItem); // Lưu lại thông tin ImportItem
 
-        // Cập nhật số lượng remainingQuantity trong ImportItem
-        ImportItem importItem = exportSlipItem.getImportItem();
-        if (importItem.getRemainingQuantity() < smallestQuantity) {
-            throw new BadRequestException(Message.NOT_ENOUGH_STOCK_IN_BATCH);
+        // Cập nhật số lượng sản phẩm trong Product (totalQuantity) nếu cần thiết
+        if (product.getTotalQuantity() != null) {
+            int updatedQuantity = product.getTotalQuantity() - smallestQuantity;
+            product.setTotalQuantity(updatedQuantity);
+            productRepository.save(product); // Cập nhật lại thông tin Product
         }
-        importItem.setRemainingQuantity(importItem.getRemainingQuantity() - smallestQuantity);
-        importItemRepository.save(importItem);
 
         // Lưu thông tin vào InventoryHistory
         saveInventoryHistory(
@@ -476,6 +477,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         );
     }
 
+
     private ExportSlipItem createExportSlipItem(ExportSlipItemRequestDto itemDto, ExportSlip exportSlip) {
         ExportSlipItem exportSlipItem = new ExportSlipItem();
         exportSlipItem.setExportSlip(exportSlip);
@@ -484,7 +486,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
                 .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
         // Tìm ImportItem theo importItemId
-        ImportItem importItem = importItemRepository.findById(itemDto.getImportItemId())
+        ImportItem importItem = importItemRepository.findByBatchNumberAndImportReceipt_InvoiceNumberAndProductId(itemDto.getBatchNumber(),itemDto.getInvoiceNumber(), itemDto.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
 
         // Kiểm tra nhà cung cấp nếu là phiếu trả lại nhà cung cấp
@@ -501,12 +503,9 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         exportSlipItem.setUnit(itemDto.getUnit());
         exportSlipItem.setBatch_number(itemDto.getBatchNumber());
         exportSlipItem.setConversionFactor(itemDto.getConversionFactor());
-        exportSlipItem.setExpiryDate(itemDto.getExpiryDate());
         exportSlipItem.setUnitPrice(itemDto.getUnitPrice());
         exportSlipItem.setDiscount(itemDto.getDiscount() != null ? itemDto.getDiscount() : 0.0);
         exportSlipItem.setTotalAmount(itemDto.getTotalAmount());
-
-
         return exportSlipItem;
     }
 

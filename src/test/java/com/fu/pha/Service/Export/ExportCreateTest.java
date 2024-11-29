@@ -127,7 +127,6 @@ public class ExportCreateTest {
         itemDto.setUnit("pcs");
         itemDto.setDiscount(5.0);
         itemDto.setBatchNumber("BATCH001");
-        itemDto.setExpiryDate(Instant.now().plusSeconds(86400));
         itemDto.setImportItemId(1L);
         itemDto.setConversionFactor(1);
         itemDto.setTotalAmount(950.0); // 100 * 10 - 5%

@@ -36,8 +36,6 @@ public class ExportSlipItem extends BaseEntity{
     @Column(name = "batch_number")
     private String batch_number;
 
-    @Column(name = "expiry_date")
-    private Instant expiryDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)

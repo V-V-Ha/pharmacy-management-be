@@ -92,7 +92,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
             int smallestQuantityToReturn = quantityToReturn * conversionFactor;
 
             // Lấy danh sách các SaleOrderItem liên quan theo FIFO
-            List<SaleOrderItem> saleOrderItems = saleOrderItemRepository.findBySaleOrderIdAndProductIdOrderByIdAsc(saleOrder.getId(), productId);
+            List<SaleOrderItem> saleOrderItems = saleOrderItemRepository.findBySaleOrderIdAndProductIdOrderByIdDesc(saleOrder.getId(), productId);
             int remainingQuantityToReturn = smallestQuantityToReturn;
 
             for (SaleOrderItem saleOrderItem : saleOrderItems) {
@@ -196,7 +196,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
             int quantityToRollback = returnOrderItem.getQuantity() * returnOrderItem.getConversionFactor();
 
             // Rollback theo thứ tự FIFO trên các SaleOrderItem và SaleOrderItemBatch
-            List<SaleOrderItem> saleOrderItems = saleOrderItemRepository.findBySaleOrderIdAndProductIdOrderByIdAsc(returnOrder.getSaleOrder().getId(), productId);
+            List<SaleOrderItem> saleOrderItems = saleOrderItemRepository.findBySaleOrderIdAndProductIdOrderByIdDesc(returnOrder.getSaleOrder().getId(), productId);
 
             int remainingQuantityToRollback = quantityToRollback;
             for (SaleOrderItem saleOrderItem : saleOrderItems) {
@@ -251,7 +251,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
             int smallestQuantityToReturn = quantityToReturn * conversionFactor;
 
             // Xử lý các SaleOrderItem theo thứ tự FIFO
-            List<SaleOrderItem> saleOrderItems = saleOrderItemRepository.findBySaleOrderIdAndProductIdOrderByIdAsc(returnOrder.getSaleOrder().getId(), productId);
+            List<SaleOrderItem> saleOrderItems = saleOrderItemRepository.findBySaleOrderIdAndProductIdOrderByIdDesc(returnOrder.getSaleOrder().getId(), productId);
             int remainingQuantityToReturn = smallestQuantityToReturn;
 
             for (SaleOrderItem saleOrderItem : saleOrderItems) {
