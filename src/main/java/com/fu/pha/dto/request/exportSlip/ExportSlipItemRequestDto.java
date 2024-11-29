@@ -30,13 +30,13 @@ public class ExportSlipItemRequestDto {
     private Double discount;
     @NotNull(message = "Số lô không được để trống")
     private String batchNumber;
-    private Instant expiryDate;
     @NotNull(message = "Sản phẩm không được để trống")
     private Long productId;
     private Long exportSlipId;
     @ValidTotalAmount
     private Double totalAmount;
     private Long importItemId;
+    private String invoiceNumber;
     @NotNull(message = "Hệ số quy đổi không được để trống")
     @Min(value = 1, message = "Hệ số quy đổi phải lớn hơn 0")
     private Integer conversionFactor;
@@ -48,7 +48,6 @@ public class ExportSlipItemRequestDto {
         this.unit = exportSlipItem.getUnit();
         this.discount = exportSlipItem.getDiscount();
         this.batchNumber = exportSlipItem.getBatch_number();
-        this.expiryDate = exportSlipItem.getExpiryDate();
         this.productId = exportSlipItem.getProduct().getId();
         this.exportSlipId = exportSlipItem.getExportSlip().getId();
         this.totalAmount = exportSlipItem.getTotalAmount();

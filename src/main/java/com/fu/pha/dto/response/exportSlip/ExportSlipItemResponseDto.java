@@ -19,7 +19,6 @@ public class ExportSlipItemResponseDto {
     private String unit;             // Đơn vị tính
     private Double discount;         // Chiết khấu
     private String batchNumber;      // Số lô
-    private Instant expiryDate;      // Ngày hết hạn
     private ProductDTOResponse product;          // ID của sản phẩm
     private Long exportSlipId;       // ID của phiếu xuất kho
     private Double totalAmount;      // Tổng số tiền
@@ -32,7 +31,6 @@ public class ExportSlipItemResponseDto {
         this.unit = exportSlipItem.getUnit();
         this.discount = exportSlipItem.getDiscount();
         this.batchNumber = exportSlipItem.getBatch_number();
-        this.expiryDate = exportSlipItem.getExpiryDate();
         this.product = new ProductDTOResponse(exportSlipItem.getProduct());
         this.exportSlipId = exportSlipItem.getExportSlip().getId();
         this.totalAmount = exportSlipItem.getTotalAmount();
