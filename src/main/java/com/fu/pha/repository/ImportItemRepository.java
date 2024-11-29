@@ -25,7 +25,8 @@ public interface ImportItemRepository extends JpaRepository<ImportItem, Long> {
     List<ImportItem> findByImportId(@Param("importId") Long importId);
 
     //find by batchNumber and invoiceNumber
-    Optional<ImportItem> findByBatchNumberAndImportReceipt_InvoiceNumber(String batchNumber, String invoiceNumber);
+    @Query("SELECT ii FROM ImportItem ii JOIN ii.importReceipt ir WHERE ii.batchNumber = :batchNumber AND ir.invoiceNumber = :invoiceNumber")
+    Optional<ImportItem> findByBatchNumberAndImportReceipt_InvoiceNumber(@Param("batchNumber") String batchNumber, @Param("invoiceNumber") String invoiceNumber);
 
 
 
