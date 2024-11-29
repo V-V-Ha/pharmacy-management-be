@@ -18,6 +18,7 @@ public class Message {
     public static final String INVALID_PASSWORD = "Mật khẩu không hợp lệ, mật khẩu phải có ít nhất 8 ký tự, " +
             "và phải có 1 ký tự hoa và 1 ký tự thường";
     public static final String INVALID_CCCD = "Số căn cước công dân không hợp lệ. Yêu cầu 12 chữ số";
+
     public static final String INVALID_PHONE = "Số điện thoại không hợp lệ";
     public static final String INVALID_GMAIL = "Gmail không hợp lệ";
     public static final String INVALID_USERNAME_C = "Tên đăng nhập không hợp lệ, tài khoản phải chứa 6-20 kí tự," +

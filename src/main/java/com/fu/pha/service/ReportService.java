@@ -82,8 +82,7 @@ public interface ReportService {
     // Báo cáo khách hàng
     CustomerReportDto getCustomerReport(LocalDate startDate, LocalDate endDate);
     Page<CustomerInvoiceDto> getCustomerInvoiceList(
-            String name,
-            String phone,
+            String searchTerm,
             Boolean isNewCustomer,
             LocalDate startDate,
             LocalDate endDate,

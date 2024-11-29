@@ -26,7 +26,7 @@ public class SaleOrderRequestDto {
     private OrderType orderType;
     @NotNull(message = Message.PAYMENT_METHOD_NOT_NULL)
     private PaymentMethod paymentMethod;
-    @ValidDiscount
+
     private Double discount;
 
     @ValidTotalAmount

@@ -221,8 +221,7 @@ public class ReportController {
 
     @GetMapping("/list-customers")
     public ResponseEntity<Page<CustomerInvoiceDto>> getCustomerInvoices(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) Boolean isNewCustomer,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
@@ -230,8 +229,7 @@ public class ReportController {
             @RequestParam(defaultValue = "10") int size) {
 
         Page<CustomerInvoiceDto> result = reportService.getCustomerInvoiceList(
-                name,
-                phone,
+                searchTerm,
                 isNewCustomer,
                 startDate,
                 endDate,

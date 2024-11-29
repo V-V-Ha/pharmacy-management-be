@@ -1191,8 +1191,7 @@ public class ReportServiceImpl implements ReportService {
     //List
     @Override
     public Page<CustomerInvoiceDto> getCustomerInvoiceList(
-            String name,
-            String phone,
+            String searchTerm,
             Boolean isNewCustomer,
             LocalDate startDate,
             LocalDate endDate,
@@ -1222,8 +1221,7 @@ public class ReportServiceImpl implements ReportService {
         Timestamp endTimestamp = Timestamp.from(endInstant);
 
         Page<CustomerInvoiceProjection> projections = customerRepository.findCustomerInvoices(
-                name,
-                phone,
+                searchTerm,
                 isNewCustomer,
                 startTimestamp,
                 endTimestamp,
@@ -1252,7 +1250,7 @@ public class ReportServiceImpl implements ReportService {
         Instant endInstant = toDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
 
         List<CustomerInvoiceDto> customerInvoices = customerRepository.findCustomerInvoices(
-                        null, null, null,
+                        null, null,
                         Timestamp.from(startInstant), Timestamp.from(endInstant),
                         PageRequest.of(0, Integer.MAX_VALUE)
                 ).stream()
