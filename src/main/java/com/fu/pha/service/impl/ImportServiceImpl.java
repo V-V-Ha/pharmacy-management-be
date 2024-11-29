@@ -132,12 +132,16 @@ public class ImportServiceImpl implements ImportService {
                                         .collect(Collectors.toList());
 
                                 Long supplierId = null;
-                                if (importItem.getImportReceipt() != null && importItem.getImportReceipt().getSupplier() != null) {
+                                String invoiceNumber = null;
+                                if (importItem.getImportReceipt() != null && importItem.getImportReceipt().getSupplier() != null && importItem.getImportReceipt().getInvoiceNumber() != null) {
                                     supplierId = importItem.getImportReceipt().getSupplier().getId();
+                                    invoiceNumber = importItem.getImportReceipt().getInvoiceNumber();
                                 }
+
 
                                 return new ImportItemResponseForExport(
                                         importItem.getId(),
+                                        invoiceNumber,
                                         importItem.getQuantity(),
                                         importItem.getUnitPrice(),
                                         importItem.getUnit(),
@@ -170,6 +174,7 @@ public class ImportServiceImpl implements ImportService {
 
         return productDtoResponses;
     }
+
 
     public List<SupplierDto> getSuppplierBySupplierName(String supplierName) {
         Optional<List<SupplierDto>> supplier = supplierRepository.findSupplierBySupplierName(supplierName);
