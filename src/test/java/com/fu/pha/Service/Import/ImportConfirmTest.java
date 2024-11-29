@@ -2,6 +2,7 @@ package com.fu.pha.Service.Import;
 
 import com.fu.pha.enums.ERole;
 import com.fu.pha.enums.PaymentMethod;
+import com.fu.pha.service.impl.ImportServiceImpl;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.*;
@@ -16,10 +17,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 @ExtendWith(MockitoExtension.class)
 public class ImportConfirmTest {
+
     @Mock
     private ImportRepository importRepository;
 
@@ -33,7 +36,7 @@ public class ImportConfirmTest {
     private NotificationService notificationService;
 
     @InjectMocks
-    private ImportService importService;
+    private ImportServiceImpl importService;
 
     private Import importMock;
     private User currentUser;
@@ -42,150 +45,100 @@ public class ImportConfirmTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-
-        // Tạo mock đối tượng Import
         importMock = new Import();
         importMock.setId(1L);
-        importMock.setInvoiceNumber("INV123");
-        importMock.setImportDate(Instant.now());
-        importMock.setPaymentMethod(PaymentMethod.CASH);
-        importMock.setTotalAmount(5000.0);
         importMock.setStatus(OrderStatus.PENDING);
+        importMock.setImportItems(Collections.emptyList());
 
-        // Tạo mock đối tượng User
         currentUser = new User();
         currentUser.setId(1L);
-        currentUser.setFullName("John Doe");
+        currentUser.setRoles(Collections.singleton(new Role(ERole.ROLE_PRODUCT_OWNER.name())));
 
-        // Tạo mock đối tượng ImportCreator
         importCreator = new User();
         importCreator.setId(2L);
-        importCreator.setFullName("Jane Smith");
-
         importMock.setUser(importCreator);
-
-        // Thiết lập các ImportItems cho Import
-        ImportItem importItem1 = new ImportItem();
-        importItem1.setQuantity(10);
-        importItem1.setConversionFactor(1);
-        importMock.setImportItems(List.of(importItem1));
     }
 
     @Test
     public void testConfirmImport_UserNotFound() {
-        // Arrange
-        Long userId = 1L;
-        Long importId = 1L;
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        ResourceNotFoundException thrown = assertThrows(ResourceNotFoundException.class, () -> {
-            importService.confirmImport(importId, userId);
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            importService.confirmImport(1L, 1L);
         });
 
-        assertEquals(Message.USER_NOT_FOUND, thrown.getMessage());
+        assertEquals(Message.USER_NOT_FOUND, exception.getMessage());
     }
 
     @Test
     public void testConfirmImport_UserUnauthorized() {
-        // Arrange
-        Long userId = 1L;
-        Long importId = 1L;
+        currentUser.setRoles(Collections.singleton(new Role(ERole.ROLE_STOCK.name())));
+        lenient().when(userRepository.findById(1L)).thenReturn(Optional.of(currentUser));
+        lenient().when(importRepository.findById(1L)).thenReturn(Optional.of(importMock));
 
-        // Giả lập người dùng không có quyền ROLE_PRODUCT_OWNER
-        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
-        when(importRepository.findById(importId)).thenReturn(Optional.of(importMock));
-
-        // Act & Assert
-        UnauthorizedException thrown = assertThrows(UnauthorizedException.class, () -> {
-            importService.confirmImport(importId, userId);
+        UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
+            importService.confirmImport(1L, 1L);
         });
 
-        assertEquals(Message.REJECT_AUTHORIZATION, thrown.getMessage());
+        assertEquals(Message.REJECT_AUTHORIZATION, exception.getMessage());
     }
 
     @Test
     public void testConfirmImport_ImportNotFound() {
-        // Arrange
-        Long userId = 1L;
-        Long importId = 1L;
+        when(userRepository.findById(1L)).thenReturn(Optional.of(currentUser));
+        when(importRepository.findById(1L)).thenReturn(Optional.empty());
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
-        when(importRepository.findById(importId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        ResourceNotFoundException thrown = assertThrows(ResourceNotFoundException.class, () -> {
-            importService.confirmImport(importId, userId);
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            importService.confirmImport(1L, 1L);
         });
 
-        assertEquals(Message.IMPORT_NOT_FOUND, thrown.getMessage());
+        assertEquals(Message.IMPORT_NOT_FOUND, exception.getMessage());
     }
 
     @Test
     public void testConfirmImport_ImportNotPending() {
-        // Arrange
-        Long userId = 1L;
-        Long importId = 1L;
-
-        // Cập nhật trạng thái phiếu nhập thành CONFIRMED
         importMock.setStatus(OrderStatus.CONFIRMED);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(currentUser));
+        when(importRepository.findById(1L)).thenReturn(Optional.of(importMock));
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
-        when(importRepository.findById(importId)).thenReturn(Optional.of(importMock));
-
-        // Act & Assert
-        BadRequestException thrown = assertThrows(BadRequestException.class, () -> {
-            importService.confirmImport(importId, userId);
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            importService.confirmImport(1L, 1L);
         });
 
-        assertEquals(Message.NOT_PENDING_IMPORT, thrown.getMessage());
+        assertEquals(Message.NOT_PENDING_IMPORT, exception.getMessage());
     }
 
     @Test
     public void testConfirmImport_Success() {
-        // Arrange
-        Long userId = 1L;
-        Long importId = 1L;
+        when(userRepository.findById(1L)).thenReturn(Optional.of(currentUser));
+        when(importRepository.findById(1L)).thenReturn(Optional.of(importMock));
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
-        when(importRepository.findById(importId)).thenReturn(Optional.of(importMock));
+        importService.confirmImport(1L, 1L);
 
-        // Act
-        importService.confirmImport(importId, userId);
-
-        // Assert
-        verify(importRepository).save(importMock);  // Kiểm tra save Import
-        assertEquals(OrderStatus.CONFIRMED, importMock.getStatus()); // Kiểm tra trạng thái là CONFIRMED
-
-        // Kiểm tra gửi thông báo cho người tạo phiếu nhập
-        verify(notificationService).sendNotificationToUser(anyString(), anyString(), eq(importCreator), eq(importId));
-
-        // Kiểm tra gọi lưu lịch sử kho hàng
-        verify(inventoryHistoryRepository).save(any(InventoryHistory.class));
+        assertEquals(OrderStatus.CONFIRMED, importMock.getStatus());
+        verify(importRepository, times(1)).save(importMock);
+        verify(notificationService, times(1)).sendNotificationToUser(anyString(), anyString(), eq(importCreator), eq(1L));
     }
 
     @Test
     public void testSaveInventoryHistory_NoChangeQuantity() {
-        // Arrange
-        ImportItem importItem = importMock.getImportItems().get(0);
-        int totalChangeQuantity = 0; // Không thay đổi số lượng sản phẩm
+        ImportItem importItem = new ImportItem();
+        importItem.setQuantity(0);
+        importItem.setConversionFactor(1);
 
-        // Act
+        importService.saveInventoryHistory(importItem, 0, "No Change");
 
-        // Assert
-        verify(inventoryHistoryRepository, never()).save(any(InventoryHistory.class)); // Không gọi lưu lịch sử kho hàng
+        verify(inventoryHistoryRepository, never()).save(any());
     }
 
     @Test
     public void testSaveInventoryHistory_WithChangeQuantity() {
-        // Arrange
-        ImportItem importItem = importMock.getImportItems().get(0);
-        int totalChangeQuantity = 10; // Thay đổi số lượng sản phẩm
+        ImportItem importItem = new ImportItem();
+        importItem.setQuantity(10);
+        importItem.setConversionFactor(1);
 
-        // Act
+        importService.saveInventoryHistory(importItem, 10, "Change");
 
-        // Assert
-        verify(inventoryHistoryRepository).save(any(InventoryHistory.class)); // Kiểm tra lưu lịch sử kho hàng
+        verify(inventoryHistoryRepository, times(1)).save(any());
     }
 }

@@ -174,9 +174,11 @@ public class ProductServiceImpl implements ProductService {
                     prescriptionDrug = true;
                 } else if ("Không".equalsIgnoreCase(cellValue)) {
                     prescriptionDrug = false;
+                } else if (cellValue.isEmpty()) {
+                    throw new ResourceNotFoundException(Message.NULL_FILED);
                 } else {
                     // Xử lý khi giá trị không phải "Có" hoặc "Không"
-                    throw new IllegalArgumentException("Giá trị không hợp lệ: " + cellValue);
+                    throw new ResourceNotFoundException(Message.INVALID_PRESCRIPTION_DRUG);
                 }
                 String indication = getCellValueAsString(row.getCell(15));
                 String contraindication = getCellValueAsString(row.getCell(16));
@@ -208,7 +210,7 @@ public class ProductServiceImpl implements ProductService {
                 for (int unitRowIndex = rowIndex; unitRowIndex < rowIndex + 3 && unitRowIndex < sheet.getPhysicalNumberOfRows(); unitRowIndex++) {
                     Row unitRow = sheet.getRow(unitRowIndex);
 
-                    if (unitRow == null || isRowEmpty(unitRow)) break;
+                    if (unitRow == null || isRowEmpty(unitRow)) continue;
 
                     // Lấy thông tin cho mỗi đơn vị (từ cột 10 đến cột 13) cho mỗi dòng
                     String unitNameStr = getCellValueAsString(unitRow.getCell(10));  // Đơn vị (cột 10)
@@ -218,8 +220,11 @@ public class ProductServiceImpl implements ProductService {
 
                     // Tìm đơn vị từ DB
                     Unit unit = unitRepository.findByUnitName(unitNameStr);
-                    if (unit == null) {
-                        throw new ResourceNotFoundException("Không tìm thấy đơn vị: " + unitNameStr);
+
+                    if (unitNameStr.isEmpty()) {
+                        continue;
+                    } else if (unit == null) {
+                        throw new ResourceNotFoundException(Message.UNIT_NOT_FOUND + ": " + unitNameStr);
                     }
 
                     // Tạo đối tượng ProductUnitDTORequest cho mỗi đơn vị
@@ -284,7 +289,7 @@ public class ProductServiceImpl implements ProductService {
                     } else if ("Có".equalsIgnoreCase(cellValue)) {
                         return 1; // or any other value that represents true
                     }
-                    throw new IllegalStateException("Cannot get a NUMERIC value from a STRING cell", e);
+                    throw new ResourceNotFoundException("Cannot get a NUMERIC value from a STRING cell");
                 }
             default:
                 return null;
@@ -302,7 +307,7 @@ public class ProductServiceImpl implements ProductService {
                 try {
                     return Double.parseDouble(cell.getStringCellValue().trim());
                 } catch (NumberFormatException e) {
-                    throw new IllegalArgumentException("Invalid double value: " + cell.getStringCellValue());
+                    throw new ResourceNotFoundException("Invalid double value: " + cell.getStringCellValue());
                 }
             default:
                 return null;
@@ -409,7 +414,8 @@ public class ProductServiceImpl implements ProductService {
                 productDTORequest.getRegistrationNumber().isEmpty() || productDTORequest.getActiveIngredient().isEmpty() ||
                 productDTORequest.getDosageConcentration().isEmpty() || productDTORequest.getPackingMethod().isEmpty() ||
                 productDTORequest.getManufacturer().isEmpty() || productDTORequest.getCountryOfOrigin().isEmpty() ||
-                productDTORequest.getDosageForms().isEmpty() || productDTORequest.getNumberWarning() == null){
+                productDTORequest.getDosageForms().isEmpty() || productDTORequest.getNumberWarning() == null ||
+                productDTORequest.getPrescriptionDrug() ==  null){
             throw new ResourceNotFoundException(Message.NULL_FILED);
         }
 
@@ -710,7 +716,7 @@ public class ProductServiceImpl implements ProductService {
                 "Tên sản phẩm *", "Nhóm sản phẩm *", "Số đăng ký *", "Thành phần hoạt tính *",
                 "Liều lượng *", "Phương pháp đóng gói *", "Nhà sản xuất *", "Xuất xứ *", "Dạng bào chế *",
                 "Hạn mức thông báo *", "Đơn vị sản phẩm", "Giá nhập", "Giá bán lẻ",
-                "Hệ số chuyển đổi", "Thuốc kê theo đơn *", "Chỉ định", "Chống chỉ định",
+                "Hệ số chuyển đổi", "Hình thức bán(theo đơn) *", "Chỉ định", "Chống chỉ định",
                 "Tác dụng phụ", "Mô tả"
         };
 

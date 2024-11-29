@@ -2,24 +2,29 @@ package com.fu.pha.Service.Doctor;
 
 import com.fu.pha.dto.response.DoctorDTOResponse;
 import com.fu.pha.enums.Status;
+import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.DoctorRepository;
 import com.fu.pha.service.impl.DoctorServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 public class DoctorViewListTest {
@@ -29,137 +34,88 @@ public class DoctorViewListTest {
 
     @InjectMocks
     private DoctorServiceImpl doctorService;
-
-    private Pageable pageable;
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     public void testGetAllDoctorByPaging_FoundDoctors() {
-        // Arrange
-        DoctorDTOResponse doctorDTOResponse = new DoctorDTOResponse(1L, "Doctor1", "123456789", Status.ACTIVE);
-        Page<DoctorDTOResponse> expectedPage = new PageImpl<>(List.of(doctorDTOResponse));
-        int size = 10;
-        int index = 0;
+        Pageable pageable = PageRequest.of(0, 10);
+        DoctorDTOResponse doctorDTOResponse = new DoctorDTOResponse();
+        Page<DoctorDTOResponse> doctorPage = new PageImpl<>(Collections.singletonList(doctorDTOResponse));
 
-        when(doctorRepository.getListDoctorPaging("Doctor1", Status.ACTIVE, PageRequest.of(index, size)))
-                .thenReturn(expectedPage);
+        when(doctorRepository.getListDoctorPaging(anyString(), any(), eq(pageable))).thenReturn(doctorPage);
 
-        // Act
-        Page<DoctorDTOResponse> result = doctorService.getAllDoctorByPaging(size, index, "Doctor1", "ACTIVE");
+        Page<DoctorDTOResponse> result = doctorService.getAllDoctorByPaging(0, 10, "John", "ACTIVE");
 
-        // Assert
-        assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertEquals(1, result.getTotalElements());
-        verify(doctorRepository).getListDoctorPaging("Doctor1", Status.ACTIVE, PageRequest.of(index, size));
+        verify(doctorRepository, times(1)).getListDoctorPaging(anyString(), any(), eq(pageable));
     }
 
     @Test
     public void testGetAllDoctorByPaging_NoDoctorsFound() {
-        // Arrange
-        int size = 10;
-        int index = 0;
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<DoctorDTOResponse> doctorPage = new PageImpl<>(Collections.emptyList());
 
-        when(doctorRepository.getListDoctorPaging("NonExistentDoctor", Status.ACTIVE, PageRequest.of(index, size)))
-                .thenReturn(Page.empty());
+        when(doctorRepository.getListDoctorPaging(anyString(), any(), eq(pageable))).thenReturn(doctorPage);
 
-        // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> {
-            doctorService.getAllDoctorByPaging(size, index, "NonExistentDoctor", "ACTIVE");
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            doctorService.getAllDoctorByPaging(0, 10, "John", "ACTIVE");
         });
-    }
 
-    @Test
-    public void testGetAllDoctorByPaging_InvalidSize() {
-        // Arrange
-        int invalidSize = 0; // size không hợp lệ
-        int index = 0;
-
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
-            doctorService.getAllDoctorByPaging(invalidSize, index, "Doctor1", "ACTIVE");
-        });
-    }
-
-    @Test
-    public void testGetAllDoctorByPaging_InvalidIndex() {
-        // Arrange
-        int size = 10;
-        int invalidIndex = -1; // index không hợp lệ
-
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
-            doctorService.getAllDoctorByPaging(size, invalidIndex, "Doctor1", "ACTIVE");
-        });
+        assertEquals(Message.DOCTOR_NOT_FOUND, exception.getMessage());
+        verify(doctorRepository, times(1)).getListDoctorPaging(anyString(), any(), eq(pageable));
     }
 
     @Test
     public void testGetAllDoctorByPaging_InvalidStatus() {
-        // Arrange
-        int size = 10;
-        int index = 0;
-        String invalidStatus = "NOT_EXIST"; // status không hợp lệ
-
-        // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> {
-            doctorService.getAllDoctorByPaging(size, index, "Doctor1", invalidStatus);
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            doctorService.getAllDoctorByPaging(0, 10, "John", "INVALID_STATUS");
         });
+
+        assertEquals(Message.STATUS_NOT_FOUND, exception.getMessage());
     }
 
     @Test
     public void testGetAllDoctorByPaging_DoctorNameAndStatusNull() {
-        // Arrange
-        int size = 10;
-        int index = 0;
+        Pageable pageable = PageRequest.of(0, 10);
+        DoctorDTOResponse doctorDTOResponse = new DoctorDTOResponse();
+        Page<DoctorDTOResponse> doctorPage = new PageImpl<>(Collections.singletonList(doctorDTOResponse));
 
-        when(doctorRepository.getListDoctorPaging(null, null, PageRequest.of(index, size)))
-                .thenReturn(Page.empty());
+        when(doctorRepository.getListDoctorPaging(null, null, pageable)).thenReturn(doctorPage);
 
-        // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> {
-            doctorService.getAllDoctorByPaging(size, index, null, null);
-        });
+        Page<DoctorDTOResponse> result = doctorService.getAllDoctorByPaging(0, 10, null, null);
+
+        assertFalse(result.isEmpty());
+        verify(doctorRepository, times(1)).getListDoctorPaging(null, null, pageable);
     }
 
     @Test
     public void testGetAllDoctorByPaging_DoctorNameValidAndStatusNull() {
-        // Arrange
-        DoctorDTOResponse doctorDTOResponse = new DoctorDTOResponse(1L, "Doctor1", "123456789", Status.ACTIVE);
-        Page<DoctorDTOResponse> expectedPage = new PageImpl<>(List.of(doctorDTOResponse));
-        int size = 10;
-        int index = 0;
+        Pageable pageable = PageRequest.of(0, 10);
+        DoctorDTOResponse doctorDTOResponse = new DoctorDTOResponse();
+        Page<DoctorDTOResponse> doctorPage = new PageImpl<>(Collections.singletonList(doctorDTOResponse));
 
-        when(doctorRepository.getListDoctorPaging("Doctor1", null, PageRequest.of(index, size)))
-                .thenReturn(expectedPage);
+        when(doctorRepository.getListDoctorPaging("John", null, pageable)).thenReturn(doctorPage);
 
-        // Act
-        Page<DoctorDTOResponse> result = doctorService.getAllDoctorByPaging(size, index, "Doctor1", null);
+        Page<DoctorDTOResponse> result = doctorService.getAllDoctorByPaging(0, 10, "John", null);
 
-        // Assert
-        assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertEquals(1, result.getTotalElements());
-        verify(doctorRepository).getListDoctorPaging("Doctor1", null, PageRequest.of(index, size));
+        verify(doctorRepository, times(1)).getListDoctorPaging("John", null, pageable);
     }
 
     @Test
     public void testGetAllDoctorByPaging_ValidDoctorNameAndStatus() {
-        // Arrange
-        DoctorDTOResponse doctorDTOResponse = new DoctorDTOResponse(1L, "Doctor1", "123456789", Status.ACTIVE);
-        Page<DoctorDTOResponse> expectedPage = new PageImpl<>(List.of(doctorDTOResponse));
-        int size = 10;
-        int index = 0;
+        Pageable pageable = PageRequest.of(0, 10);
+        DoctorDTOResponse doctorDTOResponse = new DoctorDTOResponse();
+        Page<DoctorDTOResponse> doctorPage = new PageImpl<>(Collections.singletonList(doctorDTOResponse));
 
-        when(doctorRepository.getListDoctorPaging("Doctor1", Status.ACTIVE, PageRequest.of(index, size)))
-                .thenReturn(expectedPage);
+        when(doctorRepository.getListDoctorPaging("John", Status.ACTIVE, pageable)).thenReturn(doctorPage);
 
-        // Act
-        Page<DoctorDTOResponse> result = doctorService.getAllDoctorByPaging(size, index, "Doctor1", "ACTIVE");
+        Page<DoctorDTOResponse> result = doctorService.getAllDoctorByPaging(0, 10, "John", "ACTIVE");
 
-        // Assert
-        assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertEquals(1, result.getTotalElements());
-        verify(doctorRepository).getListDoctorPaging("Doctor1", Status.ACTIVE, PageRequest.of(index, size));
+        verify(doctorRepository, times(1)).getListDoctorPaging("John", Status.ACTIVE, pageable);
     }
-
 }

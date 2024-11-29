@@ -2,7 +2,9 @@ package com.fu.pha.Service.Import;
 
 import com.fu.pha.dto.request.importPack.ImportDto;
 import com.fu.pha.dto.request.importPack.ImportItemRequestDto;
+import com.fu.pha.dto.response.CloudinaryResponse;
 import com.fu.pha.entity.*;
+import com.fu.pha.enums.ERole;
 import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
@@ -69,136 +71,158 @@ public class ImportCreateTest {
     private Supplier mockSupplier;
     private Product mockProduct;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-
-        // Mock user
-        mockUser = new User();
-        mockUser.setUsername("testUser");
-
-        // Mock supplier
-        mockSupplier = new Supplier();
-        mockSupplier.setId(1L);
-
-        // Mock product
-        mockProduct = new Product();
-        mockProduct.setId(1L);
-        mockProduct.setProductName("Product Name");
-
-        // Mock import request DTO
-        importRequestDto = new ImportDto();
-        importRequestDto.setSupplierId(1L);
-        importRequestDto.setPaymentMethod(PaymentMethod.CASH);
-        importRequestDto.setNote("Test import");
-        importRequestDto.setTax(5.0);
-        importRequestDto.setDiscount(10.0);
-
-        // Mock file upload
-        file = new MockMultipartFile("file", "test.jpg", "image/jpeg", new byte[1]);
-    }
 
     @Test
     void testCreateImport_WhenUserNotLoggedIn_ShouldThrowUnauthorizedException() {
-        // Mock SecurityContext to simulate no logged-in user
-        SecurityContextHolder.clearContext();
+        // Arrange
+        ImportServiceImpl importServiceSpy = Mockito.spy(importService);
+        doThrow(new UnauthorizedException(Message.REJECT_AUTHORIZATION)).when(importServiceSpy).getCurrentUser();
 
-        // Call method and assert exception
-        assertThrows(UnauthorizedException.class, () -> importService.createImport(importRequestDto, file));
+        // Act & Assert
+        UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
+            importServiceSpy.createImport(importRequestDto, file);
+        });
+
+        assertEquals(Message.REJECT_AUTHORIZATION, exception.getMessage());
     }
 
     @Test
     void testCreateImport_WhenSupplierNotFound_ShouldThrowResourceNotFoundException() {
-        // Mock SecurityContext with logged-in user
-        Mockito.when(userRepository.findByUsername("testUser")).thenReturn(Optional.of(mockUser));
-        SecurityContextHolder.getContext().setAuthentication(mock(Authentication.class));
+        // Arrange
+        ImportServiceImpl importServiceSpy = Mockito.spy(importService);
+        mockUser = new User();
+        mockUser.setRoles(Collections.singleton(new Role(ERole.ROLE_STOCK.name())));
+        doReturn(mockUser).when(importServiceSpy).getCurrentUser();
+        when(supplierRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        // Simulate supplier not found
-        Mockito.when(supplierRepository.findById(importRequestDto.getSupplierId()))
-                .thenReturn(Optional.empty());
+        importRequestDto = new ImportDto();
+        importRequestDto.setSupplierId(1L); // Set a valid supplier ID
 
-        // Call method and assert exception
-        assertThrows(ResourceNotFoundException.class, () -> importService.createImport(importRequestDto, file));
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            importServiceSpy.createImport(importRequestDto, file);
+        });
+
+        assertEquals(Message.SUPPLIER_NOT_FOUND, exception.getMessage());
     }
 
     @Test
     void testCreateImport_WhenFileNotProvided_ShouldThrowBadRequestException() {
-        // Mock SecurityContext with logged-in user
-        Mockito.when(userRepository.findByUsername("testUser")).thenReturn(Optional.of(mockUser));
-        SecurityContextHolder.getContext().setAuthentication(mock(Authentication.class));
+        // Arrange
+        ImportServiceImpl importServiceSpy = Mockito.spy(importService);
+        mockUser = new User();
+        mockUser.setRoles(Collections.singleton(new Role(ERole.ROLE_STOCK.name())));
+        doReturn(mockUser).when(importServiceSpy).getCurrentUser();
 
-        // Simulate supplier found
-        Mockito.when(supplierRepository.findById(importRequestDto.getSupplierId()))
-                .thenReturn(Optional.of(mockSupplier));
+        mockSupplier = new Supplier();
+        when(supplierRepository.findById(anyLong())).thenReturn(Optional.of(mockSupplier));
 
-        // Simulate empty file
-        MultipartFile emptyFile = new MockMultipartFile("file", new byte[0]);
+        importRequestDto = new ImportDto();
+        importRequestDto.setSupplierId(1L); // Set a valid supplier ID
 
-        // Call method and assert exception
-        assertThrows(BadRequestException.class, () -> importService.createImport(importRequestDto, emptyFile));
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            importServiceSpy.createImport(importRequestDto, null);
+        });
+
+        assertEquals(Message.IMAGE_IMPORT_NOT_NULL, exception.getMessage());
     }
 
     @Test
     void testCreateImport_WhenImportItemsEmpty_ShouldThrowBadRequestException() {
-        // Mock SecurityContext with logged-in user
-        Mockito.when(userRepository.findByUsername("testUser")).thenReturn(Optional.of(mockUser));
-        SecurityContextHolder.getContext().setAuthentication(mock(Authentication.class));
+        // Arrange
+        ImportServiceImpl importServiceSpy = Mockito.spy(importService);
+        mockUser = new User();
+        mockUser.setRoles(Collections.singleton(new Role(ERole.ROLE_STOCK.name())));
+        doReturn(mockUser).when(importServiceSpy).getCurrentUser();
 
-        // Simulate supplier found
-        Mockito.when(supplierRepository.findById(importRequestDto.getSupplierId()))
-                .thenReturn(Optional.of(mockSupplier));
+        mockSupplier = new Supplier();
+        when(supplierRepository.findById(anyLong())).thenReturn(Optional.of(mockSupplier));
 
-        // Set empty import items
+        file = Mockito.mock(MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getOriginalFilename()).thenReturn("test.png");
+
+        CloudinaryResponse mockCloudinaryResponse = new CloudinaryResponse();
+        mockCloudinaryResponse.setUrl("image_url");
+        when(cloudinaryService.upLoadFile(eq(file), anyString())).thenReturn(mockCloudinaryResponse);
+
+        importRequestDto = new ImportDto();
+        importRequestDto.setSupplierId(1L); // Set a valid supplier ID
         importRequestDto.setImportItems(Collections.emptyList());
 
-        // Call method and assert exception
-        assertThrows(BadRequestException.class, () -> importService.createImport(importRequestDto, file));
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            importServiceSpy.createImport(importRequestDto, file);
+        });
+
+        assertEquals(Message.IMPORT_ITEMS_EMPTY, exception.getMessage());
     }
 
     @Test
     void testCreateImport_WhenTotalAmountDoesNotMatch_ShouldThrowBadRequestException() {
-        // Mock SecurityContext with logged-in user
-        Mockito.when(userRepository.findByUsername("testUser")).thenReturn(Optional.of(mockUser));
-        SecurityContextHolder.getContext().setAuthentication(mock(Authentication.class));
+        // Arrange
+        ImportServiceImpl importServiceSpy = Mockito.spy(importService);
+        mockUser = new User();
+        mockUser.setRoles(Collections.singleton(new Role(ERole.ROLE_STOCK.name())));
+        doReturn(mockUser).when(importServiceSpy).getCurrentUser();
 
-        // Simulate supplier found
-        Mockito.when(supplierRepository.findById(importRequestDto.getSupplierId()))
-                .thenReturn(Optional.of(mockSupplier));
+        mockSupplier = new Supplier();
+        when(supplierRepository.findById(anyLong())).thenReturn(Optional.of(mockSupplier));
 
-        // Mock ImportItemRequestDto
-        ImportItemRequestDto item = new ImportItemRequestDto();
-        item.setProductId(1L);
-        item.setQuantity(10);
-        item.setUnitPrice(100.0);
-        item.setDiscount(5.0);
-        item.setTax(5.0);
-        item.setTotalAmount(950.0); // Incorrect total amount
-        importRequestDto.setImportItems(Collections.singletonList(item));
+        file = Mockito.mock(MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getOriginalFilename()).thenReturn("test.png");
 
-        // Simulate totalAmount mismatch between BE and FE
-        importRequestDto.setTotalAmount(1000.0);
+        CloudinaryResponse mockCloudinaryResponse = new CloudinaryResponse();
+        mockCloudinaryResponse.setUrl("image_url");
+        when(cloudinaryService.upLoadFile(eq(file), anyString())).thenReturn(mockCloudinaryResponse);
 
-        // Call method and assert exception
-        assertThrows(BadRequestException.class, () -> importService.createImport(importRequestDto, file));
+        importRequestDto = new ImportDto();
+        importRequestDto.setSupplierId(1L); // Set a valid supplier ID
+        importRequestDto.setImportItems(Collections.singletonList(new ImportItemRequestDto()));
+        importRequestDto.setTotalAmount(100.0);
+
+        doReturn(90.0).when(importServiceSpy).saveImportItems(any(), any(), any());
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            importServiceSpy.createImport(importRequestDto, file);
+        });
+
+        assertEquals(Message.TOTAL_AMOUNT_NOT_MATCH, exception.getMessage());
     }
 
     @Test
     void testCreateImport_WhenImportSuccess() {
-        // Mock SecurityContext with logged-in user
-        Mockito.when(userRepository.findByUsername("testUser")).thenReturn(Optional.of(mockUser));
-        SecurityContextHolder.getContext().setAuthentication(mock(Authentication.class));
+        // Arrange
+        ImportServiceImpl importServiceSpy = Mockito.spy(importService);
+        mockUser = new User();
+        mockUser.setRoles(Collections.singleton(new Role(ERole.ROLE_STOCK.name())));
+        doReturn(mockUser).when(importServiceSpy).getCurrentUser();
 
-        // Simulate supplier found
-        Mockito.when(supplierRepository.findById(importRequestDto.getSupplierId()))
-                .thenReturn(Optional.of(mockSupplier));
+        mockSupplier = new Supplier();
+        when(supplierRepository.findById(anyLong())).thenReturn(Optional.of(mockSupplier));
 
-        // Mock the behavior of saving import
-        Mockito.when(importRepository.save(any(Import.class))).thenReturn(new Import());
+        file = Mockito.mock(MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getOriginalFilename()).thenReturn("test.png");
 
-        // Mock notification service
-        doNothing().when(notificationService).sendNotificationToUser(anyString(), anyString(), any(User.class), anyLong());
+        CloudinaryResponse mockCloudinaryResponse = new CloudinaryResponse();
+        mockCloudinaryResponse.setUrl("image_url");
+        when(cloudinaryService.upLoadFile(eq(file), anyString())).thenReturn(mockCloudinaryResponse);
 
-        // Call method and assert no exceptions
-        assertDoesNotThrow(() -> importService.createImport(importRequestDto, file));
+        importRequestDto = new ImportDto();
+        importRequestDto.setSupplierId(1L); // Set a valid supplier ID
+        importRequestDto.setImportItems(Collections.singletonList(new ImportItemRequestDto()));
+        importRequestDto.setTotalAmount(100.0);
+
+        doReturn(100.0).when(importServiceSpy).saveImportItems(any(), any(), any());
+
+        // Act
+        importServiceSpy.createImport(importRequestDto, file);
+
+        // Assert
+        verify(importRepository, times(2)).save(any());
     }
 }
