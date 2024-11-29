@@ -17,7 +17,7 @@ public interface CustomerService {
 
     CustomerDTOResponse getCustomerById(Long id);
 
-    Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String phoneNumber, String status);
+    Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String keyword, String status);
 
     List<CustomerDTOResponse> getCustomerByCustomerName(String customerName);
 

@@ -26,9 +26,9 @@ public class CustomerController {
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<PageResponseModel<CustomerDTOResponse>> getALlCustomerPaging(@RequestParam(defaultValue = "0") int page,
                                                                                        @RequestParam(defaultValue = "10") int size,
-                                                                                       @RequestParam(required = false) String phoneNumber,
+                                                                                       @RequestParam(required = false) String keyword,
                                                                                        @RequestParam(required = false) String status) {
-        Page<CustomerDTOResponse> customerDTOResponses = customerService.getAllCustomerByPaging(page, size, phoneNumber, status);
+        Page<CustomerDTOResponse> customerDTOResponses = customerService.getAllCustomerByPaging(page, size, keyword, status);
         PageResponseModel<CustomerDTOResponse> response = PageResponseModel.<CustomerDTOResponse>builder()
                 .page(page)
                 .size(size)

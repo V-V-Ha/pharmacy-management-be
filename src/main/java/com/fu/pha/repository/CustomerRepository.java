@@ -22,10 +22,12 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
 
     @Query("SELECT new com.fu.pha.dto.response.CustomerDTOResponse(c) FROM Customer c WHERE " +
-            "(LOWER(c.phoneNumber) LIKE LOWER(CONCAT('%', :phoneNumber, '%')) OR :phoneNumber IS NULL OR :phoneNumber = '') " +
+            "(LOWER(c.phoneNumber) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            " OR LOWER(c.customerName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            " OR :keyword IS NULL OR :keyword = '') " +
             " AND (c.status = :status OR :status IS NULL OR :status = '') " +
             "ORDER BY c.lastModifiedDate DESC")
-    Page<CustomerDTOResponse> getListCustomerPaging(@Param("phoneNumber") String phoneNumber,
+    Page<CustomerDTOResponse> getListCustomerPaging(@Param("keyword") String keyword,
                                                     @Param("status") Status status,
                                                     Pageable pageable);
 
