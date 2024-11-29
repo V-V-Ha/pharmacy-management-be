@@ -52,7 +52,7 @@ public class ImportItemResponseForExport {
     }
 
 
-    public ImportItemResponseForExport(Long id, Integer quantity, Double unitPrice, String unit, Double discount, Double tax, Double totalAmount, String batchNumber, Instant expiryDate, Instant importDate,Integer remainingQuantity) {
+    public ImportItemResponseForExport(Long id, String invoiceNumber,Integer quantity, Double unitPrice, String unit, Double discount, Double tax, Double totalAmount, String batchNumber, Instant expiryDate, Instant importDate,Integer remainingQuantity) {
         this.id = id;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
@@ -63,6 +63,7 @@ public class ImportItemResponseForExport {
         this.batchNumber = batchNumber;
         this.expiryDate = expiryDate;
         this.importDate = importDate;
+        this.invoiceNumber = invoiceNumber;
         this.remainingQuantity = remainingQuantity;
     }
 }

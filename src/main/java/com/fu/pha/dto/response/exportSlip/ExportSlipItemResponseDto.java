@@ -22,7 +22,7 @@ public class ExportSlipItemResponseDto {
     private ProductDTOResponse product;          // ID của sản phẩm
     private Long exportSlipId;       // ID của phiếu xuất kho
     private Double totalAmount;      // Tổng số tiền
-    private ImportItemResponseForExport importItem;       // ID của lô hàng nhập
+    private ImportItemResponseForExport importItem;
 
     public ExportSlipItemResponseDto(ExportSlipItem exportSlipItem) {
         this.id = exportSlipItem.getId();
@@ -35,6 +35,7 @@ public class ExportSlipItemResponseDto {
         this.exportSlipId = exportSlipItem.getExportSlip().getId();
         this.totalAmount = exportSlipItem.getTotalAmount();
         this.importItem = new ImportItemResponseForExport(exportSlipItem.getImportItem().getId(),
+                exportSlipItem.getImportItem().getImportReceipt().getInvoiceNumber(),
                 exportSlipItem.getImportItem().getQuantity(),
                 exportSlipItem.getImportItem().getUnitPrice(),
                 exportSlipItem.getImportItem().getUnit(),
