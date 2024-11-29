@@ -127,10 +127,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String phoneNumber, String status) {
-        if (size < 1 || index < 0) {
-            throw new IllegalArgumentException("Page size must be greater than 0 and index must be >= 0.");
-        }
+    public Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String keyword, String status) {
         Pageable pageable = PageRequest.of(size, index);
         Status customerStatus = null;
         if (status != null) {
@@ -140,7 +137,7 @@ public class CustomerServiceImpl implements CustomerService {
                 throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
             }
         }
-        Page<CustomerDTOResponse> customerDTOResponses = customerRepository.getListCustomerPaging(phoneNumber, customerStatus, pageable);
+        Page<CustomerDTOResponse> customerDTOResponses = customerRepository.getListCustomerPaging(keyword, customerStatus, pageable);
         if (customerDTOResponses.isEmpty()) {
             throw new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND);
         }
