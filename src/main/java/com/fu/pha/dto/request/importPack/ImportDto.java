@@ -34,11 +34,9 @@ public class ImportDto {
 
     @NotNull(message = Message.PAYMENT_METHOD_NOT_NULL)
     private PaymentMethod paymentMethod;
-
-    @ValidVat
+    
     private Double tax;
 
-    @ValidDiscount
     private Double discount;
 
     @ValidTotalAmount

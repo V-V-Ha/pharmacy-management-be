@@ -45,6 +45,7 @@ public class ExportSlipItemResponseDto {
                 exportSlipItem.getImportItem().getTotalAmount(),
                 exportSlipItem.getImportItem().getBatchNumber(),
                 exportSlipItem.getImportItem().getExpiryDate(),
+                exportSlipItem.getImportItem().getCreateDate(),
                 exportSlipItem.getImportItem().getRemainingQuantity());
     }
 
