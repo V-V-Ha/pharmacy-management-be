@@ -96,6 +96,12 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
+        userRepository.findByUsername(loginDtoRequest.getUsername())
+                .ifPresent(user -> {
+                    user.setFcmToken(loginDtoRequest.getFcmToken());
+                    userRepository.save(user);
+                });
+
         return new JwtResponse(
                 jwt,
                 loginDtoRequest.getFcmToken(),

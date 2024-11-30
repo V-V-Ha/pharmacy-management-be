@@ -85,5 +85,10 @@ payment:
     api_key: 4fe2a0c9-5986-4150-be96-263684e0014f
     checkSum_key: ee3386799b1e49366fb904e05b8cf21ce13b682e188b805513c0c305696293e3
 
+logging:
+  level:
+    com.fu.pha.configuration.FirebaseConfig: INFO
+
+
 
 
