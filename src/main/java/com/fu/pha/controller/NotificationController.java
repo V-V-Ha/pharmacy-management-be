@@ -2,8 +2,11 @@ package com.fu.pha.controller;
 
 import com.fu.pha.dto.response.NotificationDTO;
 import com.fu.pha.entity.Notification;
+import com.fu.pha.entity.User;
 import com.fu.pha.enums.NotificationType;
+import com.fu.pha.exception.Message;
 import com.fu.pha.repository.NotificationRepository;
+import com.fu.pha.repository.UserRepository;
 import com.fu.pha.service.FirebaseNotificationService;
 import com.fu.pha.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,9 @@ public class NotificationController {
     @Autowired
     private NotificationRepository notificationRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
 
 
     @PutMapping("/{id}/read")
@@ -31,19 +37,22 @@ public class NotificationController {
         return ResponseEntity.ok("Thông báo đã đọc");
     }
 
-    @GetMapping("/{userId}")
-    public List<Notification> getNotifications(@PathVariable Long userId) {
-        return notificationRepository.findByUserId(userId);
-    }
 
-    @GetMapping
-    public ResponseEntity<Page<NotificationDTO>> getNotifications(
-            @RequestParam(value = "type", required = false) NotificationType notificationType,
-            @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size) {
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<Page<NotificationDTO>> getNotificationsForUser(
+            @PathVariable Long userId,
+            @RequestParam(name = "notificationType", required = false) NotificationType notificationType,
+            @RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = "10") int pageSize) {
 
-        Page<NotificationDTO> notificationsPage = notificationService.getRecentNotifications(notificationType, page, size);
-        return ResponseEntity.ok(notificationsPage);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException(Message.USER_NOT_FOUND));
+
+        // Lấy danh sách thông báo cho người dùng
+        Page<NotificationDTO> notifications = notificationService.getRecentNotifications(
+                user, notificationType, pageNumber, pageSize);
+
+        return ResponseEntity.ok(notifications);
     }
 
 

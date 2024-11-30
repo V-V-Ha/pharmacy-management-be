@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -44,7 +45,7 @@ public class NotificationServiceImpl implements NotificationService {
 
 
     public List<User> getProductOwners() {
-        return  userRepository.findAllByRoles_Name(ERole.ROLE_PRODUCT_OWNER);
+        return userRepository.findAllByRoles_NameIn(Arrays.asList(ERole.ROLE_PRODUCT_OWNER, ERole.ROLE_STOCK));
     }
 
     @Override
@@ -244,25 +245,26 @@ public class NotificationServiceImpl implements NotificationService {
 
     // Get all notifications by user
     @Override
-    public Page<NotificationDTO> getRecentNotifications(NotificationType notificationType, int pageNumber, int pageSize) {
+    public Page<NotificationDTO> getRecentNotifications(User user, NotificationType notificationType, int pageNumber, int pageSize) {
         Instant sixDaysAgo = Instant.now().minus(6, ChronoUnit.DAYS);
 
+        // Tạo Pageable cho phân trang
         PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
 
         Page<Notification> notificationsPage;
 
         if (notificationType != null) {
-            // Nếu thông báo đã đọc
-            notificationsPage = notificationRepository.findRecentNotificationsByTypeAndIsRead(
-                    sixDaysAgo, notificationType, true, pageRequest);
+            // Lọc thông báo theo loại và trạng thái đã đọc (đối với các thông báo đã đọc)
+            notificationsPage = notificationRepository.findRecentNotificationsByTypeAndIsReadAndUser(
+                    notificationType, user, true, sixDaysAgo, pageRequest);
         } else {
-            // Nếu thông báo chưa đọc (lấy tất cả không giới hạn thời gian)
-            notificationsPage = notificationRepository.findRecentNotificationsByIsRead(false, pageRequest);
+            // Lọc các thông báo chưa đọc của người dùng
+            notificationsPage = notificationRepository.findRecentNotificationsByIsReadAndUser(false, user, pageRequest);
 
-            // Nếu thông báo đã đọc (lấy trong 6 ngày gần nhất)
+            // Lọc các thông báo đã đọc trong 6 ngày gần nhất của người dùng
             if (notificationsPage.isEmpty()) {
-                notificationsPage = notificationRepository.findRecentNotificationsByIsReadAndCreatedAt(
-                        true, sixDaysAgo, pageRequest);
+                notificationsPage = notificationRepository.findRecentNotificationsByIsReadAndCreatedAtAndUser(
+                        true, sixDaysAgo, user, pageRequest);
             }
         }
 
