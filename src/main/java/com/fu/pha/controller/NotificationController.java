@@ -38,7 +38,7 @@ public class NotificationController {
     }
 
 
-    @GetMapping("notification/user/{userId}")
+    @GetMapping("notification/user")
     public ResponseEntity<Page<NotificationDTO>> getRecentNotifications(
             @RequestParam(name = "userId") Long userId,
             @RequestParam(name = "notificationType", required = false) NotificationType notificationType,
