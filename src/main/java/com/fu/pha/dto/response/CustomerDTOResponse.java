@@ -47,11 +47,4 @@ public class CustomerDTOResponse {
         this.status = customer.getStatus();
     }
 
-    public CustomerDTOResponse(long id, String name, String phone, Status status) {
-        this.id = id;
-        this.customerName = name;
-        this.phoneNumber = phone;
-        this.status = status;
-    }
-
 }

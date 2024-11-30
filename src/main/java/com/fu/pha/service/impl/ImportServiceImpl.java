@@ -506,7 +506,7 @@ public class ImportServiceImpl implements ImportService {
         notificationService.sendNotificationToUser(title, message, importCreator ,importId);
     }
 
-    private User getCurrentUser() {
+    public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedException(Message.NOT_LOGIN);
@@ -544,7 +544,7 @@ public class ImportServiceImpl implements ImportService {
         return importReceipt;
     }
 
-    private double saveImportItems(ImportDto importDto, Import importReceipt, OrderStatus status) {
+    public double saveImportItems(ImportDto importDto, Import importReceipt, OrderStatus status) {
         double totalAmount = 0.0;
 
         for (ImportItemRequestDto itemDto : importDto.getImportItems()) {
@@ -644,7 +644,7 @@ public class ImportServiceImpl implements ImportService {
         }
     }
 
-    private void saveInventoryHistory(ImportItem importItem, int totalChangeQuantity, String reason) {
+    public void saveInventoryHistory(ImportItem importItem, int totalChangeQuantity, String reason) {
         if (totalChangeQuantity == 0) return;
 
         InventoryHistory inventoryHistory = new InventoryHistory();
@@ -656,7 +656,7 @@ public class ImportServiceImpl implements ImportService {
         inventoryHistoryRepository.save(inventoryHistory);
     }
 
-    private String uploadImage(final MultipartFile file) {
+    public String uploadImage(final MultipartFile file) {
         if (file.isEmpty()) {
             throw new BadRequestException(Message.EMPTY_FILE);
         }
