@@ -49,4 +49,7 @@ public class Notification {
 
     @Column(name = "receipt_id")
     private Long receiptId;
+
+    @Transient
+    private String url;
 }

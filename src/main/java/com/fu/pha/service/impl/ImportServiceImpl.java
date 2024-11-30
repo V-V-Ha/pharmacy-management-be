@@ -240,7 +240,8 @@ public class ImportServiceImpl implements ImportService {
         for (User storeOwner : storeOwners) {
             String title = "Phiếu nhập mới";
             String message = "Nhân viên " + currentUser.getUsername() + " đã tạo một phiếu nhập mới.";
-            notificationService.sendNotificationToUser(title, message, storeOwner, importReceipt.getId());
+            String url = "/import/receipt/detail/" +  importReceipt.getId();
+            notificationService.sendNotificationToUser(title, message, storeOwner ,url);
         }
     }
 
@@ -467,7 +468,8 @@ public class ImportServiceImpl implements ImportService {
         User importCreator = importReceipt.getUser();
         String title = "Phiếu nhập đã được xác nhận";
         String message = "Phiếu nhập của bạn đã được xác nhận bởi chủ cửa hàng.";
-        notificationService.sendNotificationToUser(title, message, importCreator,importId);
+        String url = "/import/receipt/detail/" + importId;
+        notificationService.sendNotificationToUser(title, message, importCreator ,url);
     }
 
     @Transactional
@@ -503,7 +505,8 @@ public class ImportServiceImpl implements ImportService {
         User importCreator = importReceipt.getUser();
         String title = "Phiếu nhập bị từ chối";
         String message = "Phiếu nhập của bạn đã bị từ chối. Lý do: " + reason;
-        notificationService.sendNotificationToUser(title, message, importCreator ,importId);
+        String url = "/import/receipt/detail/" + importId;
+        notificationService.sendNotificationToUser(title, message, importCreator ,url);
     }
 
     public User getCurrentUser() {

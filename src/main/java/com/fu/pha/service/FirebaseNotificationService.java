@@ -17,13 +17,14 @@ public class FirebaseNotificationService {
         this.firebaseApp = firebaseApp;
     }
 
-    public void sendNotification(String title, String body, String token, Long notificationId) {
+    public void sendNotification(String title, String body, String redirectUrl,String token, Long notificationId) {
         try {
             Message message = Message.builder()
                     .setNotification(Notification.builder()
                             .setTitle(title)
                             .setBody(body)
                             .build())
+                    .putData("redirectUrl", redirectUrl)
                     .putData("notificationId", String.valueOf(notificationId))
                     .setToken(token)
                     .build();

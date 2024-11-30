@@ -1,5 +1,6 @@
 package com.fu.pha.service.impl;
 
+import com.fu.pha.dto.response.NotificationDTO;
 import com.fu.pha.dto.response.report.product.ExpiredProductDto;
 import com.fu.pha.dto.response.report.product.OutOfStockProductDto;
 import com.fu.pha.entity.*;
@@ -22,6 +23,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {
@@ -52,6 +54,8 @@ public class NotificationServiceImpl implements NotificationService {
             Product productEntity = productRepository.findById(product.getProductId())
                     .orElseThrow(() -> new RuntimeException(Message.PRODUCT_NOT_FOUND));
             for (User user : productOwners) {
+                String url = "/report/inventory/outOfStock";
+
                 // Tạo thông báo trong cơ sở dữ liệu
                 Notification notification = Notification.builder()
                         .title("Sản phẩm hết hàng")
@@ -61,6 +65,7 @@ public class NotificationServiceImpl implements NotificationService {
                         .user(user)
                         .product(productEntity)
                         .isRead(false)
+                        .url(url)
                         .build();
                 notificationRepository.save(notification);
 
@@ -68,6 +73,7 @@ public class NotificationServiceImpl implements NotificationService {
                 firebaseNotificationService.sendNotification(
                         notification.getTitle(),
                         notification.getMessage(),
+                        url,
                         user.getFcmToken(),  // Token FCM của người dùng
                         notification.getId()
                 );
@@ -81,6 +87,7 @@ public class NotificationServiceImpl implements NotificationService {
         List<User> productOwners = getProductOwners();
         for (Product product : products) {
             for (User user : productOwners) {
+                String url = "/report/inventory/outOfStock";
                 // Tạo thông báo trong cơ sở dữ liệu
                 Notification notification = Notification.builder()
                         .title("Sản phẩm sắp hết hàng")
@@ -91,6 +98,7 @@ public class NotificationServiceImpl implements NotificationService {
                         .user(user)
                         .product(product)
                         .isRead(false)
+                        .url(url)
                         .build();
                 notificationRepository.save(notification);
 
@@ -98,6 +106,7 @@ public class NotificationServiceImpl implements NotificationService {
                 firebaseNotificationService.sendNotification(
                         notification.getTitle(),
                         notification.getMessage(),
+                        url,
                         user.getFcmToken(),  // Token FCM của người dùng
                         notification.getId()
                 );
@@ -110,6 +119,7 @@ public class NotificationServiceImpl implements NotificationService {
         Instant fiveDaysAgo = Instant.now().minus(5, ChronoUnit.DAYS);
         List<User> productOwners = getProductOwners();
         for (ExpiredProductDto product : products) {
+            String url = "/report/inventory/expired";
             // Kiểm tra nếu đã có thông báo trong vòng 5 ngày qua
             boolean hasRecentNotification = notificationRepository.existsByBatchNumberAndTypeAndCreatedAtAfter(
                     product.getBatchNumber(), NotificationType.EXPIRED, fiveDaysAgo);
@@ -130,6 +140,7 @@ public class NotificationServiceImpl implements NotificationService {
                             .user(user)
                             .product(productEntity)
                             .isRead(false)
+                            .url(url)
                             .build();
                     notificationRepository.save(notification);
 
@@ -137,6 +148,7 @@ public class NotificationServiceImpl implements NotificationService {
                     firebaseNotificationService.sendNotification(
                             notification.getTitle(),
                             notification.getMessage(),
+                            url,
                             user.getFcmToken(),  // Token FCM của người dùng
                             notification.getId()
                     );
@@ -153,6 +165,7 @@ public class NotificationServiceImpl implements NotificationService {
             Product productEntity = productRepository.findById(importItem.getProduct().getId())
                     .orElseThrow(() -> new RuntimeException(Message.PRODUCT_NOT_FOUND));
             for (User user : productOwners) {
+                String url = "/report/inventory/expired";
                 // Tạo thông báo trong cơ sở dữ liệu
                 Notification notification = Notification.builder()
                         .title("Sản phẩm đã hết hạn")
@@ -166,6 +179,7 @@ public class NotificationServiceImpl implements NotificationService {
                         .product(productEntity)
                         .importItem(importItem)
                         .isRead(false)
+                        .url(url)
                         .build();
                 notificationRepository.save(notification);
 
@@ -173,6 +187,7 @@ public class NotificationServiceImpl implements NotificationService {
                 firebaseNotificationService.sendNotification(
                         notification.getTitle(),
                         notification.getMessage(),
+                        url,
                         user.getFcmToken(),  // Token FCM của người dùng
                         notification.getId()
                 );
@@ -183,15 +198,15 @@ public class NotificationServiceImpl implements NotificationService {
 
 
     @Override
-    public void sendNotificationToUser(String title, String message, User user, Long id) {
+    public void sendNotificationToUser(String title, String message, User user, String url) {
         Notification notification = Notification.builder()
                 .title(title)
                 .message(message)
                 .type(NotificationType.STOCK_IN_OUT)
                 .createdAt(Instant.now())
                 .isRead(false)
+                .url(url)
                 .user(user)
-                .receiptId(id)
                 .build();
         notificationRepository.save(notification);
 
@@ -199,6 +214,7 @@ public class NotificationServiceImpl implements NotificationService {
         firebaseNotificationService.sendNotification(
                 notification.getTitle(),
                 notification.getMessage(),
+                url,
                 user.getFcmToken(),  // Token FCM của người dùng
                 notification.getId()
         );
@@ -226,5 +242,33 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
 
+    // Get all notifications by user
+    @Override
+    public Page<NotificationDTO> getRecentNotifications(NotificationType notificationType, int pageNumber, int pageSize) {
+        Instant sixDaysAgo = Instant.now().minus(6, ChronoUnit.DAYS);
+
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+
+        Page<Notification> notificationsPage;
+
+        if (notificationType != null) {
+            // Lọc theo loại thông báo và phân trang
+            notificationsPage = notificationRepository.findRecentNotificationsByType(sixDaysAgo, notificationType, pageRequest);
+        } else {
+            // Lọc tất cả thông báo trong 6 ngày và phân trang
+            notificationsPage = notificationRepository.findRecentNotifications(sixDaysAgo, pageRequest);
+        }
+
+        // Chuyển đổi từ Page<Notification> sang Page<NotificationDto>
+        return notificationsPage.map(notification -> new NotificationDTO(
+                notification.getId(),
+                notification.getTitle(),
+                notification.getMessage(),
+                notification.getCreatedAt(),
+                notification.getType(),
+                notification.getIsRead(),
+                notification.getUrl()
+        ));
+    }
 
 }
