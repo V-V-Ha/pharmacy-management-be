@@ -28,5 +28,5 @@ public interface NotificationService {
 
     Page<ExpiredProductDto> getExpiredProducts(Long categoryId, String searchText, int warningDays, int pageNumber, int pageSize);
 
-    Page<NotificationDTO> getRecentNotifications(User user, NotificationType notificationType, int pageNumber, int pageSize);
+    Page<NotificationDTO> getRecentNotifications(User user, NotificationType notificationType, Boolean isRead, int pageNumber, int pageSize);
 }

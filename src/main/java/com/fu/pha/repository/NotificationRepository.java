@@ -36,8 +36,13 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             Boolean isRead, User user, Pageable pageable);
 
     // Lọc các thông báo đã đọc trong 6 ngày gần nhất của người dùng
-    Page<Notification> findRecentNotificationsByIsReadAndCreatedAtAndUser(
-            Boolean isRead, Instant createdAt, User user, Pageable pageable);
-
-
+    @Query("SELECT n FROM Notification n WHERE n.user = :user " +
+            "AND (:notificationType IS NULL OR n.type = :notificationType) " +
+            "AND (:isRead IS NULL OR n.isRead = :isRead OR (:isRead = true AND n.createdAt > :sixDaysAgo))")
+    Page<Notification> findNotifications(
+            @Param("user") User user,
+            @Param("notificationType") NotificationType notificationType,
+            @Param("sixDaysAgo") Instant sixDaysAgo,
+            @Param("isRead") Boolean isRead,  // Allowing isRead to be null
+            Pageable pageable);
 }

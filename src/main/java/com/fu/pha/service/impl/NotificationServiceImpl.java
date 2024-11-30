@@ -245,30 +245,17 @@ public class NotificationServiceImpl implements NotificationService {
 
     // Get all notifications by user
     @Override
-    public Page<NotificationDTO> getRecentNotifications(User user, NotificationType notificationType, int pageNumber, int pageSize) {
+    public Page<NotificationDTO> getRecentNotifications(User user, NotificationType notificationType, Boolean isRead, int pageNumber, int pageSize) {
         Instant sixDaysAgo = Instant.now().minus(6, ChronoUnit.DAYS);
 
         // Tạo Pageable cho phân trang
         PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
 
-        Page<Notification> notificationsPage;
+        // Gọi repository để lấy dữ liệu với các điều kiện lọc trong một query duy nhất
+        Page<Notification> notificationsPage = notificationRepository.findNotifications(
+                user, notificationType, sixDaysAgo, isRead, pageRequest);
 
-        if (notificationType != null) {
-            // Lọc thông báo theo loại và trạng thái đã đọc (đối với các thông báo đã đọc)
-            notificationsPage = notificationRepository.findRecentNotificationsByTypeAndIsReadAndUser(
-                    notificationType, user, true, sixDaysAgo, pageRequest);
-        } else {
-            // Lọc các thông báo chưa đọc của người dùng
-            notificationsPage = notificationRepository.findRecentNotificationsByIsReadAndUser(false, user, pageRequest);
-
-            // Lọc các thông báo đã đọc trong 6 ngày gần nhất của người dùng
-            if (notificationsPage.isEmpty()) {
-                notificationsPage = notificationRepository.findRecentNotificationsByIsReadAndCreatedAtAndUser(
-                        true, sixDaysAgo, user, pageRequest);
-            }
-        }
-
-        // Chuyển đổi từ Page<Notification> sang Page<NotificationDto>
+        // Chuyển đổi từ Page<Notification> sang Page<NotificationDTO>
         return notificationsPage.map(notification -> new NotificationDTO(
                 notification.getId(),
                 notification.getTitle(),
@@ -279,6 +266,7 @@ public class NotificationServiceImpl implements NotificationService {
                 notification.getUrl()
         ));
     }
+
 
 
 }

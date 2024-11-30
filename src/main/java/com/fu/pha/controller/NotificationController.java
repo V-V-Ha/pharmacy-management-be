@@ -39,18 +39,18 @@ public class NotificationController {
 
 
     @GetMapping("notification/user/{userId}")
-    public ResponseEntity<Page<NotificationDTO>> getNotificationsForUser(
-            @PathVariable Long userId,
+    public ResponseEntity<Page<NotificationDTO>> getRecentNotifications(
+            @RequestParam(name = "userId") Long userId,
             @RequestParam(name = "notificationType", required = false) NotificationType notificationType,
+            @RequestParam(name = "isRead", required = false) Boolean isRead,
             @RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
             @RequestParam(name = "pageSize", defaultValue = "10") int pageSize) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException(Message.USER_NOT_FOUND));
-
-        // Lấy danh sách thông báo cho người dùng
+        
         Page<NotificationDTO> notifications = notificationService.getRecentNotifications(
-                user, notificationType, pageNumber, pageSize);
+                user, notificationType, isRead, pageNumber, pageSize);
 
         return ResponseEntity.ok(notifications);
     }
