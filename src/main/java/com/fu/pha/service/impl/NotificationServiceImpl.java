@@ -252,11 +252,18 @@ public class NotificationServiceImpl implements NotificationService {
         Page<Notification> notificationsPage;
 
         if (notificationType != null) {
-            // Lọc theo loại thông báo và phân trang
-            notificationsPage = notificationRepository.findRecentNotificationsByType(sixDaysAgo, notificationType, pageRequest);
+            // Nếu thông báo đã đọc
+            notificationsPage = notificationRepository.findRecentNotificationsByTypeAndIsRead(
+                    sixDaysAgo, notificationType, true, pageRequest);
         } else {
-            // Lọc tất cả thông báo trong 6 ngày và phân trang
-            notificationsPage = notificationRepository.findRecentNotifications(sixDaysAgo, pageRequest);
+            // Nếu thông báo chưa đọc (lấy tất cả không giới hạn thời gian)
+            notificationsPage = notificationRepository.findRecentNotificationsByIsRead(false, pageRequest);
+
+            // Nếu thông báo đã đọc (lấy trong 6 ngày gần nhất)
+            if (notificationsPage.isEmpty()) {
+                notificationsPage = notificationRepository.findRecentNotificationsByIsReadAndCreatedAt(
+                        true, sixDaysAgo, pageRequest);
+            }
         }
 
         // Chuyển đổi từ Page<Notification> sang Page<NotificationDto>
@@ -270,5 +277,6 @@ public class NotificationServiceImpl implements NotificationService {
                 notification.getUrl()
         ));
     }
+
 
 }

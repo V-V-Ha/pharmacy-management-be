@@ -3,6 +3,7 @@ package com.fu.pha.repository;
 import com.fu.pha.entity.Notification;
 import com.fu.pha.enums.NotificationType;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,13 +26,16 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     List<Notification> findByUserId(Long userId);
 
-    // Tìm thông báo trong vòng 6 ngày gần nhất theo loại với phân trang
-    @Query("SELECT n FROM Notification n WHERE n.createdAt >= :sixDaysAgo AND n.type = :notificationType ORDER BY n.createdAt DESC")
-    Page<Notification> findRecentNotificationsByType(Instant sixDaysAgo, NotificationType notificationType, Pageable pageable);
+    // Lọc theo loại thông báo và đã đọc trong 6 ngày gần nhất
+    Page<Notification> findRecentNotificationsByTypeAndIsRead(
+            Instant sixDaysAgo, NotificationType notificationType, boolean isRead, PageRequest pageRequest);
 
-    // Tìm tất cả thông báo trong vòng 6 ngày gần nhất với phân trang
-    @Query("SELECT n FROM Notification n WHERE n.createdAt >= :sixDaysAgo ORDER BY n.createdAt DESC")
-    Page<Notification> findRecentNotifications(Instant sixDaysAgo, Pageable pageable);
+    // Lọc tất cả các thông báo chưa đọc (không giới hạn theo thời gian)
+    Page<Notification> findRecentNotificationsByIsRead(boolean isRead, PageRequest pageRequest);
+
+    // Lọc các thông báo đã đọc trong 6 ngày gần nhất
+    Page<Notification> findRecentNotificationsByIsReadAndCreatedAt(
+            boolean isRead, Instant sixDaysAgo, PageRequest pageRequest);
 
 
 }
