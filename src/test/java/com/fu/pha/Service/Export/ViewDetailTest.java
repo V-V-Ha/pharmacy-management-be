@@ -3,7 +3,6 @@ package com.fu.pha.Service.Export;
 import com.fu.pha.dto.response.exportSlip.ExportSlipResponseDto;
 import com.fu.pha.entity.*;
 import com.fu.pha.enums.OrderStatus;
-import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.ExportSlipRepository;
 import com.fu.pha.service.impl.ExportSlipServiceImpl;
@@ -15,17 +14,15 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
 import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
-public class ExportViewDetailTest {
+public class ViewDetailTest {
 
     @Mock private ExportSlipRepository exportSlipRepository;
 

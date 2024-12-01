@@ -3,8 +3,6 @@ package com.fu.pha.Service.Export;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.fu.pha.convert.GenerateCode;
-import com.fu.pha.dto.request.exportSlip.ExportSlipItemRequestDto;
 import com.fu.pha.dto.request.exportSlip.ExportSlipRequestDto;
 import com.fu.pha.enums.ERole;
 import com.fu.pha.enums.OrderStatus;
@@ -12,31 +10,22 @@ import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.exception.UnauthorizedException;
 import com.fu.pha.repository.*;
-import com.fu.pha.service.ExportSlipService;
 import com.fu.pha.entity.*;
-import com.fu.pha.enums.ExportType;
 import com.fu.pha.exception.Message;
-import com.fu.pha.service.NotificationService;
 import com.fu.pha.service.impl.ExportSlipServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 
-import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
-public class ExportUpdateTest {
+public class UpdateTest {
     @Mock private ExportSlipRepository exportSlipRepository;
     @Mock private ImportItemRepository importItemRepository;
     @Mock private ExportSlipItemRepository exportSlipItemRepository;

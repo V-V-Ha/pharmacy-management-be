@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.fu.pha.dto.response.exportSlip.ExportSlipResponseDto;
 import com.fu.pha.entity.ExportSlip;
-import com.fu.pha.enums.ExportType;
 import com.fu.pha.enums.OrderStatus;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.ExportSlipRepository;
@@ -21,11 +20,9 @@ import org.springframework.data.domain.*;
 
 import java.time.Instant;
 import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
-public class ExportViewListTest {
+public class ViewListTest {
 
 
     @Mock private ExportSlipRepository exportSlipRepository;

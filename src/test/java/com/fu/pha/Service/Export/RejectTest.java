@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
-public class ExportRejectTest {
+public class RejectTest {
     @Mock private ExportSlipRepository exportSlipRepository;
     @Mock private NotificationService notificationService;
     @InjectMocks private ExportSlipServiceImpl exportSlipService;
