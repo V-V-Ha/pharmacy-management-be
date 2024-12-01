@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -44,7 +45,7 @@ public class NotificationServiceImpl implements NotificationService {
 
 
     public List<User> getProductOwners() {
-        return  userRepository.findAllByRoles_Name(ERole.ROLE_PRODUCT_OWNER);
+        return userRepository.findAllByRoles_NameIn(Arrays.asList(ERole.ROLE_PRODUCT_OWNER, ERole.ROLE_STOCK));
     }
 
     @Override
@@ -244,22 +245,17 @@ public class NotificationServiceImpl implements NotificationService {
 
     // Get all notifications by user
     @Override
-    public Page<NotificationDTO> getRecentNotifications(NotificationType notificationType, int pageNumber, int pageSize) {
+    public Page<NotificationDTO> getRecentNotifications(User user, NotificationType notificationType, Boolean isRead, int pageNumber, int pageSize) {
         Instant sixDaysAgo = Instant.now().minus(6, ChronoUnit.DAYS);
 
+        // Tạo Pageable cho phân trang
         PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
 
-        Page<Notification> notificationsPage;
+        // Gọi repository để lấy dữ liệu với các điều kiện lọc trong một query duy nhất
+        Page<Notification> notificationsPage = notificationRepository.findNotifications(
+                user, notificationType, sixDaysAgo, isRead, pageRequest);
 
-        if (notificationType != null) {
-            // Lọc theo loại thông báo và phân trang
-            notificationsPage = notificationRepository.findRecentNotificationsByType(sixDaysAgo, notificationType, pageRequest);
-        } else {
-            // Lọc tất cả thông báo trong 6 ngày và phân trang
-            notificationsPage = notificationRepository.findRecentNotifications(sixDaysAgo, pageRequest);
-        }
-
-        // Chuyển đổi từ Page<Notification> sang Page<NotificationDto>
+        // Chuyển đổi từ Page<Notification> sang Page<NotificationDTO>
         return notificationsPage.map(notification -> new NotificationDTO(
                 notification.getId(),
                 notification.getTitle(),
@@ -270,5 +266,7 @@ public class NotificationServiceImpl implements NotificationService {
                 notification.getUrl()
         ));
     }
+
+
 
 }

@@ -50,6 +50,6 @@ public class Notification {
     @Column(name = "receipt_id")
     private Long receiptId;
 
-    @Transient
+    @Column(name = "url")
     private String url;
 }
