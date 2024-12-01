@@ -37,12 +37,14 @@ public class ExportSlipController {
     ImportService importService;
 
     @PostMapping("/create-export-slip")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<String> createExportSlip(@Valid @RequestBody ExportSlipRequestDto exportSlipRequestDto) {
         exportSlipService.createExport(exportSlipRequestDto);
         return ResponseEntity.ok(Message.CREATE_SUCCESS);
     }
 
     @PutMapping("/update-export-slip/{exportSlipId}")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<String> updateExportSlip(@Valid @PathVariable Long exportSlipId, @RequestBody ExportSlipRequestDto exportSlipRequestDto) {
         exportSlipService.updateExport(exportSlipId, exportSlipRequestDto);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
@@ -50,6 +52,7 @@ public class ExportSlipController {
 
     // Xác nhận phiếu xuất
     @PostMapping("/{id}/confirm")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<?> confirmExport(@PathVariable Long id) {
         exportSlipService.confirmExport(id);
         return ResponseEntity.ok(Message.CONFIRM_SUCCESS);
@@ -57,17 +60,20 @@ public class ExportSlipController {
 
     // Từ chối phiếu xuất
     @PostMapping("/{id}/reject")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<?> rejectExport(@PathVariable Long id, @RequestBody String reason) {
         exportSlipService.rejectExport(id, reason);
         return ResponseEntity.ok(Message.REJECT_SUCCESS);
     }
 
     @GetMapping("/get-export-slip/{exportSlipId}")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<?> getExportSlip(@PathVariable Long exportSlipId) {
         return ResponseEntity.ok(exportSlipService.getActiveExportSlipById(exportSlipId));
     }
 
     @GetMapping("/get-import-item-by-product-name")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<?> getImportItemByProductName(@RequestParam String productName) {
         return ResponseEntity.ok(importService.getProductImportByProductName(productName));
     }

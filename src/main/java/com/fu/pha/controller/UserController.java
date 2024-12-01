@@ -81,6 +81,7 @@ public class UserController {
     }
 
     @PostMapping("/create-user")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<?> createUser(
             @RequestPart("userDto") UserDto userDto,
             @RequestPart(value = "file", required = false) MultipartFile file) {
@@ -91,6 +92,7 @@ public class UserController {
     }
 
     @PutMapping("/update-user")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<?> updateUser(
             @RequestPart("userDto") UserDto userDto,
             @RequestPart(value = "file", required = false) MultipartFile file) {

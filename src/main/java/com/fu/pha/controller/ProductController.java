@@ -33,7 +33,7 @@ public class ProductController {
     ProductService productService;
 
     @GetMapping("/get-all-product-paging")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK') or hasRole('SALE')")
     public ResponseEntity<PageResponseModel<ProductDTOResponse>> getAllProductPaging(@RequestParam(defaultValue = "0") int page,
                                                                                      @RequestParam(defaultValue = "10") int size,
                                                                                      @RequestParam(required = false) String productName,
@@ -96,7 +96,7 @@ public class ProductController {
     }
 
     @GetMapping("/get-product-by-id")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK') or hasRole('SALE')")
     public ResponseEntity<ProductDTOResponse> getProductById(@RequestParam Long id) {
         return ResponseEntity.ok(productService.getProductById(id));
     }
