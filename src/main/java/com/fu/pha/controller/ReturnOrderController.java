@@ -31,23 +31,27 @@ public class ReturnOrderController {
     private ReturnOrderService returnOrderService;
 
     @PostMapping("/create-return-order")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<String> createReturnOrder(@Valid @RequestBody ReturnOrderRequestDto returnOrderRequestDto) {
         returnOrderService.createReturnOrder(returnOrderRequestDto);
         return ResponseEntity.ok(Message.CREATE_SUCCESS);
     }
 
     @PutMapping("/update-return-order")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<String> updateReturnOrder(@Valid @RequestParam Long returnOrderId,@Valid @RequestBody ReturnOrderRequestDto returnOrderRequestDto) {
         returnOrderService.updateReturnOrder(returnOrderId, returnOrderRequestDto);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
     @GetMapping("/get-sale-order-by-invoice-number")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<SaleOrderResponseDto> getSaleOrderByInvoiceNumber(@RequestParam String invoiceNumber) {
         return ResponseEntity.ok(returnOrderService.getSaleOrderByInvoiceNumber(invoiceNumber));
     }
 
     @GetMapping("/get-return-order-by-id")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<ReturnOrderResponseDto> getReturnOrderById(@RequestParam Long returnOrderId) {
         return ResponseEntity.ok(returnOrderService.getReturnOrderById(returnOrderId));
     }

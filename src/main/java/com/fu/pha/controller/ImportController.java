@@ -20,6 +20,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.security.access.method.P;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -54,6 +55,7 @@ public class ImportController {
 
     // Tạo mới phiếu nhập
     @PostMapping(value = "/create-import-receipt")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<?> createImport(
             @Valid @RequestPart("importRequestDto") ImportDto importRequestDto,
             @RequestPart(value = "image",required = false) MultipartFile image) {
@@ -64,6 +66,7 @@ public class ImportController {
     }
 
     @PutMapping(value = "/update-import-receipt")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<String> updateImportReceipt(@RequestParam Long importId,
                                                       @Valid @RequestPart("importRequestDto") ImportDto importReceiptDto,
                                                       @RequestPart(value = "image",required = false) MultipartFile image) {
@@ -73,6 +76,7 @@ public class ImportController {
 
     // Xác nhận phiếu nhập
     @PostMapping("/{id}/confirm")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<?> confirmImport(@PathVariable Long id, @RequestBody UserIdRequest request) {
         importService.confirmImport(id, request.getUserId());
         return ResponseEntity.ok(Message.CONFIRM_SUCCESS);
@@ -80,17 +84,20 @@ public class ImportController {
 
     // Từ chối phiếu nhập
     @PostMapping("/{id}/reject")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<?> rejectImport(@PathVariable Long id, @RequestBody UserIdRequest request) {
         importService.rejectImport(id, request.getReason());
         return ResponseEntity.ok(Message.REJECT_SUCCESS);
     }
 
     @GetMapping("/get-import-receipt")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<ImportResponseDto> getImportReceiptById(@RequestParam Long importId) {
         return ResponseEntity.ok(importService.getImportById(importId));
     }
 
     @GetMapping("/get-supplier")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<List<SupplierDto>> getSupplierBySupplierName(@RequestParam String supplierName) {
         return ResponseEntity.ok(importService.getSuppplierBySupplierName(supplierName));
     }

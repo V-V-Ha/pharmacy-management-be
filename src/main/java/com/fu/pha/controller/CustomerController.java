@@ -23,7 +23,7 @@ public class CustomerController {
     CustomerService customerService;
 
     @GetMapping("/get-all-customer-paging")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<PageResponseModel<CustomerDTOResponse>> getALlCustomerPaging(@RequestParam(defaultValue = "0") int page,
                                                                                        @RequestParam(defaultValue = "10") int size,
                                                                                        @RequestParam(required = false) String keyword,

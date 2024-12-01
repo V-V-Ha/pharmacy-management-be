@@ -53,22 +53,26 @@ public class SaleController {
     private InvoiceService invoiceService;
 
     @PostMapping("/create-sale-order")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<Integer> createSaleOrder(@Valid @RequestBody SaleOrderRequestDto saleOrderRequestDto) {
         return ResponseEntity.ok(saleOrderService.createSaleOrder(saleOrderRequestDto));
     }
 
     @PutMapping("/update-sale-order")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<String> updateSaleOrder(@Valid @RequestParam Long saleOrderId, @Valid @RequestBody SaleOrderRequestDto saleOrderRequestDto) {
         saleOrderService.updateSaleOrder(saleOrderId, saleOrderRequestDto);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 
     @GetMapping("/get-sale-order")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<SaleOrderResponseDto> getSaleOrderById(@RequestParam Long saleOrderId) {
         return ResponseEntity.ok(saleOrderService.getSaleOrderById(saleOrderId));
     }
 
     @PutMapping("/complete-payment/{orderId}")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<String> completePayment(@PathVariable Long orderId) {
         saleOrderService.completePayment(orderId);
         return ResponseEntity.ok(Message.PAYMENT_COMPLETED);
@@ -120,16 +124,19 @@ public class SaleController {
 
 
     @GetMapping("/get-customer-by-customer-name")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<List<CustomerDTOResponse>> getCustomerByCustomerName(@RequestParam String customerName) {
         return ResponseEntity.ok(customerService.getCustomerByCustomerName(customerName));
     }
 
     @GetMapping("/get-doctor-by-doctor-name")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<List<DoctorDTOResponse>> getDoctorByDoctorName(@RequestParam String doctorName) {
         return ResponseEntity.ok(doctorService.getDoctorByDoctorName(doctorName));
     }
 
     @GetMapping("/pdf/{saleOrderId}")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<String> generateAndDownloadInvoicePdf(
             @PathVariable Long saleOrderId,
             @RequestParam String paperSize) {

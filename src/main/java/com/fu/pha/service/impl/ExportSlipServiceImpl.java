@@ -105,12 +105,14 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
         exportSlipRepository.save(exportSlip);
 
-        List<User> storeOwners = userRepository.findAllByRoles_Name(ERole.ROLE_PRODUCT_OWNER);
-        for (User storeOwner : storeOwners) {
-            String title = "Phiếu xuất mới";
-            String message = "Nhân viên " + currentUser.getUsername() + " đã tạo một phiếu xuất mới.";
-            String url = "/export/receipt/detail/" +  exportSlip.getId();
-            notificationService.sendNotificationToUser(title, message, storeOwner , url);
+        if(!currentUser.getRoles().stream().anyMatch(r -> r.getName().equals(ERole.ROLE_PRODUCT_OWNER))) {
+            List<User> storeOwners = userRepository.findAllByRoles_Name(ERole.ROLE_PRODUCT_OWNER);
+            for (User storeOwner : storeOwners) {
+                String title = "Phiếu xuất mới";
+                String message = "Nhân viên " + currentUser.getUsername() + " đã tạo một phiếu xuất mới.";
+                String url = "/export/receipt/detail/" + exportSlip.getId();
+                notificationService.sendNotificationToUser(title, message, storeOwner, url);
+            }
         }
     }
 
