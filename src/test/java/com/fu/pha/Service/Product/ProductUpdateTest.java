@@ -56,6 +56,7 @@ public class ProductUpdateTest {
         productDTORequest.setCountryOfOrigin("Việt Nam");
         productDTORequest.setDosageForms("Siro");
         productDTORequest.setNumberWarning(10);
+        productDTORequest.setPrescriptionDrug(false);
         productDTORequest.setProductUnitListDTO(Collections.emptyList());
 
         product = new Product();
@@ -70,6 +71,7 @@ public class ProductUpdateTest {
         product.setCountryOfOrigin("Việt Nam");
         product.setDosageForms("Siro");
         product.setNumberWarning(10);
+        product.setPrescriptionDrug(false);
 
         category = new Category();
         category.setId(1L);

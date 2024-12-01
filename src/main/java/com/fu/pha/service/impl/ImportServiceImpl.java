@@ -573,7 +573,7 @@ public class ImportServiceImpl implements ImportService {
         return totalAmount;
     }
 
-    private double calculateImportItemTotalAmount(ImportItemRequestDto itemDto) {
+    public double calculateImportItemTotalAmount(ImportItemRequestDto itemDto) {
         double unitPrice = itemDto.getUnitPrice();
         int quantity = itemDto.getQuantity();
         double discount = itemDto.getDiscount() != null ? itemDto.getDiscount() : 0.0;

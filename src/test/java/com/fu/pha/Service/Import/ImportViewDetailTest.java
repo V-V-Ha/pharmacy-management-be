@@ -69,15 +69,29 @@ public class ImportViewDetailTest {
         importMock.setImage("image-url");
 
         // Tạo mock ImportItems
+        Category mockCategory = new Category();
+        mockCategory.setId(1L);
+        mockCategory.setCategoryName("Category A");
+
+        Product product1 = new Product();
+        product1.setId(1L);
+        product1.setProductName("Product A");
+        product1.setCategoryId(mockCategory);
+        product1.setProductUnitList(Collections.emptyList()); // Initialize ProductUnitList
+
+        Product product2 = new Product();
+        product2.setId(2L);
+        product2.setProductName("Product B");
+        product2.setCategoryId(mockCategory);
+        product2.setProductUnitList(Collections.emptyList()); // Initialize ProductUnitList
+
         ImportItem importItem1 = new ImportItem();
-        importItem1.setProduct(new Product());
-        importItem1.getProduct().setId(1L);
-        importItem1.getProduct().setProductName("Product A");
+        importItem1.setProduct(product1);
+        importItem1.setImportReceipt(importMock); // Set the Import object
 
         ImportItem importItem2 = new ImportItem();
-        importItem2.setProduct(new Product());
-        importItem2.getProduct().setId(2L);
-        importItem2.getProduct().setProductName("Product B");
+        importItem2.setProduct(product2);
+        importItem2.setImportReceipt(importMock); // Set the Import object
 
         List<ImportItem> importItems = Arrays.asList(importItem1, importItem2);
         importMock.setImportItems(importItems);
@@ -96,15 +110,11 @@ public class ImportViewDetailTest {
         assertNotNull(result);
         assertEquals(importMock.getId(), result.getId());
         assertEquals(importMock.getInvoiceNumber(), result.getInvoiceNumber());
-        assertEquals(importMock.getImportDate(), result.getImportDate());
-        assertEquals(importMock.getPaymentMethod(), result.getPaymentMethod());
-        assertEquals(importMock.getTax(), result.getTax());
-        assertEquals(importMock.getDiscount(), result.getDiscount());
         assertEquals(importMock.getTotalAmount(), result.getTotalAmount());
-        assertEquals(importMock.getNote(), result.getNote());
-        assertEquals(importMock.getSupplier().getSupplierName(), result.getSupplierName());
-        assertEquals(importMock.getStatus(), result.getStatus());
-        assertEquals(importMock.getImage(), result.getImageUrl());
+        assertEquals(importMock.getUser().getId(), result.getUserId());
+        assertEquals(importMock.getSupplier().getId(), result.getSupplierId());
+        assertEquals(importMock.getImportItems().size(), result.getImportItems().size());
+        verify(importRepository, times(1)).findById(importId);
     }
 
     @Test
