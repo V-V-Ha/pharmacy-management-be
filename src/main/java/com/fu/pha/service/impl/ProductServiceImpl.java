@@ -120,19 +120,42 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
         List<ProductUnit> productUnitList = new ArrayList<>();
         for (ProductUnitDTORequest productUnitDTORequest : productDTORequest.getProductUnitListDTO()) {
-            Unit unit = unitRepository.findById(productUnitDTORequest.getUnitId())
-                    .orElseThrow(() -> new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
-
-            // Check if unit is active
-            if (unit.getStatus() != Status.ACTIVE) {
-                throw new BadRequestException(Message.UNIT_INACTIVE);
+            // Kiểm tra xem unitId có null không
+            Unit unit = null;
+            if (productUnitDTORequest.getUnitId() != null) {
+                // Nếu unitId không null, tìm kiếm unit trong cơ sở dữ liệu
+                unit = unitRepository.findById(productUnitDTORequest.getUnitId())
+                        .orElseThrow(() -> new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
             }
+
+            // Tạo đối tượng ProductUnit mới
             ProductUnit productUnit = new ProductUnit();
-            productUnit.setProduct(product);
-            productUnit.setUnit(unit);
-            productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
-            productUnit.setImportPrice(productUnitDTORequest.getImportPrice());
-            productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
+
+            // Nếu unit tồn tại trong cơ sở dữ liệu
+            if (unit != null) {
+                // Kiểm tra trạng thái của unit
+                if (unit.getStatus() != Status.ACTIVE) {
+                    throw new BadRequestException(Message.UNIT_INACTIVE);
+                }
+
+                // Nếu unit tồn tại và là active, gán các thuộc tính cho ProductUnit
+                productUnit.setUnit(unit);
+                productUnit.setProduct(product);
+                productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
+                productUnit.setImportPrice(productUnitDTORequest.getImportPrice());
+                productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
+            } else {
+                // Nếu unit không tồn tại trong cơ sở dữ liệu, gán unit = null và đặt các giá trị mặc định là 0
+                productUnit.setUnit(null);
+                productUnit.setProduct(product);
+
+                // Đặt các giá trị mặc định khi unit là null
+                productUnit.setConversionFactor(0);
+                productUnit.setImportPrice(0.0);
+                productUnit.setRetailPrice(0.0);
+            }
+
+            // Thêm vào danh sách productUnit
             productUnitList.add(productUnit);
         }
         productUnitRepository.saveAll(productUnitList);
@@ -218,22 +241,23 @@ public class ProductServiceImpl implements ProductService {
                     Double retailPrice = getCellValueAsDouble(unitRow.getCell(12));  // Giá bán lẻ (cột 12)
                     Integer conversionFactor = getCellValueAsInteger(unitRow.getCell(13));  // Hệ số chuyển đổi (cột 13)
 
+
                     // Tìm đơn vị từ DB
                     Unit unit = unitRepository.findByUnitName(unitNameStr);
-
+                    ProductUnitDTORequest productUnitDTORequest = new ProductUnitDTORequest();
                     if (unitNameStr.isEmpty()) {
-                        continue;
+                        productUnitDTORequest.setUnitId(null);
+                        productUnitDTORequest.setImportPrice(0.0);
+                        productUnitDTORequest.setRetailPrice(0.0);
+                        productUnitDTORequest.setConversionFactor(0);
                     } else if (unit == null) {
                         throw new ResourceNotFoundException(Message.UNIT_NOT_FOUND + ": " + unitNameStr);
+                    } else {
+                        productUnitDTORequest.setUnitId(unit.getId());
+                        productUnitDTORequest.setImportPrice(importPrice);
+                        productUnitDTORequest.setRetailPrice(retailPrice);
+                        productUnitDTORequest.setConversionFactor(conversionFactor);
                     }
-
-                    // Tạo đối tượng ProductUnitDTORequest cho mỗi đơn vị
-                    ProductUnitDTORequest productUnitDTORequest = new ProductUnitDTORequest();
-                    productUnitDTORequest.setUnitId(unit.getId());
-                    productUnitDTORequest.setImportPrice(importPrice);
-                    productUnitDTORequest.setRetailPrice(retailPrice);
-                    productUnitDTORequest.setConversionFactor(conversionFactor);
-
                     productUnitListDTO.add(productUnitDTORequest);
                 }
 
