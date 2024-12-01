@@ -1,15 +1,20 @@
 package com.fu.pha.Service.Product;
 
 import com.fu.pha.dto.response.ProductDTOResponse;
+import com.fu.pha.entity.Category;
 import com.fu.pha.entity.ImportItem;
+import com.fu.pha.entity.Product;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.ImportItemRepository;
 import com.fu.pha.repository.ProductRepository;
 import com.fu.pha.service.impl.ProductServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -17,45 +22,90 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ProductViewListTest {
     @Mock
     private ProductRepository productRepository;
 
-    @Mock
-    private ImportItemRepository importItemRepository;
-
     @InjectMocks
     private ProductServiceImpl productService;
 
-    // Test case: Found products with valid search criteria
+    private Product productMock;
+
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        Category categoryMock = new Category();
+        categoryMock.setId(1L);
+        categoryMock.setCategoryName("Category A");
+
+        productMock = new Product();
+        productMock.setId(1L);
+        productMock.setProductName("Product A");
+        productMock.setTotalQuantity(10);
+        productMock.setStatus(Status.ACTIVE);
+        productMock.setCategoryId(categoryMock); // Set the Category object
+        productMock.setProductUnitList(Collections.emptyList()); // Initialize the productUnitList
+        // Set other fields as needed
+    }
+
     @Test
     public void testGetListProductForSaleOrderPaging_FoundProducts() {
-        // Arrange
-        ProductDTOResponse productDTOResponse = new ProductDTOResponse();
-        productDTOResponse.setId(1L);
-        productDTOResponse.setProductName("Product1");
-        productDTOResponse.setTotalQuantity(10);
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        List<ProductDTOResponse> productList = Arrays.asList(new ProductDTOResponse(productMock));
+        Page<ProductDTOResponse> productPage = new PageImpl<>(productList, pageRequest, productList.size());
 
-        List<ProductDTOResponse> productList = List.of(productDTOResponse);
-        Page<ProductDTOResponse> expectedPage = new PageImpl<>(productList);
-        Pageable pageable = PageRequest.of(0, 10);
-        String productName = "Product1";
+        when(productRepository.getListProductPaging(anyString(), anyString(), any(Status.class), eq(pageRequest)))
+                .thenReturn(productPage);
 
-        when(productRepository.getListProductForSaleOrderPaging(productName, pageable)).thenReturn(expectedPage);
-       // Act
-        Page<ProductDTOResponse> result = productService.getListProductForSaleOrderPaging(0, 10, productName);
+        Page<ProductDTOResponse> result = productService.getAllProductPaging(0, 10, "Product A", "Category A", "ACTIVE");
 
-        // Assert
         assertNotNull(result);
-        assertFalse(result.isEmpty());
         assertEquals(1, result.getTotalElements());
-        assertEquals(10, result.getContent().get(0).getTotalQuantity());
+        verify(productRepository, times(1)).getListProductPaging(anyString(), anyString(), any(Status.class), eq(pageRequest));
+    }
+
+    @Test
+    public void testGetListProductForSaleOrderPaging_ProductNameIsNull() {
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        List<ProductDTOResponse> productList = Arrays.asList(new ProductDTOResponse(productMock));
+        Page<ProductDTOResponse> productPage = new PageImpl<>(productList, pageRequest, productList.size());
+
+        when(productRepository.getListProductPaging(isNull(), anyString(), any(Status.class), eq(pageRequest)))
+                .thenReturn(productPage);
+
+        Page<ProductDTOResponse> result = productService.getAllProductPaging(0, 10, null, "Category A", "ACTIVE");
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        verify(productRepository, times(1)).getListProductPaging(isNull(), anyString(), any(Status.class), eq(pageRequest));
+    }
+
+    @Test
+    public void testGetListProductForSaleOrderPaging_ZeroTotalQuantity() {
+        productMock.setTotalQuantity(0);
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        List<ProductDTOResponse> productList = Arrays.asList(new ProductDTOResponse(productMock));
+        Page<ProductDTOResponse> productPage = new PageImpl<>(productList, pageRequest, productList.size());
+
+        when(productRepository.getListProductPaging(anyString(), anyString(), any(Status.class), eq(pageRequest)))
+                .thenReturn(productPage);
+
+        Page<ProductDTOResponse> result = productService.getAllProductPaging(0, 10, "Product A", "Category A", "ACTIVE");
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(0, result.getContent().get(0).getTotalQuantity());
+        verify(productRepository, times(1)).getListProductPaging(anyString(), anyString(), any(Status.class), eq(pageRequest));
     }
 
     // Test case: No products found
@@ -71,53 +121,6 @@ public class ProductViewListTest {
         assertThrows(ResourceNotFoundException.class, () -> {
             productService.getListProductForSaleOrderPaging(0, 10, productName);
         });
-    }
-
-    // Test case: Products found but totalQuantity is zero
-    @Test
-    public void testGetListProductForSaleOrderPaging_ZeroTotalQuantity() {
-        // Arrange
-        ProductDTOResponse productDTOResponse = new ProductDTOResponse();
-        productDTOResponse.setId(1L);
-        productDTOResponse.setProductName("Product1");
-        productDTOResponse.setTotalQuantity(0);
-
-        List<ProductDTOResponse> productList = List.of(productDTOResponse);
-        Page<ProductDTOResponse> expectedPage = new PageImpl<>(productList);
-        Pageable pageable = PageRequest.of(0, 10);
-        String productName = "Product1";
-
-        when(productRepository.getListProductForSaleOrderPaging(productName, pageable)).thenReturn(expectedPage);
-       // Act
-        Page<ProductDTOResponse> result = productService.getListProductForSaleOrderPaging(0, 10, productName);
-
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-    }
-
-    // Test case: productName is null or empty
-    @Test
-    public void testGetListProductForSaleOrderPaging_ProductNameIsNull() {
-        // Arrange
-        ProductDTOResponse productDTOResponse = new ProductDTOResponse();
-        productDTOResponse.setId(1L);
-        productDTOResponse.setProductName("Product1");
-        productDTOResponse.setTotalQuantity(10);
-
-        List<ProductDTOResponse> productList = List.of(productDTOResponse);
-        Page<ProductDTOResponse> expectedPage = new PageImpl<>(productList);
-        Pageable pageable = PageRequest.of(0, 10);
-
-        when(productRepository.getListProductForSaleOrderPaging(null, pageable)).thenReturn(expectedPage);
-
-        // Act
-        Page<ProductDTOResponse> result = productService.getListProductForSaleOrderPaging(0, 10, null);
-
-        // Assert
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertEquals(1, result.getTotalElements());
     }
 
     // Test case: Invalid page size (less than 1)

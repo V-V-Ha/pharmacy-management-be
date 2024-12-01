@@ -3,6 +3,7 @@ package com.fu.pha.Service.Import;
 import com.fu.pha.dto.request.importPack.ImportViewListDto;
 import com.fu.pha.entity.*;
 import com.fu.pha.enums.OrderStatus;
+import com.fu.pha.service.impl.ImportServiceImpl;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.*;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 @ExtendWith(MockitoExtension.class)
@@ -31,7 +33,7 @@ public class ImportViewListTest {
     private ImportRepository importRepository;
 
     @InjectMocks
-    private ImportService importService;
+    private ImportServiceImpl importService;
 
     private Import importMock;
 
@@ -39,19 +41,18 @@ public class ImportViewListTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Tạo mock đối tượng Import
         importMock = new Import();
         importMock.setId(1L);
         importMock.setInvoiceNumber("INV123");
         importMock.setImportDate(Instant.now());
         importMock.setPaymentMethod(PaymentMethod.CASH);
+        importMock.setTax(100.0);
+        importMock.setDiscount(50.0);
         importMock.setTotalAmount(5000.0);
-        importMock.setStatus(OrderStatus.PENDING);
+        importMock.setNote("Import note");
 
-        // Tạo mock đối tượng User và Supplier
         User mockUser = new User();
         mockUser.setId(1L);
-        mockUser.setFullName("John Doe");
         importMock.setUser(mockUser);
 
         Supplier mockSupplier = new Supplier();
@@ -59,125 +60,122 @@ public class ImportViewListTest {
         mockSupplier.setSupplierName("Supplier Name");
         importMock.setSupplier(mockSupplier);
 
-        // Tạo các ImportItems
+        importMock.setCreateDate(Instant.now());
+        importMock.setLastModifiedDate(Instant.now());
+        importMock.setCreateBy("admin");
+        importMock.setLastModifiedBy("admin");
+
+        importMock.setStatus(OrderStatus.PENDING);
+        importMock.setImage("image-url");
+
+        Category mockCategory = new Category();
+        mockCategory.setId(1L);
+        mockCategory.setCategoryName("Category A");
+
+        Product product1 = new Product();
+        product1.setId(1L);
+        product1.setProductName("Product A");
+        product1.setCategoryId(mockCategory);
+        product1.setProductUnitList(Collections.emptyList());
+
+        Product product2 = new Product();
+        product2.setId(2L);
+        product2.setProductName("Product B");
+        product2.setCategoryId(mockCategory);
+        product2.setProductUnitList(Collections.emptyList());
+
         ImportItem importItem1 = new ImportItem();
-        importItem1.setProduct(new Product());
-        importItem1.getProduct().setId(1L);
-        importItem1.getProduct().setProductName("Product A");
+        importItem1.setProduct(product1);
+        importItem1.setImportReceipt(importMock);
 
         ImportItem importItem2 = new ImportItem();
-        importItem2.setProduct(new Product());
-        importItem2.getProduct().setId(2L);
-        importItem2.getProduct().setProductName("Product B");
+        importItem2.setProduct(product2);
+        importItem2.setImportReceipt(importMock);
 
-        importMock.setImportItems(Arrays.asList(importItem1, importItem2));
+        List<ImportItem> importItems = Arrays.asList(importItem1, importItem2);
+        importMock.setImportItems(importItems);
     }
 
     @Test
     public void testGetAllImportPaging_NoDateFilters() {
-        // Arrange
-        int page = 0;
-        int size = 10;
-        String supplierName = "Supplier Name";
-        OrderStatus status = OrderStatus.PENDING;
-        Instant fromDate = null;
-        Instant toDate = null;
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        List<ImportViewListDto> importList = Arrays.asList(new ImportViewListDto(importMock));
+        Page<ImportViewListDto> importPage = new PageImpl<>(importList, pageRequest, importList.size());
 
-        List<Import> imports = Arrays.asList(importMock);
+        when(importRepository.getListImportPagingWithoutDate(anyString(), any(OrderStatus.class), eq(pageRequest)))
+                .thenReturn(importPage);
 
+        Page<ImportViewListDto> result = importService.getAllImportPaging(0, 10, "Supplier Name", OrderStatus.PENDING, null, null);
 
-        // Act
-        Page<ImportViewListDto> result = importService.getAllImportPaging(page, size, supplierName, status, fromDate, toDate);
-
-        // Assert
         assertNotNull(result);
-        assertEquals(1, result.getContent().size());
-        assertEquals("INV123", result.getContent().get(0).getInvoiceNumber());
+        assertEquals(1, result.getTotalElements());
+        verify(importRepository, times(1)).getListImportPagingWithoutDate(anyString(), any(OrderStatus.class), eq(pageRequest));
     }
 
     @Test
     public void testGetAllImportPaging_WithFromDateOnly() {
-        // Arrange
-        int page = 0;
-        int size = 10;
-        String supplierName = "Supplier Name";
-        OrderStatus status = OrderStatus.PENDING;
-        Instant fromDate = Instant.now().minusSeconds(3600); // 1 hour ago
-        Instant toDate = null;
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        List<ImportViewListDto> importList = Arrays.asList(new ImportViewListDto(importMock));
+        Page<ImportViewListDto> importPage = new PageImpl<>(importList, pageRequest, importList.size());
+        Instant fromDate = Instant.now().minusSeconds(3600);
 
-        List<Import> imports = Arrays.asList(importMock);
+        when(importRepository.getListImportPagingFromDate(anyString(), any(OrderStatus.class), eq(fromDate), eq(pageRequest)))
+                .thenReturn(importPage);
 
+        Page<ImportViewListDto> result = importService.getAllImportPaging(0, 10, "Supplier Name", OrderStatus.PENDING, fromDate, null);
 
-        // Act
-        Page<ImportViewListDto> result = importService.getAllImportPaging(page, size, supplierName, status, fromDate, toDate);
-
-        // Assert
         assertNotNull(result);
-        assertEquals(1, result.getContent().size());
-        assertEquals("INV123", result.getContent().get(0).getInvoiceNumber());
+        assertEquals(1, result.getTotalElements());
+        verify(importRepository, times(1)).getListImportPagingFromDate(anyString(), any(OrderStatus.class), eq(fromDate), eq(pageRequest));
     }
 
     @Test
     public void testGetAllImportPaging_WithToDateOnly() {
-        // Arrange
-        int page = 0;
-        int size = 10;
-        String supplierName = "Supplier Name";
-        OrderStatus status = OrderStatus.PENDING;
-        Instant fromDate = null;
-        Instant toDate = Instant.now(); // Now
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        List<ImportViewListDto> importList = Arrays.asList(new ImportViewListDto(importMock));
+        Page<ImportViewListDto> importPage = new PageImpl<>(importList, pageRequest, importList.size());
+        Instant toDate = Instant.now();
 
-        List<Import> imports = Arrays.asList(importMock);
+        when(importRepository.getListImportPagingToDate(anyString(), any(OrderStatus.class), eq(toDate), eq(pageRequest)))
+                .thenReturn(importPage);
 
+        Page<ImportViewListDto> result = importService.getAllImportPaging(0, 10, "Supplier Name", OrderStatus.PENDING, null, toDate);
 
-        // Act
-        Page<ImportViewListDto> result = importService.getAllImportPaging(page, size, supplierName, status, fromDate, toDate);
-
-        // Assert
         assertNotNull(result);
-        assertEquals(1, result.getContent().size());
-        assertEquals("INV123", result.getContent().get(0).getInvoiceNumber());
+        assertEquals(1, result.getTotalElements());
+        verify(importRepository, times(1)).getListImportPagingToDate(anyString(), any(OrderStatus.class), eq(toDate), eq(pageRequest));
     }
 
     @Test
     public void testGetAllImportPaging_WithFromAndToDate() {
-        // Arrange
-        int page = 0;
-        int size = 10;
-        String supplierName = "Supplier Name";
-        OrderStatus status = OrderStatus.PENDING;
-        Instant fromDate = Instant.now().minusSeconds(3600); // 1 hour ago
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        List<ImportViewListDto> importList = Arrays.asList(new ImportViewListDto(importMock));
+        Page<ImportViewListDto> importPage = new PageImpl<>(importList, pageRequest, importList.size());
+        Instant fromDate = Instant.now().minusSeconds(3600);
         Instant toDate = Instant.now();
 
-        List<Import> imports = Arrays.asList(importMock);
+        when(importRepository.getListImportPaging(anyString(), any(OrderStatus.class), eq(fromDate), eq(toDate), eq(pageRequest)))
+                .thenReturn(importPage);
 
+        Page<ImportViewListDto> result = importService.getAllImportPaging(0, 10, "Supplier Name", OrderStatus.PENDING, fromDate, toDate);
 
-        // Act
-        Page<ImportViewListDto> result = importService.getAllImportPaging(page, size, supplierName, status, fromDate, toDate);
-
-        // Assert
         assertNotNull(result);
-        assertEquals(1, result.getContent().size());
-        assertEquals("INV123", result.getContent().get(0).getInvoiceNumber());
+        assertEquals(1, result.getTotalElements());
+        verify(importRepository, times(1)).getListImportPaging(anyString(), any(OrderStatus.class), eq(fromDate), eq(toDate), eq(pageRequest));
     }
 
     @Test
     public void testGetAllImportPaging_NoImportsFound() {
-        // Arrange
-        int page = 0;
-        int size = 10;
-        String supplierName = "Supplier Name";
-        OrderStatus status = OrderStatus.PENDING;
-        Instant fromDate = null;
-        Instant toDate = null;
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        Page<ImportViewListDto> emptyPage = Page.empty(pageRequest);
 
+        when(importRepository.getListImportPagingWithoutDate(anyString(), any(OrderStatus.class), eq(pageRequest)))
+                .thenReturn(emptyPage);
 
-
-        // Act & Assert
-        ResourceNotFoundException thrown = assertThrows(ResourceNotFoundException.class, () -> {
-            importService.getAllImportPaging(page, size, supplierName, status, fromDate, toDate);
+        assertThrows(ResourceNotFoundException.class, () -> {
+            importService.getAllImportPaging(0, 10, "Supplier Name", OrderStatus.PENDING, null, null);
         });
 
-        assertEquals("Import not found", thrown.getMessage());
+        verify(importRepository, times(1)).getListImportPagingWithoutDate(anyString(), any(OrderStatus.class), eq(pageRequest));
     }
 }

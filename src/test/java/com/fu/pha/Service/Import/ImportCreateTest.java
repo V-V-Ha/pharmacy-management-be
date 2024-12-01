@@ -5,34 +5,21 @@ import com.fu.pha.dto.request.importPack.ImportItemRequestDto;
 import com.fu.pha.dto.response.CloudinaryResponse;
 import com.fu.pha.entity.*;
 import com.fu.pha.enums.ERole;
-import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.exception.UnauthorizedException;
 import com.fu.pha.repository.ImportRepository;
-import com.fu.pha.repository.ImportItemRepository;
-import com.fu.pha.repository.ProductRepository;
-import com.fu.pha.repository.ProductUnitRepository;
 import com.fu.pha.repository.SupplierRepository;
 import com.fu.pha.repository.UserRepository;
 import com.fu.pha.service.CloudinaryService;
-import com.fu.pha.service.NotificationService;
 import com.fu.pha.service.impl.ImportServiceImpl;
-import jakarta.validation.Validator;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
@@ -50,26 +37,17 @@ public class ImportCreateTest {
     @Mock
     private ImportRepository importRepository;
     @Mock
-    private ProductUnitRepository productUnitRepository;
-    @Mock
-    private ProductRepository productRepository;
-    @Mock
-    private ImportItemRepository importItemRepository;
-    @Mock
     private UserRepository userRepository;
     @Mock
     private SupplierRepository supplierRepository;
     @Mock
     private CloudinaryService cloudinaryService;
-    @Mock
-    private NotificationService notificationService;
 
     private ImportDto importRequestDto;
     private MultipartFile file;
 
     private User mockUser;
     private Supplier mockSupplier;
-    private Product mockProduct;
 
 
     @Test

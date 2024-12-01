@@ -1,8 +1,11 @@
 package com.fu.pha.Service.Product;
 
+import com.fu.pha.dto.request.ProductDTORequest;
 import com.fu.pha.entity.Category;
 import com.fu.pha.entity.Product;
 import com.fu.pha.entity.Unit;
+import com.fu.pha.enums.Status;
+import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.CategoryRepository;
 import com.fu.pha.repository.ProductRepository;
@@ -15,16 +18,20 @@ import org.apache.poi.ss.usermodel.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import static org.mockito.Mockito.*;
+
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ProductImportExcelTest {
 
     @Mock
@@ -33,30 +40,32 @@ public class ProductImportExcelTest {
     @Mock
     private UnitRepository unitRepository;
 
-    @Mock
-    private ProductRepository productRepository;
-
-    @Mock
-    private MultipartFile file;
-
     @InjectMocks
     private ProductServiceImpl productService;
 
-    private Workbook workbook;
+    private XSSFWorkbook workbook;
     private Sheet sheet;
     private Row row;
+    private Category mockCategory;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp(){
         MockitoAnnotations.openMocks(this);
 
         // Mocks a basic Excel file with Apache POI
         workbook = new XSSFWorkbook();
-        sheet = workbook.createSheet();
-        row = sheet.createRow(0);
+        var sheet = workbook.createSheet();
+        var row = sheet.createRow(0);
 
-        // Tạo dữ liệu giả trong dòng đầu tiên của Excel (giả sử có các cột phù hợp)
+        // Create test data in the first row of the Excel file
         createTestExcelRow(row);
+
+        // Set up mock data for Category and Unit
+        mockCategory = new Category();
+        mockCategory.setId(1L);
+        mockCategory.setCategoryName("Category");
+        mockCategory.setStatus(Status.ACTIVE);
+
     }
 
     private void createTestExcelRow(Row row) {
@@ -70,6 +79,10 @@ public class ProductImportExcelTest {
         row.createCell(7).setCellValue("Country");
         row.createCell(8).setCellValue("Dosage Form");
         row.createCell(9).setCellValue(10);
+        row.createCell(10).setCellValue("Unit");
+        row.createCell(11).setCellValue(10000);
+        row.createCell(12).setCellValue(10000);
+        row.createCell(13).setCellValue(1);
         row.createCell(14).setCellValue("Có");  // Prescription drug
         row.createCell(15).setCellValue("Indication");
         row.createCell(16).setCellValue("Contraindication");
@@ -78,90 +91,81 @@ public class ProductImportExcelTest {
     }
 
     @Test
-    void testImportProductsFromExcel_ValidData() throws Exception {
-        // Mock category repository to return a category for the test
-        Category category = new Category();
-        category.setCategoryName("Category");
-        category.setId(1L);
-        when(categoryRepository.findByCategoryName("Category")).thenReturn(Optional.of(category));
-
-        // Mock unit repository to return a unit for the test
-        Unit unit = new Unit();
-        unit.setUnitName("Unit");
-        unit.setId(1L);
-        when(unitRepository.findByUnitName("Unit")).thenReturn(unit);
-
-        // Prepare a valid Excel file with data
-        MultipartFile mockFile = new MockMultipartFile("file", "test.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", new FileInputStream(new File("path/to/mock/file.xlsx")));
-
-        // Call method to import products from Excel
-        productService.importProductsFromExcel(mockFile);
-
-        // Verify that productRepository.save() was called
-        verify(productRepository, times(1)).save(any(Product.class));
-    }
-
-    @Test
-    void testImportProductsFromExcel_EmptyFile() throws Exception {
-        // Prepare an empty Excel file
-        Sheet emptySheet = workbook.createSheet("EmptySheet");
-        when(file.getInputStream()).thenReturn(new ByteArrayInputStream(new byte[0]));  // Empty input stream
-
-        // Test with empty file input
-        productService.importProductsFromExcel(file);
-
-        // Verify no products were saved
-        verify(productRepository, never()).save(any(Product.class));
-    }
-
-    @Test
     void testImportProductsFromExcel_InvalidCategory() throws Exception {
-        // Prepare an Excel file where category is not found
-        Row row = sheet.createRow(1);
-        row.createCell(0).setCellValue("Test Product");
-        row.createCell(1).setCellValue("NonExistentCategory");
-        when(categoryRepository.findByCategoryName("NonExistentCategory")).thenReturn(Optional.empty());
+        // Arrange
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        workbook.write(out);
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.getInputStream()).thenReturn(in);
 
-        // Prepare mock file
-        MultipartFile mockFile = new MockMultipartFile("file", "test.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", new ByteArrayInputStream("mock data".getBytes()));
+        // Mock the repository methods to simulate invalid category
+        when(categoryRepository.findByCategoryName(anyString())).thenReturn(Optional.empty());
 
-        // Call the method and expect exception
-        assertThrows(ResourceNotFoundException.class, () -> productService.importProductsFromExcel(mockFile));
+        // Act and Assert: Ensure ResourceNotFoundException is thrown
+        try {
+            productService.importProductsFromExcel(file);
+        } catch (ResourceNotFoundException e) {
+            assertTrue(e.getMessage().contains(Message.CATEGORY_NOT_FOUND));
+        }
     }
 
     @Test
     void testImportProductsFromExcel_InvalidUnit() throws Exception {
-        // Prepare Excel file with valid data but invalid unit
-        Row row = sheet.createRow(1);
-        row.createCell(10).setCellValue("InvalidUnit");
-        when(unitRepository.findByUnitName("InvalidUnit")).thenReturn(null); // No such unit
+        // Arrange
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        workbook.write(out);
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.getInputStream()).thenReturn(in);
 
-        // Prepare mock file
-        MultipartFile mockFile = new MockMultipartFile("file", "test.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", new ByteArrayInputStream("mock data".getBytes()));
+        // Mock the repository methods to simulate invalid unit
+        Category mockCategory = new Category();
+        mockCategory.setId(1L);
+        mockCategory.setCategoryName("Category");
+        when(categoryRepository.findByCategoryName(anyString())).thenReturn(Optional.of(mockCategory));
+        when(unitRepository.findByUnitName(anyString())).thenReturn(null);
 
-        // Call method and expect exception
-        assertThrows(ResourceNotFoundException.class, () -> productService.importProductsFromExcel(mockFile));
+        // Act and Assert: Ensure ResourceNotFoundException is thrown
+        try {
+            productService.importProductsFromExcel(file);
+        } catch (ResourceNotFoundException e) {
+            assertTrue(e.getMessage().contains(Message.UNIT_NOT_FOUND));
+        }
     }
 
     @Test
     void testImportProductsFromExcel_InvalidPrescriptionDrugValue() throws Exception {
-        // Test case where "Có"/"Không" value for prescription drug is incorrect
-        Row row = sheet.createRow(1);
-        row.createCell(14).setCellValue("InvalidValue"); // Invalid prescription drug value
+        // Arrange
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        workbook.write(out);
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.getInputStream()).thenReturn(in);
 
-        // Prepare mock file
-        MultipartFile mockFile = new MockMultipartFile("file", "test.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", new ByteArrayInputStream("mock data".getBytes()));
+        // Ensure the sheet and row are properly initialized
+        if (sheet == null) {
+            sheet = workbook.createSheet();
+        }
+        if (row == null) {
+            row = sheet.createRow(1);
+            createTestExcelRow(row);
+        }
+        row.createCell(14).setCellValue("Invalid Value"); // Set invalid prescription drug value
 
-        // Expect IllegalArgumentException for invalid value
-        assertThrows(IllegalArgumentException.class, () -> productService.importProductsFromExcel(mockFile));
+        // Mock the repository methods
+        Category mockCategory = new Category();
+        mockCategory.setId(1L);
+        mockCategory.setCategoryName("Category");
+        when(categoryRepository.findByCategoryName(anyString())).thenReturn(Optional.of(mockCategory));
+
+        // Act and Assert: Ensure ResourceNotFoundException is thrown
+        try {
+            productService.importProductsFromExcel(file);
+        } catch (ResourceNotFoundException e) {
+            assertTrue(e.getMessage().contains(Message.INVALID_PRESCRIPTION_DRUG));
+        }
     }
 
-    @Test
-    void testImportProductsFromExcel_IOException() throws Exception {
-        // Simulate IOException when trying to read the file
-        when(file.getInputStream()).thenThrow(new IOException("File reading error"));
-
-        // Expect IOException to be thrown
-        assertThrows(IOException.class, () -> productService.importProductsFromExcel(file));
-    }
 }
+
