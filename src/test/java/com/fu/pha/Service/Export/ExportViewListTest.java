@@ -20,11 +20,13 @@ import org.mockito.*;
 import org.springframework.data.domain.*;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 public class ExportViewListTest {
+
 
     @Mock private ExportSlipRepository exportSlipRepository;
 
@@ -38,86 +40,138 @@ public class ExportViewListTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         pageable = PageRequest.of(0, 10);
-
-        // Setup mock ExportSlip
         exportSlip = new ExportSlip();
         exportSlip.setId(exportSlipId);
         exportSlip.setStatus(OrderStatus.PENDING);
-        exportSlip.setUser(new User()); // mock user
-
-        // Mock trả về khi gọi repository findById
-        when(exportSlipRepository.findById(exportSlipId)).thenReturn(Optional.of(exportSlip));
     }
 
     @Test
     void testGetAllExportSlipPaging_EmptyResult() {
-        // Kiểm tra trường hợp không có phiếu xuất
-        Page<ExportSlip> emptyPage = new PageImpl<>(List.of());
+        when(exportSlipRepository.getListExportSlipPagingWithoutDate(any(), any(), any()))
+                .thenReturn(Page.empty());
 
-
-        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, ExportType.DESTROY, OrderStatus.PENDING, null, null);
-
-        assertTrue(result.isEmpty(), "Kết quả phải rỗng");
+        assertThrows(ResourceNotFoundException.class, () -> {
+            exportSlipService.getAllExportSlipPaging(0, 10, null, null, null, null);
+        });
     }
 
     @Test
     void testGetAllExportSlipPaging_WithResults() {
-        // Kiểm tra trường hợp có phiếu xuất
-        Page<ExportSlip> exportSlipPage = new PageImpl<>(List.of(exportSlip));
+        // Create a mock User object to avoid NullPointerException
+        User mockUser = new User();
+        mockUser.setId(1L);  // Set some valid ID
 
+        // Create an ExportSlip with the mock User
+        ExportSlip exportSlip = new ExportSlip();
+        exportSlip.setUser(mockUser);  // Ensure that ExportSlip has a non-null User
+        exportSlip.setStatus(OrderStatus.PENDING);  // Ensure that ExportSlip has a non-null status
+        exportSlip.setExportSlipItemList(Collections.emptyList());  // Initialize the exportSlipItemList
 
-        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, ExportType.DESTROY, OrderStatus.PENDING, null, null);
+        // Create ExportSlipResponseDto with the mock ExportSlip
+        Page<ExportSlipResponseDto> page = new PageImpl<>(Collections.singletonList(new ExportSlipResponseDto(exportSlip)));
 
-        assertFalse(result.isEmpty(), "Kết quả không thể rỗng");
-        assertEquals(1, result.getTotalElements(), "Số lượng phần tử trong kết quả phải đúng");
+        // Mock the repository method
+        when(exportSlipRepository.getListExportSlipPagingWithoutDate(any(), any(), any()))
+                .thenReturn(page);
+
+        // Act
+        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, null, null, null, null);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
     }
 
     @Test
     void testGetAllExportSlipPaging_WithFromDate() {
-        // Kiểm tra trường hợp chỉ có fromDate
-        Page<ExportSlip> exportSlipPage = new PageImpl<>(List.of(exportSlip));
+        // Create a mock User object to avoid NullPointerException
+        User mockUser = new User();
+        mockUser.setId(1L);  // Set some valid ID
 
+        // Create an ExportSlip with the mock User
+        ExportSlip exportSlip = new ExportSlip();
+        exportSlip.setUser(mockUser);  // Ensure that ExportSlip has a non-null User
+        exportSlip.setStatus(OrderStatus.PENDING);  // Ensure that ExportSlip has a non-null status
+        exportSlip.setExportSlipItemList(Collections.emptyList());  // Initialize the exportSlipItemList
 
-        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, ExportType.RETURN_TO_SUPPLIER, OrderStatus.PENDING, fromDate, null);
+        // Create ExportSlipResponseDto with the mock ExportSlip
+        Page<ExportSlipResponseDto> page = new PageImpl<>(Collections.singletonList(new ExportSlipResponseDto(exportSlip)));
 
-        assertFalse(result.isEmpty(), "Kết quả không thể rỗng");
-        assertEquals(1, result.getTotalElements(), "Số lượng phần tử trong kết quả phải đúng");
+        // Mock the repository method
+        when(exportSlipRepository.getListExportSlipPagingFromDate(any(), any(), any(), any()))
+                .thenReturn(page);
+
+        // Act
+        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, null, null, fromDate, null);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
     }
 
     @Test
     void testGetAllExportSlipPaging_WithToDate() {
-        // Kiểm tra trường hợp chỉ có toDate
-        Page<ExportSlip> exportSlipPage = new PageImpl<>(List.of(exportSlip));
+        // Create a mock User object to avoid NullPointerException
+        User mockUser = new User();
+        mockUser.setId(1L);  // Set some valid ID
 
+        // Create an ExportSlip with the mock User
+        ExportSlip exportSlip = new ExportSlip();
+        exportSlip.setUser(mockUser);  // Ensure that ExportSlip has a non-null User
+        exportSlip.setStatus(OrderStatus.PENDING);  // Ensure that ExportSlip has a non-null status
+        exportSlip.setExportSlipItemList(Collections.emptyList());  // Initialize the exportSlipItemList
 
-        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, ExportType.RETURN_TO_SUPPLIER, OrderStatus.PENDING, null, toDate);
+        // Create ExportSlipResponseDto with the mock ExportSlip
+        Page<ExportSlipResponseDto> page = new PageImpl<>(Collections.singletonList(new ExportSlipResponseDto(exportSlip)));
 
-        assertFalse(result.isEmpty(), "Kết quả không thể rỗng");
-        assertEquals(1, result.getTotalElements(), "Số lượng phần tử trong kết quả phải đúng");
+        // Mock the repository method
+        when(exportSlipRepository.getListExportSlipPagingToDate(any(), any(), any(), any()))
+                .thenReturn(page);
+
+        // Act
+        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, null, null, null, toDate);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
     }
 
     @Test
     void testGetAllExportSlipPaging_WithFromDateAndToDate() {
-        // Kiểm tra trường hợp có cả từ ngày và đến ngày
-        Page<ExportSlip> exportSlipPage = new PageImpl<>(List.of(exportSlip));
+        // Create a mock User object to avoid NullPointerException
+        User mockUser = new User();
+        mockUser.setId(1L);  // Set some valid ID
 
+        // Create an ExportSlip with the mock User
+        ExportSlip exportSlip = new ExportSlip();
+        exportSlip.setUser(mockUser);  // Ensure that ExportSlip has a non-null User
+        exportSlip.setStatus(OrderStatus.PENDING);  // Ensure that ExportSlip has a non-null status
+        exportSlip.setExportSlipItemList(Collections.emptyList());  // Initialize the exportSlipItemList
 
-        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, ExportType.RETURN_TO_SUPPLIER, OrderStatus.PENDING, fromDate, toDate);
+        // Create ExportSlipResponseDto with the mock ExportSlip
+        Page<ExportSlipResponseDto> page = new PageImpl<>(Collections.singletonList(new ExportSlipResponseDto(exportSlip)));
 
-        assertFalse(result.isEmpty(), "Kết quả không thể rỗng");
-        assertEquals(1, result.getTotalElements(), "Số lượng phần tử trong kết quả phải đúng");
+        // Mock the repository method
+        when(exportSlipRepository.getListExportSlipPaging(any(), any(), any(), any(), any()))
+                .thenReturn(page);
+
+        // Act
+        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, null, null, fromDate, toDate);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
     }
 
     @Test
     void testGetAllExportSlipPaging_NoExportSlipFound() {
-        // Kiểm tra khi không có phiếu xuất nào tìm thấy
-        when(exportSlipRepository.getListExportSlipPagingWithoutDate(any(), any(), any(Pageable.class)))
+        when(exportSlipRepository.getListExportSlipPagingWithoutDate(any(), any(), any()))
                 .thenReturn(Page.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> {
-            exportSlipService.getAllExportSlipPaging(0, 10, ExportType.RETURN_TO_SUPPLIER, OrderStatus.PENDING, null, null);
+            exportSlipService.getAllExportSlipPaging(0, 10, null, null, null, null);
         });
     }
+
 }

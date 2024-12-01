@@ -301,8 +301,4 @@ public class ImportUpdateTest {
         assertEquals("image_url", importMock.getImage());  // Verify the image URL was set correctly
     }
 
-
-
-
-
 }

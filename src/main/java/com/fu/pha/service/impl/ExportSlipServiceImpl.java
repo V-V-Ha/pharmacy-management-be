@@ -359,7 +359,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         notificationService.sendNotificationToUser(title, message, creator , url);
     }
 
-    private User getCurrentUser() {
+    public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedException(Message.NOT_LOGIN);
@@ -381,7 +381,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         return user.getRoles().stream().anyMatch(r -> r.getName().equals(role));
     }
 
-    private ExportSlip createExportSlip(ExportSlipRequestDto exportDto, User user, OrderStatus status) {
+    public ExportSlip createExportSlip(ExportSlipRequestDto exportDto, User user, OrderStatus status) {
         ExportSlip exportSlip = new ExportSlip();
         String lastInvoiceNumber = exportSlipRepository.getLastInvoiceNumber();
         exportSlip.setInvoiceNumber(lastInvoiceNumber == null ? "EX000001" : generateCode.generateNewProductCode(lastInvoiceNumber));
@@ -434,7 +434,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         return totalAmount;
     }
 
-    private double calculateExportItemTotalAmount(ExportSlipItemRequestDto itemDto) {
+    public double calculateExportItemTotalAmount(ExportSlipItemRequestDto itemDto) {
         double unitPrice = itemDto.getUnitPrice();
         int quantity = itemDto.getQuantity();
         double discount = itemDto.getDiscount() != null ? itemDto.getDiscount() : 0.0;
@@ -448,7 +448,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         return total;
     }
 
-    private void processStockForConfirmedExport(ExportSlipItem exportSlipItem) {
+    public void processStockForConfirmedExport(ExportSlipItem exportSlipItem) {
         Product product = exportSlipItem.getProduct();
         ImportItem importItem = exportSlipItem.getImportItem(); // Lấy ImportItem tương ứng
 
@@ -481,7 +481,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
     }
 
 
-    private ExportSlipItem createExportSlipItem(ExportSlipItemRequestDto itemDto, ExportSlip exportSlip) {
+    public ExportSlipItem createExportSlipItem(ExportSlipItemRequestDto itemDto, ExportSlip exportSlip) {
         ExportSlipItem exportSlipItem = new ExportSlipItem();
         exportSlipItem.setExportSlip(exportSlip);
 

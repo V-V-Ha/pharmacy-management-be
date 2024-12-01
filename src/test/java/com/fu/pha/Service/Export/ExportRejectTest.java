@@ -1,137 +1,135 @@
-//package com.fu.pha.Service.Export;
-//
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//
-//import static org.mockito.Mockito.*;
-//import static org.junit.jupiter.api.Assertions.*;
-//
-//import com.fu.pha.exception.BadRequestException;
-//import com.fu.pha.exception.ResourceNotFoundException;
-//import com.fu.pha.exception.UnauthorizedException;
-//import com.fu.pha.entity.*;
-//import com.fu.pha.enums.OrderStatus;
-//import com.fu.pha.repository.*;
-//import com.fu.pha.service.impl.ExportSlipServiceImpl;
-//import com.fu.pha.service.NotificationService;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.*;
-//import org.springframework.security.core.Authentication;
-//import org.springframework.security.core.context.SecurityContextHolder;
-//
-//import java.util.Optional;
-//
-//@ExtendWith(MockitoExtension.class)
-//public class ExportRejectTest {
-//    @Mock private ExportSlipRepository exportSlipRepository;
-//    @Mock private ExportSlipItemRepository exportSlipItemRepository;
-//    @Mock private UserRepository userRepository;
-//    @Mock private NotificationService notificationService;
-//    @Mock private ProductRepository productRepository;
-//    @Mock private InventoryHistoryRepository inventoryHistoryRepository;
-//
-//    @InjectMocks private ExportSlipServiceImpl exportSlipService;
-//
-//    private User currentUser;
-//    private ExportSlip exportSlip;
-//
-//    @BeforeEach
-//    void setUp() {
-//        MockitoAnnotations.openMocks(this);
-//
-//        // Setup mock data
-//        currentUser = new User();
-//        currentUser.setId(1L);
-//        currentUser.setUsername("testuser");
-//
-//        exportSlip = new ExportSlip();
-//        exportSlip.setId(1L);
-//        exportSlip.setStatus(OrderStatus.PENDING);
-//        exportSlip.setUser(currentUser);
-//
-//        // Mocking user authentication
-//        Authentication authentication = mock(Authentication.class);
-//        when(authentication.getName()).thenReturn("testuser");
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
-//    }
-//
-//    @Test
-//    void testRejectExport_UnauthorizedUser() {
-//        // Test trường hợp người dùng không có quyền ROLE_PRODUCT_OWNER
-//        when(exportSlipRepository.findById(1L)).thenReturn(Optional.of(exportSlip));
-//        when(userRepository.findById(currentUser.getId())).thenReturn(Optional.of(currentUser));
-//
-//        assertThrows(UnauthorizedException.class, () -> {
-//            exportSlipService.rejectExport(1L, "Lý do từ chối");
-//        });
-//    }
-//
-//    @Test
-//    void testRejectExport_EmptyReason() {
-//        // Test trường hợp lý do từ chối là rỗng
-//        when(exportSlipRepository.findById(1L)).thenReturn(Optional.of(exportSlip));
-//        when(userRepository.findById(currentUser.getId())).thenReturn(Optional.of(currentUser));
-//
-//        assertThrows(BadRequestException.class, () -> {
-//            exportSlipService.rejectExport(1L, "");
-//        });
-//    }
-//
-//    @Test
-//    void testRejectExport_NullReason() {
-//        // Test trường hợp lý do từ chối là null
-//        when(exportSlipRepository.findById(1L)).thenReturn(Optional.of(exportSlip));
-//        when(userRepository.findById(currentUser.getId())).thenReturn(Optional.of(currentUser));
-//
-//        assertThrows(BadRequestException.class, () -> {
-//            exportSlipService.rejectExport(1L, null);
-//        });
-//    }
-//
-//    @Test
-//    void testRejectExport_ExportSlipNotFound() {
-//        // Test trường hợp không tìm thấy phiếu xuất
-//        when(exportSlipRepository.findById(1L)).thenReturn(Optional.empty());
-//
-//        assertThrows(ResourceNotFoundException.class, () -> {
-//            exportSlipService.rejectExport(1L, "Lý do từ chối");
-//        });
-//    }
-//
-//    @Test
-//    void testRejectExport_StatusNotPending() {
-//        // Test trường hợp trạng thái phiếu xuất không phải là PENDING
-//        exportSlip.setStatus(OrderStatus.CONFIRMED);
-//        when(exportSlipRepository.findById(1L)).thenReturn(Optional.of(exportSlip));
-//
-//        assertThrows(BadRequestException.class, () -> {
-//            exportSlipService.rejectExport(1L, "Lý do từ chối");
-//        });
-//    }
-//
-//    @Test
-//    void testRejectExport_Success() {
-//        // Test trường hợp phiếu xuất bị từ chối thành công
-//        when(exportSlipRepository.findById(1L)).thenReturn(Optional.of(exportSlip));
-//        when(userRepository.findById(currentUser.getId())).thenReturn(Optional.of(currentUser));
-//
-//        // Giả lập phương thức gửi thông báo
-//        doNothing().when(notificationService).sendNotificationToUser(anyString(), anyString(), eq(exportSlip.getUser()), eq(exportSlip.getId()));
-//
-//        // Gọi phương thức rejectExport
-//        exportSlipService.rejectExport(1L, "Lý do từ chối");
-//
-//        // Kiểm tra trạng thái đã được cập nhật thành REJECT
-//        assertEquals(OrderStatus.REJECT, exportSlip.getStatus());
-//        assertEquals("Lý do từ chối", exportSlip.getNote());
-//
-//        // Kiểm tra xem phương thức gửi thông báo có được gọi hay không
-//        verify(notificationService, times(1)).sendNotificationToUser(
-//                eq("Phiếu xuất bị từ chối"),
-//                eq("Phiếu xuất của bạn đã bị từ chối. Lý do: Lý do từ chối"),
-//                eq(exportSlip.getUser()),
-//                eq(exportSlip.getId()));
-//    }
-//
-//}
+package com.fu.pha.Service.Export;
+
+import com.fu.pha.enums.ERole;
+import com.fu.pha.exception.Message;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import com.fu.pha.exception.BadRequestException;
+import com.fu.pha.exception.ResourceNotFoundException;
+import com.fu.pha.exception.UnauthorizedException;
+import com.fu.pha.entity.*;
+import com.fu.pha.enums.OrderStatus;
+import com.fu.pha.repository.*;
+import com.fu.pha.service.impl.ExportSlipServiceImpl;
+import com.fu.pha.service.NotificationService;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+
+import java.util.Collections;
+import java.util.Optional;
+
+@ExtendWith(MockitoExtension.class)
+public class ExportRejectTest {
+    @Mock private ExportSlipRepository exportSlipRepository;
+    @Mock private NotificationService notificationService;
+    @InjectMocks private ExportSlipServiceImpl exportSlipService;
+
+    @Test
+    void testRejectExport_UnauthorizedUser() {
+        // Arrange
+        ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
+        User unauthorizedUser = new User();
+        unauthorizedUser.setRoles(Collections.singleton(new Role(ERole.ROLE_STOCK.name())));
+        doReturn(unauthorizedUser).when(exportSlipServiceSpy).getCurrentUser();
+
+        // Act & Assert
+        UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
+            exportSlipServiceSpy.rejectExport(1L, "Reason");
+        });
+        assertEquals(Message.REJECT_AUTHORIZATION, exception.getMessage());
+    }
+
+    @Test
+    void testRejectExport_EmptyReason() {
+        // Arrange
+        ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
+        User authorizedUser = new User();
+        authorizedUser.setRoles(Collections.singleton(new Role(ERole.ROLE_PRODUCT_OWNER.name())));
+        doReturn(authorizedUser).when(exportSlipServiceSpy).getCurrentUser();
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            exportSlipServiceSpy.rejectExport(1L, "");
+        });
+        assertEquals(Message.REASON_REQUIRED, exception.getMessage());
+    }
+
+    @Test
+    void testRejectExport_NullReason() {
+        // Arrange
+        ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
+        User authorizedUser = new User();
+        authorizedUser.setRoles(Collections.singleton(new Role(ERole.ROLE_PRODUCT_OWNER.name())));
+        doReturn(authorizedUser).when(exportSlipServiceSpy).getCurrentUser();
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            exportSlipServiceSpy.rejectExport(1L, null);
+        });
+        assertEquals(Message.REASON_REQUIRED, exception.getMessage());
+    }
+
+    @Test
+    void testRejectExport_ExportSlipNotFound() {
+        // Arrange
+        ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
+        User authorizedUser = new User();
+        authorizedUser.setRoles(Collections.singleton(new Role(ERole.ROLE_PRODUCT_OWNER.name())));
+        doReturn(authorizedUser).when(exportSlipServiceSpy).getCurrentUser();
+        when(exportSlipRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            exportSlipServiceSpy.rejectExport(1L, "Reason");
+        });
+        assertEquals(Message.EXPORT_SLIP_NOT_FOUND, exception.getMessage());
+    }
+
+    @Test
+    void testRejectExport_StatusNotPending() {
+        // Arrange
+        ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
+        User authorizedUser = new User();
+        authorizedUser.setRoles(Collections.singleton(new Role(ERole.ROLE_PRODUCT_OWNER.name())));
+        doReturn(authorizedUser).when(exportSlipServiceSpy).getCurrentUser();
+
+        ExportSlip exportSlipMock = new ExportSlip();
+        exportSlipMock.setStatus(OrderStatus.REJECT);
+        when(exportSlipRepository.findById(anyLong())).thenReturn(Optional.of(exportSlipMock));
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            exportSlipServiceSpy.rejectExport(1L, "Reason");
+        });
+        assertEquals(Message.NOT_REJECT, exception.getMessage());
+    }
+
+    @Test
+    void testRejectExport_Success() {
+        // Arrange
+        ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
+        User authorizedUser = new User();
+        authorizedUser.setRoles(Collections.singleton(new Role(ERole.ROLE_PRODUCT_OWNER.name())));
+        doReturn(authorizedUser).when(exportSlipServiceSpy).getCurrentUser();
+
+        ExportSlip exportSlipMock = new ExportSlip();
+        exportSlipMock.setStatus(OrderStatus.PENDING);
+        User exportCreator = new User();
+        exportSlipMock.setUser(exportCreator);
+        when(exportSlipRepository.findById(anyLong())).thenReturn(Optional.of(exportSlipMock));
+
+        // Act
+        exportSlipServiceSpy.rejectExport(1L, "Reason");
+
+        // Assert
+        assertEquals(OrderStatus.REJECT, exportSlipMock.getStatus());
+        assertEquals("Reason", exportSlipMock.getNote());
+        verify(exportSlipRepository, times(1)).save(exportSlipMock);
+        verify(notificationService, times(1)).sendNotificationToUser(anyString(), anyString(), eq(exportCreator), anyString());
+    }
+
+}

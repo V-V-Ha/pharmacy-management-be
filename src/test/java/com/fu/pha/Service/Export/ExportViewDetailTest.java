@@ -60,12 +60,15 @@ public class ExportViewDetailTest {
 
     @Test
     void testGetActiveExportSlipById_Success() {
+        // Initialize the export slip item list
+        exportSlip.setExportSlipItemList(Collections.emptyList());
+
         // Kiểm tra khi tìm thấy phiếu xuất và chuyển đổi thành DTO
         ExportSlipResponseDto result = exportSlipService.getActiveExportSlipById(exportSlipId);
 
         assertNotNull(result); // Kết quả không null
         assertEquals(exportSlipId, result.getId()); // ID của ExportSlip phải khớp với ID của DTO
-        assertEquals(OrderStatus.PENDING, result.getStatus()); // Trạng thái phải khớp với phiếu xuất gốc
+        assertEquals(OrderStatus.PENDING.name(), result.getStatus()); // Trạng thái phải khớp với phiếu xuất gốc
         // Thêm các kiểm tra khác nếu DTO có thêm các trường cần kiểm tra
     }
 
