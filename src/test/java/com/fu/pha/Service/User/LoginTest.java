@@ -5,6 +5,7 @@ import com.fu.pha.dto.response.JwtResponse;
 import com.fu.pha.entity.User;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
+import com.fu.pha.repository.UserRepository;
 import com.fu.pha.security.impl.UserDetailsImpl;
 import com.fu.pha.security.jwt.JwtUtils;
 import com.fu.pha.service.impl.UserServiceImpl;
@@ -19,9 +20,12 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +35,9 @@ public class LoginTest {
 
     @Mock
     private JwtUtils jwtUtils;
+
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -54,6 +61,9 @@ public class LoginTest {
 
         userDetails = new UserDetailsImpl(user, null);
         authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        // Mock UserRepository
+        lenient().when(userRepository.findByUsername("minhhieu")).thenReturn(Optional.of(user));
     }
 
     //Test trường hợp đăng nhập thành công

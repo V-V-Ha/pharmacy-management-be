@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
-public class ConfirmTest {
+public class ExportConfirmTest {
 
     @Mock private ExportSlipRepository exportSlipRepository;
     @Mock private UserRepository userRepository;

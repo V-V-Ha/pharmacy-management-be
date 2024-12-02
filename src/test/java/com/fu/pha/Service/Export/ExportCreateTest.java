@@ -31,7 +31,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class CreateTest {
+public class ExportCreateTest {
     @InjectMocks
     private ExportSlipServiceImpl exportService; // Sử dụng lớp thực thi cụ thể
 

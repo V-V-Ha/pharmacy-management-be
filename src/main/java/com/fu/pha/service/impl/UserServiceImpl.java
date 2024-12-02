@@ -439,12 +439,22 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         User user = userRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException(Message.USER_NOT_FOUND));
 
-        // Chuyển đổi trạng thái
+        // Kiểm tra xem người dùng có vai trò PRODUCT_OWNER không
+        boolean isProductOwner = user.getRoles().stream()
+                .anyMatch(role -> role.getName().equals(ERole.ROLE_PRODUCT_OWNER));
+
+        // Nếu là ROLE_PRODUCT_OWNER, không cho phép thay đổi trạng thái
+        if (isProductOwner) {
+            throw new BadRequestException("Không thể thay đổi trạng thái của chủ cửa hàng");
+        }
+
+        // Chuyển đổi trạng thái nếu không phải ROLE_PRODUCT_OWNER
         if (user.getStatus() == Status.ACTIVE) {
             user.setStatus(Status.INACTIVE);
         } else {
             user.setStatus(Status.ACTIVE);
         }
+
         userRepository.save(user);
     }
 

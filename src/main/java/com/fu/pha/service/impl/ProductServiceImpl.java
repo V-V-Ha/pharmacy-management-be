@@ -30,6 +30,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -120,42 +121,19 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
         List<ProductUnit> productUnitList = new ArrayList<>();
         for (ProductUnitDTORequest productUnitDTORequest : productDTORequest.getProductUnitListDTO()) {
-            // Kiểm tra xem unitId có null không
-            Unit unit = null;
-            if (productUnitDTORequest.getUnitId() != null) {
-                // Nếu unitId không null, tìm kiếm unit trong cơ sở dữ liệu
-                unit = unitRepository.findById(productUnitDTORequest.getUnitId())
-                        .orElseThrow(() -> new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
-            }
+            Unit unit = unitRepository.findById(productUnitDTORequest.getUnitId())
+                    .orElseThrow(() -> new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
 
-            // Tạo đối tượng ProductUnit mới
+            // Check if unit is active
+            if (unit.getStatus() != Status.ACTIVE) {
+                throw new BadRequestException(Message.UNIT_INACTIVE);
+            }
             ProductUnit productUnit = new ProductUnit();
-
-            // Nếu unit tồn tại trong cơ sở dữ liệu
-            if (unit != null) {
-                // Kiểm tra trạng thái của unit
-                if (unit.getStatus() != Status.ACTIVE) {
-                    throw new BadRequestException(Message.UNIT_INACTIVE);
-                }
-
-                // Nếu unit tồn tại và là active, gán các thuộc tính cho ProductUnit
-                productUnit.setUnit(unit);
-                productUnit.setProduct(product);
-                productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
-                productUnit.setImportPrice(productUnitDTORequest.getImportPrice());
-                productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
-            } else {
-                // Nếu unit không tồn tại trong cơ sở dữ liệu, gán unit = null và đặt các giá trị mặc định là 0
-                productUnit.setUnit(null);
-                productUnit.setProduct(product);
-
-                // Đặt các giá trị mặc định khi unit là null
-                productUnit.setConversionFactor(0);
-                productUnit.setImportPrice(0.0);
-                productUnit.setRetailPrice(0.0);
-            }
-
-            // Thêm vào danh sách productUnit
+            productUnit.setProduct(product);
+            productUnit.setUnit(unit);
+            productUnit.setConversionFactor(productUnitDTORequest.getConversionFactor());
+            productUnit.setImportPrice(productUnitDTORequest.getImportPrice());
+            productUnit.setRetailPrice(productUnitDTORequest.getRetailPrice());
             productUnitList.add(productUnit);
         }
         productUnitRepository.saveAll(productUnitList);
@@ -233,7 +211,7 @@ public class ProductServiceImpl implements ProductService {
                 for (int unitRowIndex = rowIndex; unitRowIndex < rowIndex + 3 && unitRowIndex < sheet.getPhysicalNumberOfRows(); unitRowIndex++) {
                     Row unitRow = sheet.getRow(unitRowIndex);
 
-                    if (unitRow == null || isRowEmpty(unitRow)) continue;
+                    //if (unitRow == null || isRowEmpty(unitRow)) continue;
 
                     // Lấy thông tin cho mỗi đơn vị (từ cột 10 đến cột 13) cho mỗi dòng
                     String unitNameStr = getCellValueAsString(unitRow.getCell(10));  // Đơn vị (cột 10)
@@ -245,10 +223,10 @@ public class ProductServiceImpl implements ProductService {
                     // Tìm đơn vị từ DB
                     Unit unit = unitRepository.findByUnitName(unitNameStr);
                     ProductUnitDTORequest productUnitDTORequest = new ProductUnitDTORequest();
-                    if (unitNameStr.isEmpty()) {
-                        productUnitDTORequest.setUnitId(null);
-                        productUnitDTORequest.setImportPrice(0.0);
-                        productUnitDTORequest.setRetailPrice(0.0);
+                    if (unitNameStr.isEmpty() || conversionFactor == null) {
+                        productUnitDTORequest.setUnitId(unitRepository.findByUnitName("Viên").getId());
+                        productUnitDTORequest.setImportPrice(importPrice);
+                        productUnitDTORequest.setRetailPrice(retailPrice);
                         productUnitDTORequest.setConversionFactor(0);
                     } else if (unit == null) {
                         throw new ResourceNotFoundException(Message.UNIT_NOT_FOUND + ": " + unitNameStr);
@@ -258,11 +236,10 @@ public class ProductServiceImpl implements ProductService {
                         productUnitDTORequest.setRetailPrice(retailPrice);
                         productUnitDTORequest.setConversionFactor(conversionFactor);
                     }
+                    // Tạo đối tượng ProductUnitDTORequest cho mỗi đơn vị
                     productUnitListDTO.add(productUnitDTORequest);
                 }
-
                 productDTORequest.setProductUnitListDTO(productUnitListDTO);
-
                 // Sau khi tạo ProductDTORequest, gọi service để lưu vào DB
                 createProduct(productDTORequest, null);  // Nếu không có file đính kèm
             }
@@ -376,6 +353,8 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(productDTORequest.getDescription());
         product.setPrescriptionDrug(productDTORequest.getPrescriptionDrug());
         product.setNumberWarning(productDTORequest.getNumberWarning());
+        product.setLastModifiedDate(Instant.now());
+        product.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
 
         // Upload the image product if there is a file
         if (file != null && !file.isEmpty()) {
@@ -593,10 +572,11 @@ public class ProductServiceImpl implements ProductService {
 
             // Create rows for each unit
             for (ProductUnitDTOResponse unit : units) {
+                // Tạo một dòng mới trong Excel cho unit thỏa mãn điều kiện
                 Row row = sheet.createRow(rowNum++);
-                row.setHeightInPoints(20); // Set row height for better readability
+                row.setHeightInPoints(25); // Cài đặt chiều cao dòng cho dễ đọc
 
-                // Fill unit-specific data with borders
+                // Điền dữ liệu của unit vào các ô với kiểu dáng bảng (borders, currency, etc.)
                 createCellWithStyle(row, 4, unit.getUnitName(), borderedCellStyle); // Đơn vị sản phẩm
                 createCellWithStyle(row, 5, unit.getImportPrice(), currencyCellStyle); // Giá nhập
                 createCellWithStyle(row, 6, unit.getRetailPrice(), currencyCellStyle); // Giá bán
@@ -627,8 +607,12 @@ public class ProductServiceImpl implements ProductService {
             sheet.autoSizeColumn(i);
         }
 
+        sheet.setColumnWidth(1, 3000);
+        sheet.setColumnWidth(2, 12000);
         // Set a minimum width for the "Nhóm sản phẩm" column to ensure visibility
         sheet.setColumnWidth(3, 6000); // Adjust as needed, 5000 units roughly equals 20 characters in width
+        sheet.setColumnWidth(7, 6000);
+        sheet.setColumnWidth(8, 3000);
 
         // Write data to byte array output
         ByteArrayOutputStream out = new ByteArrayOutputStream();
