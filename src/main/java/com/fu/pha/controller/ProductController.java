@@ -55,7 +55,25 @@ public class ProductController {
     public ResponseEntity<PageResponseModel<ProductDTOResponse>> getListProductForSaleOrderPaging(@RequestParam(defaultValue = "0") int page,
                                                                                                   @RequestParam(defaultValue = "10") int size,
                                                                                                   @RequestParam(required = false) String productName) {
-        Page<ProductDTOResponse> productDTOResponsePage = productService.getListProductForSaleOrderPaging(page, size, productName);
+        Boolean isPrescription = false;
+        Page<ProductDTOResponse> productDTOResponsePage = productService.getListProductForSaleOrderPaging(page, size, productName,isPrescription);
+
+        PageResponseModel<ProductDTOResponse> response = PageResponseModel.<ProductDTOResponse>builder()
+                .page(page)
+                .size(size)
+                .total(productDTOResponsePage.getTotalElements())
+                .listData(productDTOResponsePage.getContent())
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/get-all-product-sale-order-paging-for-prescription")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    public ResponseEntity<PageResponseModel<ProductDTOResponse>> getListProductForSaleOrderPagingForPrescription(@RequestParam(defaultValue = "0") int page,
+                                                                                                  @RequestParam(defaultValue = "10") int size,
+                                                                                                  @RequestParam(required = false) String productName) {
+        Boolean isPrescription = true;
+        Page<ProductDTOResponse> productDTOResponsePage = productService.getListProductForSaleOrderPaging(page, size, productName,isPrescription);
 
         PageResponseModel<ProductDTOResponse> response = PageResponseModel.<ProductDTOResponse>builder()
                 .page(page)

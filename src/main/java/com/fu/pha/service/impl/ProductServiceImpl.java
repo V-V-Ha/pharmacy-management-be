@@ -474,11 +474,11 @@ public class ProductServiceImpl implements ProductService {
 //    }
 
     @Override
-    public Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size, String productName) {
+    public Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size, String productName, boolean isPrescription) {
         Pageable pageable = PageRequest.of(page, size);
 
         // Lấy danh sách sản phẩm với các điều kiện đã lọc trong repository
-        Page<ProductDTOResponse> products = productRepository.getListProductForSaleOrderPaging(productName, pageable);
+        Page<ProductDTOResponse> products = productRepository.getListProductForSaleOrderPaging(productName, isPrescription, pageable );
 
         // Nếu không có sản phẩm, throw exception
         if (products.isEmpty()) {
