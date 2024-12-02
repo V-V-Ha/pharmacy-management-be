@@ -20,4 +20,5 @@ public class ReturnOrderRequestDto {
     @Valid
     private List<ReturnOrderItemRequestDto> returnOrderItems;
     private String returnReason;
+    private Double totalAmount;
 }

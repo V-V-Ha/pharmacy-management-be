@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -26,4 +28,5 @@ public class ReturnOrderItemRequestDto {
     @NotNull(message = "Hệ số quy đổi không được để trống")
     @Min(value = 1, message = "Hệ số quy đổi phải lớn hơn 0")
     private Integer conversionFactor;
+    private List<ReturnOrderBatchRequestDto> batchRequestDtos;
 }

@@ -50,7 +50,5 @@ public class SaleOrderItem extends BaseEntity{
     @Column(name = "conversion_factor")
     private Integer conversionFactor;
 
-    @Column(name = "returned_quantity")
-    private Integer returnedQuantity;
 
 }

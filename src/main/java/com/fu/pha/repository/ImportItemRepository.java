@@ -33,8 +33,8 @@ public interface ImportItemRepository extends JpaRepository<ImportItem, Long> {
             "AND p.id = :productId")
     Optional<ImportItem> findByBatchNumberAndImportReceipt_InvoiceNumberAndProductId(
             @Param("batchNumber") String batchNumber,
-            @Param("invoiceNumber") String invoiceNumber,
-            @Param("productId") Long productId);
+            @Param("productId") Long productId,
+            @Param("invoiceNumber") String invoiceNumber);
 
 
 

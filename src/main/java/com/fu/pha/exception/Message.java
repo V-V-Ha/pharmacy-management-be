@@ -104,4 +104,6 @@ public class Message {
     public static final String PAYMENT_COMPLETED = "Thanh toán thành công";
     public static final String CANNOT_UPDATE_PAID_ORDER = "Không thể cập nhật đơn hàng đã thanh toán";
     public static final String INVALID_PRESCRIPTION_DRUG = "Hình thức bán không hợp lệ";
+    public static final String SALE_ORDER_ITEM_BATCH_NOT_FOUND = "Không tìm thấy lô hàng";
+
 }

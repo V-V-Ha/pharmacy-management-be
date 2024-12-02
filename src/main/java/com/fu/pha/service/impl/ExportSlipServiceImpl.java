@@ -491,7 +491,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
                 .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
         // Tìm ImportItem theo importItemId
-        ImportItem importItem = importItemRepository.findByBatchNumberAndImportReceipt_InvoiceNumberAndProductId(itemDto.getBatchNumber(),itemDto.getInvoiceNumber(), itemDto.getProductId())
+        ImportItem importItem = importItemRepository.findByBatchNumberAndImportReceipt_InvoiceNumberAndProductId(itemDto.getBatchNumber(), itemDto.getProductId(),itemDto.getInvoiceNumber())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
 
         // Kiểm tra nhà cung cấp nếu là phiếu trả lại nhà cung cấp

@@ -25,6 +25,13 @@ public class SaleOrderItemBatch {
     @JoinColumn(name = "import_item_id", nullable = false)
     private ImportItem importItem;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "return_order_item_id")
+    private ReturnOrderItem returnOrderItem;
+
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
+
+    @Column(name = "returned_quantity")
+    private Integer returnedQuantity;
 }
