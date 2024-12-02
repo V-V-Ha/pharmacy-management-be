@@ -2,6 +2,7 @@ package com.fu.pha.controller;
 
 import com.fu.pha.dto.request.SupplierDto;
 import com.fu.pha.dto.response.PageResponseModel;
+import com.fu.pha.dto.response.SupplierCResponseDto;
 import com.fu.pha.enums.Status;
 import com.fu.pha.exception.Message;
 import com.fu.pha.service.SupplierService;
@@ -24,9 +25,8 @@ public class SupplierController {
     //create supplier
     @PostMapping("/create-supplier")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
-    public ResponseEntity<String> createSupplier(@Valid @RequestBody SupplierDto request) {
-        supplierService.createSupplier(request);
-        return ResponseEntity.ok(Message.CREATE_SUCCESS);
+    public ResponseEntity<SupplierCResponseDto> createSupplier(@Valid @RequestBody SupplierDto request) {
+        return ResponseEntity.ok(supplierService.createSupplier(request));
     }
 
     //update supplier

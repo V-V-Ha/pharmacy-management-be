@@ -71,8 +71,7 @@ public class ProductController {
     public ResponseEntity<?> createProduct(
             @RequestPart("productDTORequest") ProductDTORequest productDTORequest,
             @RequestPart(value = "file", required = false) MultipartFile file) {
-        productService.createProduct(productDTORequest, file);
-        return ResponseEntity.ok(Message.CREATE_SUCCESS);
+        return ResponseEntity.ok(productService.createProduct(productDTORequest, file));
     }
 
     @PostMapping("/import-products")

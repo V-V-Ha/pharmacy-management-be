@@ -9,7 +9,7 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 public interface CustomerService {
-    void createCustomer(CustomerDTORequest customerDTORequest);
+    CustomerDTOResponse createCustomer(CustomerDTORequest customerDTORequest);
 
     void updateCustomer(CustomerDTORequest customerDTORequest);
 

@@ -132,7 +132,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
 
                 // Kiểm tra số lượng có thể trả lại cho từng SaleOrderItemBatch
                 int availableQuantityForReturn = saleOrderItemBatch.getQuantity();
-                int quantityReturn = batchRequestDto.getQuantity();
+                int quantityReturn = batchRequestDto.getQuantity() * conversionFactor;
                 if (availableQuantityForReturn < saleOrderItemBatch.getReturnedQuantity() || availableQuantityForReturn < quantityReturn) {
                     continue;
                 }

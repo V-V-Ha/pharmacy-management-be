@@ -28,7 +28,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Transactional
     @Override
-    public void createCustomer(CustomerDTORequest customerDTORequest) {
+    public CustomerDTOResponse createCustomer(CustomerDTORequest customerDTORequest) {
 
         // Check exist phone number
         Optional<Customer> customerOptional = customerRepository.findByPhoneNumber(customerDTORequest.getPhoneNumber());
@@ -53,7 +53,8 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setYob(yob);
         customer.setGender(customerDTORequest.getGender());
         customer.setStatus(Status.ACTIVE);
-        customerRepository.save(customer);
+
+        return new CustomerDTOResponse(customer);
     }
 
 

@@ -68,7 +68,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Transactional
     @Override
-    public void createProduct(ProductDTORequest productDTORequest, MultipartFile file) {
+    public ProductDTOResponse createProduct(ProductDTORequest productDTORequest, MultipartFile file) {
 
         //validate the request
         checkValidateProduct(productDTORequest);
@@ -136,6 +136,8 @@ public class ProductServiceImpl implements ProductService {
             productUnitList.add(productUnit);
         }
         productUnitRepository.saveAll(productUnitList);
+
+        return new ProductDTOResponse(product);
     }
 
     @Transactional

@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.List;
 
 public interface ProductService {
-    void createProduct(ProductDTORequest request, MultipartFile file);
+    ProductDTOResponse createProduct(ProductDTORequest request, MultipartFile file);
     void updateProduct(ProductDTORequest request, MultipartFile file);
     Page<ProductDTOResponse> getAllProductPaging(int size, int index, String productName, String category, String status);
     ProductDTOResponse getProductById(Long id);

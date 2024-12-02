@@ -1,6 +1,8 @@
 package com.fu.pha.service.impl;
 
 import com.fu.pha.dto.request.SupplierDto;
+import com.fu.pha.dto.response.SupplierCResponseDto;
+import com.fu.pha.dto.response.SupplierResponseDto;
 import com.fu.pha.entity.Supplier;
 import com.fu.pha.enums.Status;
 import com.fu.pha.exception.BadRequestException;
@@ -21,7 +23,7 @@ public class SupplierServiceImpl implements SupplierService {
     @Autowired
     private SupplierRepository supplierRepository;
     @Override
-    public void createSupplier(SupplierDto supplierDto) {
+    public SupplierCResponseDto createSupplier(SupplierDto supplierDto) {
         // Check exist tax
         Optional<Supplier> supplierExist = supplierRepository.findByTax(supplierDto.getTax());
         if (supplierExist.isPresent()) {
@@ -48,6 +50,7 @@ public class SupplierServiceImpl implements SupplierService {
 
         // Save supplier to the database
         supplierRepository.save(supplier);
+        return new SupplierCResponseDto(supplier);
     }
 
     // Helper method to capitalize the first letter of each word
