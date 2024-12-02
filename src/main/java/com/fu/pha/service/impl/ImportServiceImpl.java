@@ -298,7 +298,12 @@ public class ImportServiceImpl implements ImportService {
         // Nếu trạng thái hiện tại là REJECT và người cập nhật không phải là chủ cửa hàng, đặt lại trạng thái về PENDING
         if (importReceipt.getStatus() == OrderStatus.REJECT && !userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)) {
             importReceipt.setStatus(OrderStatus.PENDING);
+        } else if (importReceipt.getStatus() == OrderStatus.REJECT && userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)) {
+            importReceipt.setStatus(OrderStatus.CONFIRMED);
+        } else if(importReceipt.getStatus() == OrderStatus.PENDING && userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)){
+            importReceipt.setStatus(OrderStatus.CONFIRMED);
         }
+
 
         // Tìm user và supplier mới
         User user = userRepository.findById(importDto.getUserId())
@@ -314,7 +319,8 @@ public class ImportServiceImpl implements ImportService {
         importReceipt.setSupplier(supplier);
         importReceipt.setTax(importDto.getTax());
         importReceipt.setDiscount(importDto.getDiscount());
-        importReceipt.setImportDate(Instant.now());
+        importReceipt.setLastModifiedBy(currentUser.getFullName());
+        importReceipt.setLastModifiedDate(Instant.now());
 
         if (file != null && !file.isEmpty()) {
             String imageUrl = uploadImage(file);

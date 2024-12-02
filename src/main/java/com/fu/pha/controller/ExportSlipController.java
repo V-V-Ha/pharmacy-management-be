@@ -61,7 +61,7 @@ public class ExportSlipController {
     // Từ chối phiếu xuất
     @PostMapping("/{id}/reject")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
-    public ResponseEntity<?> rejectExport(@PathVariable Long id, @RequestBody String reason) {
+    public ResponseEntity<?> rejectExport(@PathVariable Long id, @RequestParam String reason) {
         exportSlipService.rejectExport(id, reason);
         return ResponseEntity.ok(Message.REJECT_SUCCESS);
     }

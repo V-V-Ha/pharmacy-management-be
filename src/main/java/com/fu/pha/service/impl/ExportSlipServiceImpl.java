@@ -140,7 +140,12 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         // Nếu trạng thái hiện tại là REJECT và người cập nhật không phải là chủ cửa hàng, đặt lại trạng thái về PENDING
         if (exportSlip.getStatus() == OrderStatus.REJECT && !userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)) {
             exportSlip.setStatus(OrderStatus.PENDING);
+        } else if (exportSlip.getStatus() == OrderStatus.REJECT && userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)) {
+            exportSlip.setStatus(OrderStatus.CONFIRMED);
+        } else if(exportSlip.getStatus() == OrderStatus.PENDING && userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)){
+            exportSlip.setStatus(OrderStatus.CONFIRMED);
         }
+
 
         // Cập nhật thông tin cơ bản
         exportSlip.setExportDate(Instant.now());
@@ -148,6 +153,8 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         exportSlip.setDiscount(exportDto.getDiscount());
         exportSlip.setNote(exportDto.getNote());
         exportSlip.setUser(currentUser);
+        exportSlip.setLastModifiedBy(currentUser.getFullName());
+        exportSlip.setLastModifiedDate(Instant.now());
 
         // Kiểm tra loại phiếu xuất kho
         if (exportDto.getTypeDelivery() == ExportType.RETURN_TO_SUPPLIER) {
