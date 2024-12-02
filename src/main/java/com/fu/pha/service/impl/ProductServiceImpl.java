@@ -575,11 +575,17 @@ public class ProductServiceImpl implements ProductService {
                 // Tạo một dòng mới trong Excel cho unit thỏa mãn điều kiện
                 Row row = sheet.createRow(rowNum++);
                 row.setHeightInPoints(25); // Cài đặt chiều cao dòng cho dễ đọc
+                if (unit.getConversionFactor() == 0) {
+                    createCellWithStyle(row, 4, "", borderedCellStyle); // Đơn vị sản phẩm
+                    createCellWithStyle(row, 5, null, currencyCellStyle); // Giá nhập
+                    createCellWithStyle(row, 6, null, currencyCellStyle); // Giá bán
+                } else {
+                    // Điền dữ liệu của unit vào các ô với kiểu dáng bảng (borders, currency, etc.)
+                    createCellWithStyle(row, 4, unit.getUnitName(), borderedCellStyle); // Đơn vị sản phẩm
+                    createCellWithStyle(row, 5, unit.getImportPrice(), currencyCellStyle); // Giá nhập
+                    createCellWithStyle(row, 6, unit.getRetailPrice(), currencyCellStyle); // Giá bán
+                }
 
-                // Điền dữ liệu của unit vào các ô với kiểu dáng bảng (borders, currency, etc.)
-                createCellWithStyle(row, 4, unit.getUnitName(), borderedCellStyle); // Đơn vị sản phẩm
-                createCellWithStyle(row, 5, unit.getImportPrice(), currencyCellStyle); // Giá nhập
-                createCellWithStyle(row, 6, unit.getRetailPrice(), currencyCellStyle); // Giá bán
             }
 
             // Fill product-specific data in the first row only
