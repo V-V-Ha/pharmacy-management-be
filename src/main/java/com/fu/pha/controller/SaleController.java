@@ -72,7 +72,6 @@ public class SaleController {
     }
 
     @PutMapping("/complete-payment/{orderId}")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<String> completePayment(@PathVariable Long orderId) {
         saleOrderService.completePayment(orderId);
         return ResponseEntity.ok(Message.PAYMENT_COMPLETED);

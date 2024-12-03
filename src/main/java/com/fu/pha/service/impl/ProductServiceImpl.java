@@ -30,6 +30,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -214,7 +215,7 @@ public class ProductServiceImpl implements ProductService {
                 for (int unitRowIndex = rowIndex; unitRowIndex < rowIndex + 3 && unitRowIndex < sheet.getPhysicalNumberOfRows(); unitRowIndex++) {
                     Row unitRow = sheet.getRow(unitRowIndex);
 
-                    if (unitRow == null || isRowEmpty(unitRow)) continue;
+                    //if (unitRow == null || isRowEmpty(unitRow)) continue;
 
                     // Lấy thông tin cho mỗi đơn vị (từ cột 10 đến cột 13) cho mỗi dòng
                     String unitNameStr = getCellValueAsString(unitRow.getCell(10));  // Đơn vị (cột 10)
@@ -222,27 +223,27 @@ public class ProductServiceImpl implements ProductService {
                     Double retailPrice = getCellValueAsDouble(unitRow.getCell(12));  // Giá bán lẻ (cột 12)
                     Integer conversionFactor = getCellValueAsInteger(unitRow.getCell(13));  // Hệ số chuyển đổi (cột 13)
 
+
                     // Tìm đơn vị từ DB
                     Unit unit = unitRepository.findByUnitName(unitNameStr);
-
-                    if (unitNameStr.isEmpty()) {
-                        continue;
+                    ProductUnitDTORequest productUnitDTORequest = new ProductUnitDTORequest();
+                    if (unitNameStr.isEmpty() || conversionFactor == null) {
+                        productUnitDTORequest.setUnitId(unitRepository.findByUnitName("Viên").getId());
+                        productUnitDTORequest.setImportPrice(importPrice);
+                        productUnitDTORequest.setRetailPrice(retailPrice);
+                        productUnitDTORequest.setConversionFactor(0);
                     } else if (unit == null) {
                         throw new ResourceNotFoundException(Message.UNIT_NOT_FOUND + ": " + unitNameStr);
+                    } else {
+                        productUnitDTORequest.setUnitId(unit.getId());
+                        productUnitDTORequest.setImportPrice(importPrice);
+                        productUnitDTORequest.setRetailPrice(retailPrice);
+                        productUnitDTORequest.setConversionFactor(conversionFactor);
                     }
-
                     // Tạo đối tượng ProductUnitDTORequest cho mỗi đơn vị
-                    ProductUnitDTORequest productUnitDTORequest = new ProductUnitDTORequest();
-                    productUnitDTORequest.setUnitId(unit.getId());
-                    productUnitDTORequest.setImportPrice(importPrice);
-                    productUnitDTORequest.setRetailPrice(retailPrice);
-                    productUnitDTORequest.setConversionFactor(conversionFactor);
-
                     productUnitListDTO.add(productUnitDTORequest);
                 }
-
                 productDTORequest.setProductUnitListDTO(productUnitListDTO);
-
                 // Sau khi tạo ProductDTORequest, gọi service để lưu vào DB
                 createProduct(productDTORequest, null);  // Nếu không có file đính kèm
             }
@@ -356,6 +357,8 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(productDTORequest.getDescription());
         product.setPrescriptionDrug(productDTORequest.getPrescriptionDrug());
         product.setNumberWarning(productDTORequest.getNumberWarning());
+        product.setLastModifiedDate(Instant.now());
+        product.setLastModifiedBy(SecurityContextHolder.getContext().getAuthentication().getName());
 
         // Upload the image product if there is a file
         if (file != null && !file.isEmpty()) {
@@ -573,13 +576,20 @@ public class ProductServiceImpl implements ProductService {
 
             // Create rows for each unit
             for (ProductUnitDTOResponse unit : units) {
+                // Tạo một dòng mới trong Excel cho unit thỏa mãn điều kiện
                 Row row = sheet.createRow(rowNum++);
-                row.setHeightInPoints(20); // Set row height for better readability
+                row.setHeightInPoints(25); // Cài đặt chiều cao dòng cho dễ đọc
+                if (unit.getConversionFactor() == 0) {
+                    createCellWithStyle(row, 4, "", borderedCellStyle); // Đơn vị sản phẩm
+                    createCellWithStyle(row, 5, null, currencyCellStyle); // Giá nhập
+                    createCellWithStyle(row, 6, null, currencyCellStyle); // Giá bán
+                } else {
+                    // Điền dữ liệu của unit vào các ô với kiểu dáng bảng (borders, currency, etc.)
+                    createCellWithStyle(row, 4, unit.getUnitName(), borderedCellStyle); // Đơn vị sản phẩm
+                    createCellWithStyle(row, 5, unit.getImportPrice(), currencyCellStyle); // Giá nhập
+                    createCellWithStyle(row, 6, unit.getRetailPrice(), currencyCellStyle); // Giá bán
+                }
 
-                // Fill unit-specific data with borders
-                createCellWithStyle(row, 4, unit.getUnitName(), borderedCellStyle); // Đơn vị sản phẩm
-                createCellWithStyle(row, 5, unit.getImportPrice(), currencyCellStyle); // Giá nhập
-                createCellWithStyle(row, 6, unit.getRetailPrice(), currencyCellStyle); // Giá bán
             }
 
             // Fill product-specific data in the first row only
@@ -607,8 +617,12 @@ public class ProductServiceImpl implements ProductService {
             sheet.autoSizeColumn(i);
         }
 
+        sheet.setColumnWidth(1, 3000);
+        sheet.setColumnWidth(2, 12000);
         // Set a minimum width for the "Nhóm sản phẩm" column to ensure visibility
         sheet.setColumnWidth(3, 6000); // Adjust as needed, 5000 units roughly equals 20 characters in width
+        sheet.setColumnWidth(7, 6000);
+        sheet.setColumnWidth(8, 3000);
 
         // Write data to byte array output
         ByteArrayOutputStream out = new ByteArrayOutputStream();

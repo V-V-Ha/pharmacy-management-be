@@ -26,17 +26,17 @@ public class ProductUnit extends BaseEntity{
     private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "unit_id", nullable = false)
+    @JoinColumn(name = "unit_id")
     @JsonBackReference
     private Unit unit;
 
-    @Column(name = "conversion_factor",nullable = false)
+    @Column(name = "conversion_factor")
     private Integer conversionFactor;
 
     @Column(name = "import_price")
     private Double importPrice;
 
-    @Column(name = "retail_price", nullable = false)
+    @Column(name = "retail_price")
     private Double retailPrice;
 
 }

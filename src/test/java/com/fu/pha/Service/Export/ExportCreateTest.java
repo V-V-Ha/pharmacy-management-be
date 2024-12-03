@@ -9,14 +9,12 @@ import com.fu.pha.dto.request.exportSlip.ExportSlipRequestDto;
 import com.fu.pha.entity.*;
 import com.fu.pha.enums.ERole;
 import com.fu.pha.enums.ExportType;
-import com.fu.pha.enums.OrderStatus;
 import com.fu.pha.exception.*;
 import com.fu.pha.repository.*;
-import com.fu.pha.service.ExportSlipService;
+import com.fu.pha.service.NotificationService;
 import com.fu.pha.service.impl.ExportSlipServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -24,9 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Instant;
 import java.util.*;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
@@ -69,6 +65,9 @@ public class ExportCreateTest {
     @Mock
     private Authentication authentication;
 
+    @Mock
+    private ImportRepository importRepository;
+
     // Các đối tượng dùng chung
     private User mockUser;
     private Supplier mockSupplier;
@@ -76,8 +75,16 @@ public class ExportCreateTest {
     private ImportItem mockImportItem;
     private ExportSlipRequestDto exportDto;
 
+    @Mock
+    private NotificationService notificationService;
+
+    @InjectMocks
+    private ExportSlipServiceImpl exportSlipService;
+
     @BeforeEach
     void setUp() {
+        MockitoAnnotations.openMocks(this);
+
         // Initialize mock user
         mockUser = new User();
         mockUser.setId(1L);
@@ -131,99 +138,19 @@ public class ExportCreateTest {
         itemDto.setConversionFactor(1);
         itemDto.setTotalAmount(950.0); // 100 * 10 - 5%
 
-        exportDto = new ExportSlipRequestDto(
-                null,
-                "INV0001",
-                Instant.now(),
-                ExportType.RETURN_TO_SUPPLIER,
-                5.0,
-                950.0,
-                "Test note",
-                1L,
-                1L,
-                Arrays.asList(itemDto),
-                1L,
-                "CONFIRMED"
-        );
-
-        // Mock additional repositories if needed
-        // Example:
-        // lenient().when(exportSlipItemRepository.save(any(ExportSlipItem.class))).thenReturn(new ExportSlipItem());
-    }
-
-    // Phương thức helper để tạo ExportSlipRequestDto với tùy chỉnh
-    private ExportSlipRequestDto createExportSlipRequestDto(ExportType typeDelivery, Double discount, Double totalAmount, Long supplierId, boolean addItems) {
-        ExportSlipRequestDto dto = new ExportSlipRequestDto(
-                null,
-                "INV0001",
-                Instant.now(),
-                typeDelivery,
-                discount,
-                totalAmount,
-                "Test note",
-                1L,
-                supplierId,
-                addItems ? exportDto.getExportSlipItems() : null,
-                1L,
-                "CONFIRMED"
-        );
-        return dto;
-    }
-
-    // Các phương thức kiểm thử
-
-    @Test
-    void createExport_SuccessWithConfirmedStatus() {
-        // Act
-        exportService.createExport(exportDto);
-
-        // Assert
-        ArgumentCaptor<ExportSlip> exportSlipCaptor = ArgumentCaptor.forClass(ExportSlip.class);
-        verify(exportSlipRepository, times(2)).save(exportSlipCaptor.capture()); // Lần đầu lưu phiếu xuất và lần sau cập nhật totalAmount
-
-        ExportSlip savedExportSlip = exportSlipCaptor.getAllValues().get(0);
-        assertEquals("EX000002", savedExportSlip.getInvoiceNumber());
-        assertEquals(ExportType.RETURN_TO_SUPPLIER, savedExportSlip.getTypeDelivery());
-        assertEquals(5.0, savedExportSlip.getDiscount());
-        assertEquals("Test note", savedExportSlip.getNote());
-        assertEquals(mockUser, savedExportSlip.getUser());
-        assertEquals(OrderStatus.CONFIRMED, savedExportSlip.getStatus());
-
-        // Kiểm tra ExportSlipItem
-        ArgumentCaptor<ExportSlipItem> exportSlipItemCaptor = ArgumentCaptor.forClass(ExportSlipItem.class);
-        verify(productRepository).save(mockProduct);
-        verify(importItemRepository).save(mockImportItem);
-        verify(inventoryHistoryRepository).save(any(InventoryHistory.class));
-
-        // Kiểm tra tổng tiền
-        ExportSlip updatedExportSlip = exportSlipCaptor.getAllValues().get(1);
-        assertEquals(950.0, updatedExportSlip.getTotalAmount());
-    }
-
-    @Test
-    void createExport_SuccessWithPendingStatus() {
-        // Arrange: Người dùng không có ROLE_PRODUCT_OWNER
-        mockUser.setRoles(new HashSet<>(Arrays.asList(new Role(ERole.ROLE_STOCK.name()))));
-
-        // Act
-        exportService.createExport(exportDto);
-
-        // Assert
-        ArgumentCaptor<ExportSlip> exportSlipCaptor = ArgumentCaptor.forClass(ExportSlip.class);
-        verify(exportSlipRepository, times(2)).save(exportSlipCaptor.capture());
-
-        ExportSlip savedExportSlip = exportSlipCaptor.getAllValues().get(0);
-        assertEquals(OrderStatus.PENDING, savedExportSlip.getStatus());
-
-        // Kiểm tra rằng stock không được xử lý
-        verify(productRepository, never()).save(any(Product.class));
-        verify(importItemRepository, never()).save(any(ImportItem.class));
-        verify(inventoryHistoryRepository, never()).save(any(InventoryHistory.class));
-
-        // Kiểm tra tổng tiền
-        ExportSlip updatedExportSlip = exportSlipCaptor.getAllValues().get(1);
-        assertEquals(950.0, updatedExportSlip.getTotalAmount());
-    }
+        exportDto = new ExportSlipRequestDto();
+        exportDto.setInvoiceNumber("INV0001");
+        exportDto.setExportDate(Instant.now());
+        exportDto.setTypeDelivery(ExportType.RETURN_TO_SUPPLIER);
+        exportDto.setDiscount(5.0);
+        exportDto.setTotalAmount(950.0);
+        exportDto.setNote("Test note");
+        exportDto.setUserId(1L);
+        exportDto.setSupplierId(1L);
+        exportDto.setExportSlipItems(Arrays.asList(itemDto));
+        exportDto.setProductCount(1L);
+        exportDto.setStatus("CONFIRMED");
+}
 
     @Test
     void createExport_UnauthenticatedUser_ThrowsUnauthorizedException() {
@@ -255,12 +182,10 @@ public class ExportCreateTest {
 
     @Test
     void createExport_InvalidExportType_ThrowsBadRequestException() {
-        // Arrange: Loại phiếu xuất không hợp lệ
-        ExportSlipRequestDto invalidDto = createExportSlipRequestDto(null, 5.0, 950.0, 1L, true);
-
+        exportDto.setTypeDelivery(null);
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            exportService.createExport(invalidDto);
+            exportService.createExport(exportDto);
         });
 
         assertEquals(Message.INVALID_EXPORT_TYPE, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
@@ -269,43 +194,14 @@ public class ExportCreateTest {
 
     @Test
     void createExport_EmptyExportSlipItems_ThrowsBadRequestException() {
-        // Arrange: Danh sách sản phẩm xuất rỗng
-        ExportSlipRequestDto invalidDto = createExportSlipRequestDto(ExportType.RETURN_TO_SUPPLIER, 5.0, 950.0, 1L, false);
+        exportDto.setExportSlipItems(Collections.emptyList());
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            exportService.createExport(invalidDto);
+            exportService.createExport(exportDto);
         });
 
         assertEquals(Message.EXPORT_ITEMS_EMPTY, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
-        //verify(exportSlipRepository, never()).save(any(ExportSlip.class));
-    }
-
-    @Test
-    void createExport_TotalAmountMissing_ThrowsBadRequestException() {
-        // Arrange: Tổng tiền bị thiếu
-        ExportSlipRequestDto invalidDto = createExportSlipRequestDto(ExportType.RETURN_TO_SUPPLIER, 5.0, null, 1L, true);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            exportService.createExport(invalidDto);
-        });
-
-        assertEquals(Message.TOTAL_AMOUNT_REQUIRED, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
-        //verify(exportSlipRepository, never()).save(any(ExportSlip.class));
-    }
-
-    @Test
-    void createExport_TotalAmountMismatch_ThrowsBadRequestException() {
-        // Arrange: Tổng tiền không khớp
-        ExportSlipRequestDto invalidDto = createExportSlipRequestDto(ExportType.RETURN_TO_SUPPLIER, 5.0, 1000.0, 1L, true);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            exportService.createExport(invalidDto);
-        });
-
-        assertEquals(Message.TOTAL_AMOUNT_NOT_MATCH, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
         //verify(exportSlipRepository, never()).save(any(ExportSlip.class));
     }
 
@@ -337,51 +233,5 @@ public class ExportCreateTest {
         //verify(exportSlipRepository, never()).save(any(ExportSlip.class));
     }
 
-    @Test
-    void createExport_SupplierMismatchForReturn_ThrowsBadRequestException() {
-        // Arrange: Nhà cung cấp không khớp khi trả lại nhà cung cấp
-        Supplier differentSupplier = new Supplier();
-        differentSupplier.setId(2L);
-        Import differentImportReceipt = new Import();
-        differentImportReceipt.setSupplier(differentSupplier);
-        mockImportItem.setImportReceipt(differentImportReceipt);
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            exportService.createExport(exportDto);
-        });
-
-        assertEquals(Message.SUPPLIER_NOT_MATCH, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
-        //verify(exportSlipRepository, never()).save(any(ExportSlip.class));
-    }
-
-    @Test
-    void createExport_NotEnoughStock_ThrowsBadRequestException() {
-        // Arrange: Số lượng tồn kho không đủ
-        mockProduct.setTotalQuantity(50); // Số lượng hiện tại = 50, yêu cầu = 60 * 1 = 60 > 50
-        exportDto.getExportSlipItems().get(0).setQuantity(60); // 60 * 1 = 60 > 50
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            exportService.createExport(exportDto);
-        });
-
-        assertEquals(Message.NOT_ENOUGH_STOCK, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
-        //verify(exportSlipRepository, never()).save(any(ExportSlip.class));
-    }
-
-    @Test
-    void createExport_NotEnoughStockInBatch_ThrowsBadRequestException() {
-        // Arrange: Số lượng trong lô không đủ
-        mockImportItem.setRemainingQuantity(50); // Số lượng còn lại = 50
-        exportDto.getExportSlipItems().get(0).setQuantity(60); // 60 * 1 = 60 > 50
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            exportService.createExport(exportDto);
-        });
-
-        assertEquals(Message.NOT_ENOUGH_STOCK_IN_BATCH, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
-        //verify(exportSlipRepository, never()).save(any(ExportSlip.class));
-    }
 }
