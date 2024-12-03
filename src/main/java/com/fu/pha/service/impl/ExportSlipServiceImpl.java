@@ -157,6 +157,11 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         exportSlip.setLastModifiedDate(Instant.now());
 
         // Kiểm tra loại phiếu xuất kho
+
+        //check exportDto.getTypeDelivery() == null
+        if (exportDto.getTypeDelivery() == null) {
+            throw new BadRequestException(Message.INVALID_EXPORT_TYPE);
+        }
         if (exportDto.getTypeDelivery() == ExportType.RETURN_TO_SUPPLIER) {
             Supplier supplier = supplierRepository.findById(exportDto.getSupplierId())
                     .orElseThrow(() -> new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND));

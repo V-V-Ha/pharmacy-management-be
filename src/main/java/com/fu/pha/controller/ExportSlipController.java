@@ -67,7 +67,7 @@ public class ExportSlipController {
     }
 
     @GetMapping("/get-export-slip/{exportSlipId}")
-    @PreAuthorize("hasRole('PRODUCT_OWNER')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<?> getExportSlip(@PathVariable Long exportSlipId) {
         return ResponseEntity.ok(exportSlipService.getActiveExportSlipById(exportSlipId));
     }
