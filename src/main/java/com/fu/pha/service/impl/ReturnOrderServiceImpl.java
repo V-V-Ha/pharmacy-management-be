@@ -5,7 +5,6 @@ import com.fu.pha.dto.request.ReturnOrderBatchRequestDto;
 import com.fu.pha.dto.request.ReturnOrderItemRequestDto;
 import com.fu.pha.dto.request.ReturnOrderRequestDto;
 import com.fu.pha.dto.response.*;
-import com.fu.pha.dto.response.SaleOrder.SaleOrderResponseDto;
 import com.fu.pha.entity.*;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
@@ -28,9 +27,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service

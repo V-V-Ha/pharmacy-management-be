@@ -9,7 +9,6 @@ import com.fu.pha.enums.NotificationType;
 import com.fu.pha.exception.Message;
 import com.fu.pha.repository.NotificationRepository;
 import com.fu.pha.repository.ProductRepository;
-import com.fu.pha.repository.RoleRepository;
 import com.fu.pha.repository.UserRepository;
 import com.fu.pha.service.FirebaseNotificationService;
 import com.fu.pha.service.NotificationService;
@@ -23,8 +22,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {
