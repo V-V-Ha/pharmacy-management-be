@@ -106,4 +106,5 @@ public class Message {
     public static final String INVALID_PRESCRIPTION_DRUG = "Hình thức bán không hợp lệ";
     public static final String SALE_ORDER_ITEM_BATCH_NOT_FOUND = "Không tìm thấy lô hàng";
 
+    public static final String NULL_NAME = "Tên không được trống";
 }

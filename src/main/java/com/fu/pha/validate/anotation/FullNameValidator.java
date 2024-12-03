@@ -17,7 +17,7 @@ public class FullNameValidator implements ConstraintValidator<ValidFullName, Str
         // Kiểm tra nếu trường fullName không trống
         if (StringUtils.isBlank(fullName)) {
             context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate(Message.NULL_FILED).addConstraintViolation();
+            context.buildConstraintViolationWithTemplate(Message.NULL_NAME).addConstraintViolation();
             return false;
         }
 

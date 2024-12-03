@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SupplierDto {
     private Long id;
+
     @ValidFullName
     private String supplierName;
 
