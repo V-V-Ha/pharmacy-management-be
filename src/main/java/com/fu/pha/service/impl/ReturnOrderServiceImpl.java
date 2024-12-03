@@ -239,6 +239,72 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
         return saleOrderForReturnDto;
     }
 
+    @Override
+    public SaleOrderForReturnDto getSaleOrderForReturnById(Long id) {
+        // Lấy đơn hàng từ cơ sở dữ liệu
+        SaleOrder saleOrder = saleOrderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(Message.SALE_ORDER_NOT_FOUND));
+
+        // Chuyển dữ liệu đơn hàng thành DTO
+        SaleOrderForReturnDto saleOrderForReturnDto = new SaleOrderForReturnDto();
+        saleOrderForReturnDto.setId(saleOrder.getId());
+        saleOrderForReturnDto.setInvoiceNumber(saleOrder.getInvoiceNumber());
+        saleOrderForReturnDto.setSaleDate(saleOrder.getSaleDate());
+        saleOrderForReturnDto.setOrderType(saleOrder.getOrderType());
+        saleOrderForReturnDto.setPaymentMethod(saleOrder.getPaymentMethod());
+        saleOrderForReturnDto.setPaymentStatus(saleOrder.getPaymentStatus());
+        saleOrderForReturnDto.setDiscount(saleOrder.getDiscount());
+        saleOrderForReturnDto.setTotalAmount(saleOrder.getTotalAmount());
+
+        // Lấy thông tin khách hàng và bác sĩ (nếu có)
+        if (saleOrder.getCustomer() != null) {
+            saleOrderForReturnDto.setCustomer(new CustomerDTOResponse(saleOrder.getCustomer()));
+        }
+        if (saleOrder.getDoctor() != null) {
+            saleOrderForReturnDto.setDoctor(new DoctorDTOResponse(saleOrder.getDoctor()));
+        }
+
+        saleOrderForReturnDto.setUserId(saleOrder.getUser().getId());
+
+        // Lấy danh sách các mặt hàng trong đơn hàng
+        List<SaleOrderItemForReturnDto> saleOrderItems = new ArrayList<>();
+        for (SaleOrderItem saleOrderItem : saleOrder.getSaleOrderItemList()) {
+            SaleOrderItemForReturnDto saleOrderItemForReturnDto = new SaleOrderItemForReturnDto();
+            saleOrderItemForReturnDto.setQuantity(saleOrderItem.getQuantity());
+            saleOrderItemForReturnDto.setUnitPrice(saleOrderItem.getUnitPrice());
+            saleOrderItemForReturnDto.setUnit(saleOrderItem.getUnit());
+            saleOrderItemForReturnDto.setTotalAmount(saleOrderItem.getTotalAmount());
+            saleOrderItemForReturnDto.setConversionFactor(saleOrderItem.getConversionFactor());
+
+            // Lấy thông tin sản phẩm
+            ProductDTOResponse productDTO = new ProductDTOResponse(saleOrderItem.getProduct());
+            saleOrderItemForReturnDto.setProduct(productDTO);
+
+            // Lấy thông tin các lô của sản phẩm trong đơn bán
+            List<SaleOrderItemBatch> saleOrderItemBatches = saleOrderItemBatchRepository.findBySaleOrderItemId(saleOrderItem.getId());
+            List<ImportItemBatchDto> importItemBatchDtos = new ArrayList<>();
+            for (SaleOrderItemBatch saleOrderItemBatch : saleOrderItemBatches) {
+                // Tạo DTO cho ImportItemBatchDto
+                ImportItemBatchDto importItemBatchDto = new ImportItemBatchDto();
+                importItemBatchDto.setInvoiceNumber(saleOrderItemBatch.getImportItem().getImportReceipt().getInvoiceNumber());  // Số hóa đơn nhập hàng
+                importItemBatchDto.setBatchNumber(saleOrderItemBatch.getImportItem().getBatchNumber());       // Số lô
+                importItemBatchDto.setQuantityToSell(saleOrderItemBatch.getQuantity());                             // Số lượng trong lô
+
+                importItemBatchDtos.add(importItemBatchDto);
+            }
+
+            // Set danh sách các lô cho mặt hàng
+            saleOrderItemForReturnDto.setImportItemBatchDtos(importItemBatchDtos);
+
+            // Thêm mặt hàng vào danh sách
+            saleOrderItems.add(saleOrderItemForReturnDto);
+        }
+
+        // Thêm danh sách mặt hàng vào DTO của đơn hàng
+        saleOrderForReturnDto.setSaleOrderItems(saleOrderItems);
+
+        return saleOrderForReturnDto;
+    }
 
 
     @Override

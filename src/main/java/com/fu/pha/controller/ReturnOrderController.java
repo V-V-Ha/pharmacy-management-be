@@ -104,4 +104,10 @@ public class ReturnOrderController {
         return ResponseEntity.ok(returnOrderService.getSaleOrderForReturn(invoiceNumber));
     }
 
+    @GetMapping("/get-sale-order-for-return-id")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    public ResponseEntity<SaleOrderForReturnDto> getSaleOrderForReturnById(@RequestParam Long id) {
+        return ResponseEntity.ok(returnOrderService.getSaleOrderForReturnById(id));
+    }
+
 }

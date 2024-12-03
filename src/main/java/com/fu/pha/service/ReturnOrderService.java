@@ -18,6 +18,9 @@ public interface ReturnOrderService {
 
     SaleOrderForReturnDto getSaleOrderForReturn(String invoiceNumber);
 
+    SaleOrderForReturnDto getSaleOrderForReturnById(Long id);
+
+
     Page<ReturnOrderResponseDto> getAllReturnOrderPaging(int size, int index, String invoiceNumber, Instant fromDate, Instant toDate);
 
     void exportReturnOrdersToExcel(HttpServletResponse response, Instant fromInstant, Instant toInstant) throws IOException;

@@ -3,6 +3,7 @@ package com.fu.pha.dto.request;
 import com.fu.pha.enums.Status;
 import com.fu.pha.exception.Message;
 import com.fu.pha.util.OptionalEmail;
+import com.fu.pha.validate.anotation.ValidFullName;
 import com.fu.pha.validate.anotation.ValidPhoneNumber;
 import com.fu.pha.validate.anotation.ValidTax;
 import jakarta.validation.constraints.NotBlank;
@@ -15,7 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SupplierDto {
     private Long id;
-    @NotBlank(message = Message.NULL_FILED)
+    @ValidFullName
     private String supplierName;
 
     private String address;
