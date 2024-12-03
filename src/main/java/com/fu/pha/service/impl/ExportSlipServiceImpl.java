@@ -525,7 +525,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
                 .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
 
         Integer currentTotalQuantity = importItem.getRemainingQuantity();
-        int smallestQuantity = exportSlipItem.getQuantity() * exportSlipItem.getConversionFactor();
+        int smallestQuantity = itemDto.getQuantity() * itemDto.getConversionFactor();
 
         if (currentTotalQuantity == null || currentTotalQuantity < smallestQuantity) {
             throw new BadRequestException(Message.NOT_ENOUGH_STOCK_IN_BATCH);

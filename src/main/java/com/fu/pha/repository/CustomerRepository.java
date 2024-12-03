@@ -33,7 +33,9 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     Optional<Customer> findByPhoneNumber(String phoneNumber);
 
-    @Query("SELECT new com.fu.pha.dto.response.CustomerDTOResponse(c) FROM Customer c WHERE LOWER(c.phoneNumber) LIKE LOWER(CONCAT('%', :phoneNumber, '%'))")
+    @Query("SELECT new com.fu.pha.dto.response.CustomerDTOResponse(c) FROM Customer c WHERE " +
+            " LOWER(c.phoneNumber) LIKE LOWER(CONCAT('%', :phoneNumber, '%')) " +
+            " OR LOWER(c.customerName) LIKE LOWER(CONCAT('%', :phoneNumber, '%')) and c.status = 'ACTIVE' ")
     Optional<List<CustomerDTOResponse>> findByPhoneNumberContaining(String phoneNumber);
 
     Optional<Customer> findById(Long id);
