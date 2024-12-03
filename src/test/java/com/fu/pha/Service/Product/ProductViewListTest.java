@@ -114,12 +114,13 @@ public class ProductViewListTest {
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);
         String productName = "NonExistentProduct";
+        Boolean isPrescription = false;
 
-        when(productRepository.getListProductForSaleOrderPaging(productName, pageable)).thenReturn(Page.empty());
+        when(productRepository.getListProductForSaleOrderPaging(productName, isPrescription,pageable)).thenReturn(Page.empty());
 
         // Act & Assert
         assertThrows(ResourceNotFoundException.class, () -> {
-            productService.getListProductForSaleOrderPaging(0, 10, productName);
+            productService.getListProductForSaleOrderPaging(0, 10, productName, isPrescription);
         });
     }
 
@@ -130,10 +131,11 @@ public class ProductViewListTest {
         int invalidSize = 0; // size không hợp lệ
         int page = 0;
         String productName = "Product1";
+        Boolean isPrescription = false;
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> {
-            productService.getListProductForSaleOrderPaging(page, invalidSize, productName);
+            productService.getListProductForSaleOrderPaging(page, invalidSize, productName, isPrescription);
         });
     }
 
@@ -144,10 +146,11 @@ public class ProductViewListTest {
         int invalidPage = -1; // page không hợp lệ
         int size = 10;
         String productName = "Product1";
+        Boolean isPrescription = false;
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> {
-            productService.getListProductForSaleOrderPaging(invalidPage, size, productName);
+            productService.getListProductForSaleOrderPaging(invalidPage, size, productName, isPrescription);
         });
     }
 
@@ -157,13 +160,14 @@ public class ProductViewListTest {
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);
         String productName = "Product1";
+        Boolean isPrescription = false;
 
-        when(productRepository.getListProductForSaleOrderPaging(productName, pageable))
+        when(productRepository.getListProductForSaleOrderPaging(productName,isPrescription ,pageable))
                 .thenThrow(new RuntimeException("Database error"));
 
         // Act & Assert
         assertThrows(RuntimeException.class, () -> {
-            productService.getListProductForSaleOrderPaging(0, 10, productName);
+            productService.getListProductForSaleOrderPaging(0, 10, productName, isPrescription);
         });
     }
 }

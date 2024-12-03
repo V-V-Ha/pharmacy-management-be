@@ -1,13 +1,10 @@
 package com.fu.pha.dto.response.report;
 
-import com.fu.pha.dto.response.report.reportEntity.ImportItemReportDto;
-import com.fu.pha.dto.response.report.reportEntity.ProductReportDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
 
 @Getter
 @Setter

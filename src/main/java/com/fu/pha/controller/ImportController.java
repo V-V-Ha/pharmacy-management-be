@@ -68,9 +68,9 @@ public class ImportController {
     @PutMapping(value = "/update-import-receipt")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<String> updateImportReceipt(@RequestParam Long importId,
-                                                      @Valid @RequestPart("importRequestDto") ImportDto importReceiptDto,
+                                                      @Valid @RequestPart("importRequestDto") ImportDto importRequestDto,
                                                       @RequestPart(value = "image",required = false) MultipartFile image) {
-        importService.updateImport(importId, importReceiptDto, image);
+        importService.updateImport(importId, importRequestDto, image);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
 

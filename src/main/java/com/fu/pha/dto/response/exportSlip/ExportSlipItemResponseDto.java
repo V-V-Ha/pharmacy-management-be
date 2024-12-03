@@ -1,14 +1,11 @@
 package com.fu.pha.dto.response.exportSlip;
 
 import com.fu.pha.dto.response.ProductDTOResponse;
-import com.fu.pha.dto.response.importPack.ImportItemResponseDto;
 import com.fu.pha.dto.response.importPack.ImportItemResponseForExport;
 import com.fu.pha.entity.ExportSlipItem;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.Instant;
 @Getter
 @Setter
 @NoArgsConstructor

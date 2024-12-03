@@ -1,6 +1,5 @@
 package com.fu.pha.repository;
 
-import com.fu.pha.dto.request.importPack.ImportDto;
 import com.fu.pha.dto.request.importPack.ImportViewListDto;
 import com.fu.pha.entity.Import;
 import com.fu.pha.enums.OrderStatus;

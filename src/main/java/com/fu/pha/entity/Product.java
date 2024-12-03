@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fu.pha.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Where;
 import java.util.List;
 
 @Entity

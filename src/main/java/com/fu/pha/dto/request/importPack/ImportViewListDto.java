@@ -2,8 +2,6 @@ package com.fu.pha.dto.request.importPack;
 
 import com.fu.pha.entity.Import;
 import com.fu.pha.entity.ImportItem;
-import com.fu.pha.enums.PaymentMethod;
-import lombok.Builder;
 import lombok.Data;
 
 import java.time.Instant;

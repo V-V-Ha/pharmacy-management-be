@@ -2,7 +2,6 @@ package com.fu.pha.dto.response.importPack;
 
 import com.fu.pha.dto.response.ProductDTOResponse;
 import com.fu.pha.entity.ImportItem;
-import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

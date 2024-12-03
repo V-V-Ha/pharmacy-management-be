@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -19,6 +21,7 @@ public class ReturnOrderItemResponseDto {
     private Double totalAmount;
     private String unit;
     private Integer conversionFactor;
+    private List<SaleOrderItemBatchResponseDto> batchResponseDtos;
 
     public ReturnOrderItemResponseDto (ReturnOrderItem returnOrderItem) {
         this.product = returnOrderItem.getProduct() != null ? new ProductDTOResponse(returnOrderItem.getProduct()) : null;
@@ -28,5 +31,6 @@ public class ReturnOrderItemResponseDto {
         this.totalAmount = returnOrderItem.getTotalAmount();
         this.unit = returnOrderItem.getUnit();
         this.conversionFactor = returnOrderItem.getConversionFactor();
+        this.batchResponseDtos = null;
     }
 }

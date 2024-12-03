@@ -4,7 +4,6 @@ import com.fu.pha.entity.Notification;
 import com.fu.pha.entity.User;
 import com.fu.pha.enums.NotificationType;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

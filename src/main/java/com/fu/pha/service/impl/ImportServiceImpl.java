@@ -9,8 +9,6 @@ import com.fu.pha.dto.request.importPack.ImportViewListDto;
 import com.fu.pha.dto.response.CloudinaryResponse;
 import com.fu.pha.dto.response.ProductDtoResponseForExport;
 import com.fu.pha.dto.response.ProductUnitDTOResponse;
-import com.fu.pha.dto.response.exportSlip.BatchInfo;
-import com.fu.pha.dto.response.importPack.ImportItemResponseDto;
 import com.fu.pha.dto.response.importPack.ImportItemResponseForExport;
 import com.fu.pha.dto.response.importPack.ImportResponseDto;
 import com.fu.pha.dto.response.ProductDTOResponse;
@@ -28,11 +26,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -45,7 +41,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -298,7 +293,12 @@ public class ImportServiceImpl implements ImportService {
         // Nếu trạng thái hiện tại là REJECT và người cập nhật không phải là chủ cửa hàng, đặt lại trạng thái về PENDING
         if (importReceipt.getStatus() == OrderStatus.REJECT && !userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)) {
             importReceipt.setStatus(OrderStatus.PENDING);
+        } else if (importReceipt.getStatus() == OrderStatus.REJECT && userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)) {
+            importReceipt.setStatus(OrderStatus.CONFIRMED);
+        } else if(importReceipt.getStatus() == OrderStatus.PENDING && userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)){
+            importReceipt.setStatus(OrderStatus.CONFIRMED);
         }
+
 
         // Tìm user và supplier mới
         User user = userRepository.findById(importDto.getUserId())
@@ -314,7 +314,8 @@ public class ImportServiceImpl implements ImportService {
         importReceipt.setSupplier(supplier);
         importReceipt.setTax(importDto.getTax());
         importReceipt.setDiscount(importDto.getDiscount());
-        importReceipt.setImportDate(Instant.now());
+        importReceipt.setLastModifiedBy(currentUser.getFullName());
+        importReceipt.setLastModifiedDate(Instant.now());
 
         if (file != null && !file.isEmpty()) {
             String imageUrl = uploadImage(file);
@@ -369,6 +370,7 @@ public class ImportServiceImpl implements ImportService {
                         ? LocalDate.now().plusYears(100).atStartOfDay(ZoneId.systemDefault()).toInstant()
                         : itemDto.getExpiryDate());
                 itemDto.setTotalAmount(itemTotalAmount);
+                importItem.setTotalAmount(itemTotalAmount);
                 importItem.setConversionFactor(itemDto.getConversionFactor());
                 importItem.setRemainingQuantity(smallestQuantity);
 
@@ -429,15 +431,26 @@ public class ImportServiceImpl implements ImportService {
 
         // Cập nhật lại tổng totalAmount cho Import và lưu vào repository
         importReceipt.setTotalAmount(totalAmount);
-        importReceipt.setStatus(OrderStatus.PENDING);
         importRepository.save(importReceipt);
+
+        // Lấy danh sách chủ cửa hàng
+        List<User> storeOwners = userRepository.findAllByRoles_Name(ERole.ROLE_PRODUCT_OWNER);
+
+        if(!currentUser.getRoles().stream().anyMatch(r -> r.getName().equals(ERole.ROLE_PRODUCT_OWNER))){
+            for (User storeOwner : storeOwners) {
+                String title = "Phiếu nhập mới";
+                String message = "Nhân viên " + currentUser.getUsername() + " đã tạo một phiếu nhập mới.";
+                String url = "/import/receipt/detail/" +  importReceipt.getId();
+                notificationService.sendNotificationToUser(title, message, storeOwner ,url);
+            }
+        }
     }
 
     @Transactional
     @Override
     public void confirmImport(Long importId, Long userId) {
         // Lấy người dùng hiện tại
-        User currentUser = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
+        User currentUser = getCurrentUser();
 
         // Kiểm tra quyền hạn
         if (!userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)) {
@@ -484,11 +497,6 @@ public class ImportServiceImpl implements ImportService {
             throw new UnauthorizedException(Message.REJECT_AUTHORIZATION);
         }
 
-        // Kiểm tra lý do từ chối
-        if (reason == null || reason.trim().isEmpty()) {
-            throw new BadRequestException(Message.REASON_REQUIRED);
-        }
-
         // Tìm phiếu nhập
         Import importReceipt = importRepository.findById(importId)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
@@ -497,6 +505,13 @@ public class ImportServiceImpl implements ImportService {
         if (importReceipt.getStatus() != OrderStatus.PENDING) {
             throw new BadRequestException(Message.NOT_PENDING_IMPORT);
         }
+
+        // Kiểm tra lý do từ chối
+        if (reason == null || reason.trim().isEmpty()) {
+            throw new BadRequestException(Message.REASON_REQUIRED);
+        }
+
+
 
         // Cập nhật trạng thái và ghi chú
         importReceipt.setStatus(OrderStatus.REJECT);

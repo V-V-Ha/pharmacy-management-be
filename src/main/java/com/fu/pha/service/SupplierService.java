@@ -1,14 +1,14 @@
 package com.fu.pha.service;
 
 import com.fu.pha.dto.request.SupplierDto;
-import com.fu.pha.enums.Status;
+import com.fu.pha.dto.response.SupplierCResponseDto;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 public interface SupplierService {
     //create supplier
-    void createSupplier(SupplierDto supplierDto);
+    SupplierCResponseDto createSupplier(SupplierDto supplierDto);
     //update supplier
     void updateSupplier(SupplierDto supplierDto);
 

@@ -40,9 +40,8 @@ public class CustomerController {
 
     @PostMapping("/create-customer")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
-    public ResponseEntity<String> createCustomer(@Valid @RequestBody CustomerDTORequest request) {
-        customerService.createCustomer(request);
-        return ResponseEntity.ok(Message.CREATE_SUCCESS);
+    public ResponseEntity<CustomerDTOResponse> createCustomer(@Valid @RequestBody CustomerDTORequest request) {
+        return ResponseEntity.ok(customerService.createCustomer(request));
     }
 
     @PutMapping("/update-customer")
