@@ -163,6 +163,9 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             throw new BadRequestException(Message.INVALID_EXPORT_TYPE);
         }
         if (exportDto.getTypeDelivery() == ExportType.RETURN_TO_SUPPLIER) {
+            if(exportDto.getSupplierId() == null){
+                throw new BadRequestException(Message.SUPPLIER_NOT_NULL);
+            }
             Supplier supplier = supplierRepository.findById(exportDto.getSupplierId())
                     .orElseThrow(() -> new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND));
             exportSlip.setSupplier(supplier);
@@ -419,6 +422,9 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
         // Kiểm tra loại phiếu xuất kho
         if (exportDto.getTypeDelivery() == ExportType.RETURN_TO_SUPPLIER) {
+            if(exportDto.getSupplierId() == null){
+                throw new BadRequestException(Message.SUPPLIER_NOT_NULL);
+            }
             Supplier supplier = supplierRepository.findById(exportDto.getSupplierId())
                     .orElseThrow(() -> new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND));
             exportSlip.setSupplier(supplier);
