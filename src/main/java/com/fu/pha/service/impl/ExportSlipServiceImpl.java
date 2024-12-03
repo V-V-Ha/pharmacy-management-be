@@ -291,6 +291,16 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
         exportSlip.setTotalAmount(totalAmount);
         exportSlipRepository.save(exportSlip);
+
+        if(!currentUser.getRoles().stream().anyMatch(r -> r.getName().equals(ERole.ROLE_PRODUCT_OWNER))) {
+            List<User> storeOwners = userRepository.findAllByRoles_Name(ERole.ROLE_PRODUCT_OWNER);
+            for (User storeOwner : storeOwners) {
+                String title = "Phiếu xuất được cập nhật";
+                String message = "Nhân viên " + currentUser.getUsername() + " đã cập nhật một phiếu xuất.";
+                String url = "/export/receipt/detail/" + exportSlip.getId();
+                notificationService.sendNotificationToUser(title, message, storeOwner, url);
+            }
+        }
     }
 
     @Transactional

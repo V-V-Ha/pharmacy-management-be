@@ -137,6 +137,9 @@ public class ProductServiceImpl implements ProductService {
         }
         productUnitRepository.saveAll(productUnitList);
 
+        product.setProductUnitList(productUnitList);
+        productRepository.save(product);
+
         return new ProductDTOResponse(product);
     }
 

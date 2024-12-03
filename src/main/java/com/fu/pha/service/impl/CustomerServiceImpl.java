@@ -53,6 +53,7 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setYob(yob);
         customer.setGender(customerDTORequest.getGender());
         customer.setStatus(Status.ACTIVE);
+        customerRepository.save(customer);
 
         return new CustomerDTOResponse(customer);
     }

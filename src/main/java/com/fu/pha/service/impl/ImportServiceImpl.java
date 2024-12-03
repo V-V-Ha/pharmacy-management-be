@@ -435,8 +435,19 @@ public class ImportServiceImpl implements ImportService {
 
         // Cập nhật lại tổng totalAmount cho Import và lưu vào repository
         importReceipt.setTotalAmount(totalAmount);
-        importReceipt.setStatus(OrderStatus.PENDING);
         importRepository.save(importReceipt);
+
+        // Lấy danh sách chủ cửa hàng
+        List<User> storeOwners = userRepository.findAllByRoles_Name(ERole.ROLE_PRODUCT_OWNER);
+
+        if(!currentUser.getRoles().stream().anyMatch(r -> r.getName().equals(ERole.ROLE_PRODUCT_OWNER))){
+            for (User storeOwner : storeOwners) {
+                String title = "Phiếu nhập mới";
+                String message = "Nhân viên " + currentUser.getUsername() + " đã tạo một phiếu nhập mới.";
+                String url = "/import/receipt/detail/" +  importReceipt.getId();
+                notificationService.sendNotificationToUser(title, message, storeOwner ,url);
+            }
+        }
     }
 
     @Transactional
