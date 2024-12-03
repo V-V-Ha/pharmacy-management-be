@@ -341,11 +341,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             throw new UnauthorizedException(Message.REJECT_AUTHORIZATION);
         }
 
-        // Kiểm tra lý do từ chối
-        if (reason == null || reason.trim().isEmpty()) {
-            throw new BadRequestException(Message.REASON_REQUIRED);
-        }
-
         // Tìm phiếu xuất
         ExportSlip exportSlip = exportSlipRepository.findById(exportSlipId)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.EXPORT_SLIP_NOT_FOUND));
@@ -354,6 +349,12 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         if (exportSlip.getStatus() != OrderStatus.PENDING) {
             throw new BadRequestException(Message.NOT_REJECT);
         }
+
+        // Kiểm tra lý do từ chối
+        if (reason == null || reason.trim().isEmpty()) {
+            throw new BadRequestException(Message.REASON_REQUIRED);
+        }
+
 
         // Cập nhật trạng thái và ghi chú
         exportSlip.setStatus(OrderStatus.REJECT);

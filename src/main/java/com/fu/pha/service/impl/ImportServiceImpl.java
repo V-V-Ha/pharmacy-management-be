@@ -490,11 +490,6 @@ public class ImportServiceImpl implements ImportService {
             throw new UnauthorizedException(Message.REJECT_AUTHORIZATION);
         }
 
-        // Kiểm tra lý do từ chối
-        if (reason == null || reason.trim().isEmpty()) {
-            throw new BadRequestException(Message.REASON_REQUIRED);
-        }
-
         // Tìm phiếu nhập
         Import importReceipt = importRepository.findById(importId)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
@@ -503,6 +498,13 @@ public class ImportServiceImpl implements ImportService {
         if (importReceipt.getStatus() != OrderStatus.PENDING) {
             throw new BadRequestException(Message.NOT_PENDING_IMPORT);
         }
+
+        // Kiểm tra lý do từ chối
+        if (reason == null || reason.trim().isEmpty()) {
+            throw new BadRequestException(Message.REASON_REQUIRED);
+        }
+
+
 
         // Cập nhật trạng thái và ghi chú
         importReceipt.setStatus(OrderStatus.REJECT);
