@@ -5,9 +5,7 @@ import com.fu.pha.dto.request.LoginDtoRequest;
 import com.fu.pha.dto.request.UserDto;
 import com.fu.pha.dto.response.JwtResponse;
 import com.fu.pha.entity.User;
-import com.fu.pha.enums.ERole;
 import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {

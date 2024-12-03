@@ -1,6 +1,5 @@
 package com.fu.pha.dto.response;
 
-import com.fu.pha.dto.response.SaleOrder.SaleOrderItemResponseDto;
 import com.fu.pha.enums.OrderType;
 import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.enums.PaymentStatus;

@@ -1,8 +1,6 @@
 package com.fu.pha.repository;
 
 import com.fu.pha.dto.response.CustomerDTOResponse;
-import com.fu.pha.dto.response.ProductDTOResponse;
-import com.fu.pha.dto.response.report.customer.CustomerInvoiceDto;
 import com.fu.pha.dto.response.report.customer.CustomerInvoiceProjection;
 import com.fu.pha.entity.Customer;
 import com.fu.pha.enums.Status;

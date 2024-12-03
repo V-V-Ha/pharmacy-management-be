@@ -1,13 +1,12 @@
 package com.fu.pha.repository;
 
-import com.fu.pha.dto.request.UnitDto;
+
 import com.fu.pha.entity.ProductUnit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ProductUnitRepository extends JpaRepository<ProductUnit, Long> {
     //use native query to get unit by product id

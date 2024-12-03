@@ -1,14 +1,10 @@
 package com.fu.pha.dto.response.importPack;
 
-import com.fu.pha.dto.response.ProductUnitDTOResponse;
-import com.fu.pha.dto.response.exportSlip.BatchInfo;
-import com.fu.pha.entity.ImportItem;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.util.List;
 
 @Data
 @NoArgsConstructor

@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Data;
 
 import java.time.Instant;
-import java.util.List;
 
 @Data
 @NoArgsConstructor

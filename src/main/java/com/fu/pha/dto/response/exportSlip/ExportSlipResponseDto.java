@@ -1,7 +1,5 @@
 package com.fu.pha.dto.response.exportSlip;
 
-import com.fu.pha.dto.request.SupplierDto;
-import com.fu.pha.dto.request.exportSlip.ExportSlipItemRequestDto;
 import com.fu.pha.dto.response.SupplierResponseDto;
 import com.fu.pha.entity.ExportSlip;
 import com.fu.pha.enums.ExportType;

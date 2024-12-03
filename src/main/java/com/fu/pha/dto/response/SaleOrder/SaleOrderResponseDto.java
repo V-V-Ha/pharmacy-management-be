@@ -1,9 +1,7 @@
 package com.fu.pha.dto.response.SaleOrder;
 
-import com.fu.pha.dto.request.SaleOrder.SaleOrderItemRequestDto;
 import com.fu.pha.dto.response.CustomerDTOResponse;
 import com.fu.pha.dto.response.DoctorDTOResponse;
-import com.fu.pha.dto.response.importPack.ImportItemResponseDto;
 import com.fu.pha.entity.SaleOrder;
 import com.fu.pha.enums.OrderType;
 import com.fu.pha.enums.PaymentMethod;

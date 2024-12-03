@@ -9,8 +9,6 @@ import com.fu.pha.dto.request.importPack.ImportViewListDto;
 import com.fu.pha.dto.response.CloudinaryResponse;
 import com.fu.pha.dto.response.ProductDtoResponseForExport;
 import com.fu.pha.dto.response.ProductUnitDTOResponse;
-import com.fu.pha.dto.response.exportSlip.BatchInfo;
-import com.fu.pha.dto.response.importPack.ImportItemResponseDto;
 import com.fu.pha.dto.response.importPack.ImportItemResponseForExport;
 import com.fu.pha.dto.response.importPack.ImportResponseDto;
 import com.fu.pha.dto.response.ProductDTOResponse;
@@ -28,11 +26,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -45,7 +41,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -375,6 +370,7 @@ public class ImportServiceImpl implements ImportService {
                         ? LocalDate.now().plusYears(100).atStartOfDay(ZoneId.systemDefault()).toInstant()
                         : itemDto.getExpiryDate());
                 itemDto.setTotalAmount(itemTotalAmount);
+                importItem.setTotalAmount(itemTotalAmount);
                 importItem.setConversionFactor(itemDto.getConversionFactor());
                 importItem.setRemainingQuantity(smallestQuantity);
 
@@ -454,7 +450,7 @@ public class ImportServiceImpl implements ImportService {
     @Override
     public void confirmImport(Long importId, Long userId) {
         // Lấy người dùng hiện tại
-        User currentUser = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
+        User currentUser = getCurrentUser();
 
         // Kiểm tra quyền hạn
         if (!userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)) {

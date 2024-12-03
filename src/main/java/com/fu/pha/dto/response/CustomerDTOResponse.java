@@ -1,8 +1,6 @@
 package com.fu.pha.dto.response;
 
-
 import com.fu.pha.entity.Customer;
-import com.fu.pha.entity.SaleOrder;
 import com.fu.pha.enums.Gender;
 import com.fu.pha.enums.Status;
 import lombok.AllArgsConstructor;
@@ -10,9 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Collections;
 import java.util.Objects;
-import java.util.Optional;
 
 @Getter
 @Setter

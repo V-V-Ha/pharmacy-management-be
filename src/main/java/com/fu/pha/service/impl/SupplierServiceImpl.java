@@ -2,7 +2,6 @@ package com.fu.pha.service.impl;
 
 import com.fu.pha.dto.request.SupplierDto;
 import com.fu.pha.dto.response.SupplierCResponseDto;
-import com.fu.pha.dto.response.SupplierResponseDto;
 import com.fu.pha.entity.Supplier;
 import com.fu.pha.enums.Status;
 import com.fu.pha.exception.BadRequestException;
