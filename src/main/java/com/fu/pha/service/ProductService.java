@@ -22,5 +22,6 @@ public interface ProductService {
     void setWarningNumber(Long id, Integer numberWarning);
     void importProductsFromExcel(MultipartFile file) throws IOException;
    // void processExcelFile(MultipartFile file) throws Exception;
-   Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size, String productName, boolean isPrescription);
+   Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size, String productName, boolean isPrescription , boolean isList);
+
 }

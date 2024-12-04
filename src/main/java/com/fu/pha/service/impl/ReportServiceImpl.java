@@ -109,8 +109,11 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
         }else {
-            startInstant = Instant.EPOCH;
-            endInstant = Instant.now();
+            LocalDate today = LocalDate.now();
+            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
+
+             startInstant = startZoned.toInstant();
+             endInstant = Instant.now();  // Thời điểm hiện tại
         }
 
         // Tính tồn kho đầu kỳ
@@ -260,8 +263,11 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
         } else {
-            startInstant = Instant.EPOCH;
-            endInstant = Instant.now();
+            LocalDate today = LocalDate.now();
+            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
+
+            startInstant = startZoned.toInstant();
+            endInstant = Instant.now();  // Thời điểm hiện tại
         }
 
         // Xây dựng Specification để tìm kiếm và lọc
@@ -642,9 +648,11 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
-            startInstant = Instant.EPOCH;
-            endInstant = Instant.now();
+            LocalDate today = LocalDate.now();
+            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
+
+            startInstant = startZoned.toInstant();
+            endInstant = Instant.now();  // Thời điểm hiện tại
         }
 
         // Tổng số hóa đơn
@@ -692,9 +700,11 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
-            startInstant = Instant.EPOCH;
-            endInstant = Instant.now();
+            LocalDate today = LocalDate.now();
+            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
+
+            startInstant = startZoned.toInstant();
+            endInstant = Instant.now();  // Thời điểm hiện tại
         }
 
         return saleOrderRepository.findSalesTransactions(
@@ -725,9 +735,11 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
-            startInstant = Instant.EPOCH;
-            endInstant = Instant.now();
+            LocalDate today = LocalDate.now();
+            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
+
+            startInstant = startZoned.toInstant();
+            endInstant = Instant.now();  // Thời điểm hiện tại
         }
 
         return saleOrderRepository.findProductSales(
@@ -922,9 +934,11 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
-            startInstant = Instant.EPOCH;
-            endInstant = Instant.now();  // Thời gian hiện tại
+            LocalDate today = LocalDate.now();
+            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
+
+            startInstant = startZoned.toInstant();
+            endInstant = Instant.now();  // Thời điểm hiện tại
         }
 
         // Số lượng nhà cung cấp mới và tổng tiền
@@ -971,7 +985,9 @@ public class ReportServiceImpl implements ReportService {
         Pageable pageable = PageRequest.of(page, size);
         Instant startInstant = (startDate != null)
                 ? startDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
-                : Instant.EPOCH;
+                : LocalDate.now()
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant();
         Instant endInstant = (endDate != null)
                 ? endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant()
                 : Instant.now();
@@ -1148,9 +1164,11 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
-            startInstant = Instant.EPOCH;
-            endInstant = Instant.now();  // Thời gian hiện tại
+            LocalDate today = LocalDate.now();
+            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
+
+            startInstant = startZoned.toInstant();
+            endInstant = Instant.now();  // Thời điểm hiện tại
         }
 
         // Số lượng khách hàng mới
@@ -1217,9 +1235,11 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
-            startInstant = Instant.EPOCH;
-            endInstant = Instant.now();  // Thời gian hiện tại
+            LocalDate today = LocalDate.now();
+            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
+
+            startInstant = startZoned.toInstant();
+            endInstant = Instant.now();  // Thời điểm hiện tại
         }
 
         Timestamp startTimestamp = Timestamp.from(startInstant);
@@ -1412,9 +1432,11 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
-            startInstant = Instant.MIN;  // Mốc thời gian rất xa trong quá khứ
-            endInstant = Instant.now();  // Thời gian hiện tại
+            LocalDate today = LocalDate.now();
+            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
+
+            startInstant = startZoned.toInstant();
+            endInstant = Instant.now();  // Thời điểm hiện tại
         }
 
         // Tổng thu từ bán hàng
@@ -1477,9 +1499,11 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            // Nếu không có startDate và endDate, lấy toàn bộ dữ liệu
-            startInstant = Instant.EPOCH;
-            endInstant = Instant.now();  // Thời gian hiện tại
+            LocalDate today = LocalDate.now();
+            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
+
+            startInstant = startZoned.toInstant();
+            endInstant = Instant.now();  // Thời điểm hiện tại
         }
 
         return saleOrderRepository.findFinancialTransactions(

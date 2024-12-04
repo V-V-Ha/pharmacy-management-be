@@ -75,7 +75,8 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
                     "       OR c.phone_number LIKE CONCAT('%', :searchTerm, '%')) " +
                     "AND (:isNewCustomer IS NULL OR " +
                     "     (:isNewCustomer = TRUE AND c.create_date BETWEEN :startDate AND :endDate) OR " +
-                    "     (:isNewCustomer = FALSE AND c.create_date < :startDate))",
+                    "     (:isNewCustomer = FALSE AND c.create_date < :startDate))" +
+                    "ORDER BY COALESCE(sub.total_amount, 0) DESC",
             countQuery = "SELECT COUNT(*) FROM customer c " +
                     "LEFT JOIN ( " +
                     "    SELECT so.customer_id " +

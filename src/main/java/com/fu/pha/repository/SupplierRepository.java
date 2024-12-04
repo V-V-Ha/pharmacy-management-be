@@ -86,7 +86,8 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
                     "WHERE (:name IS NULL OR LOWER(s.supplier_name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
                     "AND (:isNewSupplier IS NULL OR " +
                     "     (:isNewSupplier = TRUE AND s.create_date BETWEEN :startDate AND :endDate) OR " +
-                    "     (:isNewSupplier = FALSE AND s.create_date < :startDate))",
+                    "     (:isNewSupplier = FALSE AND s.create_date < :startDate))" +
+                    "ORDER BY COALESCE(sub.total_import_amount, 0) DESC",
             countQuery = "SELECT COUNT(*) FROM supplier s " +
                     "WHERE (:name IS NULL OR LOWER(s.supplier_name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
                     "AND (:isNewSupplier IS NULL OR " +
