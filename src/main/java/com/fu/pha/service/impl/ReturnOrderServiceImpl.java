@@ -494,10 +494,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
         }
 
         // Sau khi xử lý các ReturnOrderItem từ DTO, tính lại tổng refundAmount
-        double newRefundAmount = existingReturnOrder.getReturnOrderItems().stream()
-                .mapToDouble(item -> item.getUnitPrice() * item.getQuantity())
-                .sum();
-        existingReturnOrder.setRefundAmount(newRefundAmount);
+        existingReturnOrder.setRefundAmount(returnOrderRequestDto.getTotalAmount());
 
         // Lưu lại ReturnOrder với thông tin cập nhật
         returnOrderRepository.save(existingReturnOrder);
