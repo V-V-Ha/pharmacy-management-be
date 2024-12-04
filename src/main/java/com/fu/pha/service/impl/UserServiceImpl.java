@@ -108,8 +108,8 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
                 userDetails.getUser().getId(),
                 userDetails.getUsername(),
                 userDetails.getUser().getEmail(),
-                roles);
-
+                roles, userDetails.getUser().getAvatar(),
+                userDetails.getUser().getFullName());
     }
 
     @Transactional

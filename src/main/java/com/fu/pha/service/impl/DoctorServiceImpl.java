@@ -13,7 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,9 +23,8 @@ public class DoctorServiceImpl implements DoctorService {
     @Autowired
     private DoctorRepository doctorRepository;
 
-    @Transactional
     @Override
-    public void createDoctor(DoctorDTORequest doctorDTORequest) {
+    public DoctorDTOResponse createDoctor(DoctorDTORequest doctorDTORequest) {
         Doctor doctor = new Doctor();
         doctor.setFullName(doctorDTORequest.getFullName());
         doctor.setAddress(doctorDTORequest.getAddress());
@@ -34,9 +32,10 @@ public class DoctorServiceImpl implements DoctorService {
         doctor.setNote(doctorDTORequest.getNote());
         doctor.setStatus(Status.ACTIVE);
         doctorRepository.save(doctor);
+
+        return new DoctorDTOResponse(doctor);
     }
 
-    @Transactional
     @Override
     public void updateDoctor(DoctorDTORequest doctorDTORequest) {
         Optional<Doctor> doctorOptional = doctorRepository.findById(doctorDTORequest.getId());

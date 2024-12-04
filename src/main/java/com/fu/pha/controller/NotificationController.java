@@ -30,7 +30,6 @@ public class NotificationController {
     private UserRepository userRepository;
 
 
-
     @PutMapping("/{id}/read")
     public ResponseEntity<?> markAsRead(@PathVariable Long id) {
         notificationService.markNotificationAsRead(id);

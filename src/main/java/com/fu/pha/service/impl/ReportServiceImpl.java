@@ -22,10 +22,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -147,7 +144,7 @@ public class ReportServiceImpl implements ReportService {
         report.setGoodsReturnedAmount(goodsReturnedAmount != 0 ? goodsReturnedAmount : 0.0);
 
         // Tính tồn kho hiện tại
-        Integer currentInventoryQuantity = productRepository.calculateCurrentInventoryQuantity();
+        Integer currentInventoryQuantity = beginningInventoryQuantity + goodsReceivedQuantity - goodsIssuedQuantity;
         double currentInventoryAmount = beginningInventoryAmount + goodsReceivedAmount - goodsIssuedAmount;
         report.setCurrentInventoryQuantity(currentInventoryQuantity != null ? currentInventoryQuantity : 0);
         report.setCurrentInventoryAmount(currentInventoryAmount >= 0 ? currentInventoryAmount : 0.0);
@@ -159,7 +156,6 @@ public class ReportServiceImpl implements ReportService {
         // Tính số lượng sản phẩm hết hàng
         int outOfStockProducts = productRepository.countOutOfStock();
         report.setOutOfStockProducts(!(outOfStockProducts == 0) ? outOfStockProducts : 0);
-
 
         Instant thresholdDate = Instant.now().plus(60, ChronoUnit.DAYS);
 

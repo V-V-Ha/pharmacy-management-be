@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 
 @Entity
 @Getter
@@ -50,7 +49,5 @@ public class SaleOrderItem extends BaseEntity{
     @Column(name = "conversion_factor")
     private Integer conversionFactor;
 
-    @Column(name = "returned_quantity")
-    private Integer returnedQuantity;
 
 }

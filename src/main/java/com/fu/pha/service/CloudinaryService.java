@@ -2,14 +2,12 @@ package com.fu.pha.service;
 
 import com.cloudinary.Cloudinary;
 import com.fu.pha.dto.response.CloudinaryResponse;
-import com.fu.pha.util.FileUploadUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 @Service

@@ -140,7 +140,12 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         // Nếu trạng thái hiện tại là REJECT và người cập nhật không phải là chủ cửa hàng, đặt lại trạng thái về PENDING
         if (exportSlip.getStatus() == OrderStatus.REJECT && !userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)) {
             exportSlip.setStatus(OrderStatus.PENDING);
+        } else if (exportSlip.getStatus() == OrderStatus.REJECT && userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)) {
+            exportSlip.setStatus(OrderStatus.CONFIRMED);
+        } else if(exportSlip.getStatus() == OrderStatus.PENDING && userHasRole(currentUser, ERole.ROLE_PRODUCT_OWNER)){
+            exportSlip.setStatus(OrderStatus.CONFIRMED);
         }
+
 
         // Cập nhật thông tin cơ bản
         exportSlip.setExportDate(Instant.now());
@@ -148,9 +153,19 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         exportSlip.setDiscount(exportDto.getDiscount());
         exportSlip.setNote(exportDto.getNote());
         exportSlip.setUser(currentUser);
+        exportSlip.setLastModifiedBy(currentUser.getFullName());
+        exportSlip.setLastModifiedDate(Instant.now());
 
         // Kiểm tra loại phiếu xuất kho
+
+        //check exportDto.getTypeDelivery() == null
+        if (exportDto.getTypeDelivery() == null) {
+            throw new BadRequestException(Message.INVALID_EXPORT_TYPE);
+        }
         if (exportDto.getTypeDelivery() == ExportType.RETURN_TO_SUPPLIER) {
+            if(exportDto.getSupplierId() == null){
+                throw new BadRequestException(Message.SUPPLIER_NOT_NULL);
+            }
             Supplier supplier = supplierRepository.findById(exportDto.getSupplierId())
                     .orElseThrow(() -> new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND));
             exportSlip.setSupplier(supplier);
@@ -284,6 +299,16 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
         exportSlip.setTotalAmount(totalAmount);
         exportSlipRepository.save(exportSlip);
+
+        if(!currentUser.getRoles().stream().anyMatch(r -> r.getName().equals(ERole.ROLE_PRODUCT_OWNER))) {
+            List<User> storeOwners = userRepository.findAllByRoles_Name(ERole.ROLE_PRODUCT_OWNER);
+            for (User storeOwner : storeOwners) {
+                String title = "Phiếu xuất được cập nhật";
+                String message = "Nhân viên " + currentUser.getUsername() + " đã cập nhật một phiếu xuất.";
+                String url = "/export/receipt/detail/" + exportSlip.getId();
+                notificationService.sendNotificationToUser(title, message, storeOwner, url);
+            }
+        }
     }
 
     @Transactional
@@ -334,11 +359,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             throw new UnauthorizedException(Message.REJECT_AUTHORIZATION);
         }
 
-        // Kiểm tra lý do từ chối
-        if (reason == null || reason.trim().isEmpty()) {
-            throw new BadRequestException(Message.REASON_REQUIRED);
-        }
-
         // Tìm phiếu xuất
         ExportSlip exportSlip = exportSlipRepository.findById(exportSlipId)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.EXPORT_SLIP_NOT_FOUND));
@@ -347,6 +367,12 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         if (exportSlip.getStatus() != OrderStatus.PENDING) {
             throw new BadRequestException(Message.NOT_REJECT);
         }
+
+        // Kiểm tra lý do từ chối
+        if (reason == null || reason.trim().isEmpty()) {
+            throw new BadRequestException(Message.REASON_REQUIRED);
+        }
+
 
         // Cập nhật trạng thái và ghi chú
         exportSlip.setStatus(OrderStatus.REJECT);
@@ -396,6 +422,9 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
         // Kiểm tra loại phiếu xuất kho
         if (exportDto.getTypeDelivery() == ExportType.RETURN_TO_SUPPLIER) {
+            if(exportDto.getSupplierId() == null){
+                throw new BadRequestException(Message.SUPPLIER_NOT_NULL);
+            }
             Supplier supplier = supplierRepository.findById(exportDto.getSupplierId())
                     .orElseThrow(() -> new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND));
             exportSlip.setSupplier(supplier);
@@ -454,7 +483,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         Product product = exportSlipItem.getProduct();
         ImportItem importItem = exportSlipItem.getImportItem(); // Lấy ImportItem tương ứng
 
-        // Kiểm tra tồn kho trong ImportItem thay vì Product
+
         Integer currentTotalQuantity = importItem.getRemainingQuantity(); // Tồn kho của lô
         int smallestQuantity = exportSlipItem.getQuantity() * exportSlipItem.getConversionFactor(); // Số lượng thực tế cần xuất
 
@@ -487,12 +516,20 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         ExportSlipItem exportSlipItem = new ExportSlipItem();
         exportSlipItem.setExportSlip(exportSlip);
 
+
         Product product = productRepository.findById(itemDto.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
         // Tìm ImportItem theo importItemId
-        ImportItem importItem = importItemRepository.findByBatchNumberAndImportReceipt_InvoiceNumberAndProductId(itemDto.getBatchNumber(),itemDto.getInvoiceNumber(), itemDto.getProductId())
+        ImportItem importItem = importItemRepository.findByBatchNumberAndImportReceipt_InvoiceNumberAndProductId(itemDto.getBatchNumber(), itemDto.getProductId(),itemDto.getInvoiceNumber())
                 .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
+
+        Integer currentTotalQuantity = importItem.getRemainingQuantity();
+        int smallestQuantity = itemDto.getQuantity() * itemDto.getConversionFactor();
+
+        if (currentTotalQuantity == null || currentTotalQuantity < smallestQuantity) {
+            throw new BadRequestException(Message.NOT_ENOUGH_STOCK_IN_BATCH);
+        }
 
         // Kiểm tra nhà cung cấp nếu là phiếu trả lại nhà cung cấp
         if (exportSlip.getTypeDelivery() == ExportType.RETURN_TO_SUPPLIER) {

@@ -1,12 +1,8 @@
 package com.fu.pha.service;
 
 import com.fu.pha.dto.request.CategoryDto;
-import com.fu.pha.entity.Category;
-import com.fu.pha.enums.Status;
 import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 

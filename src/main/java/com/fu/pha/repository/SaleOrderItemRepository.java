@@ -20,9 +20,6 @@ public interface SaleOrderItemRepository extends JpaRepository<SaleOrderItem, Lo
 
     Optional<SaleOrderItem> findBySaleOrderAndProduct(SaleOrder saleOrder, Product product);
 
-    List<SaleOrderItem> findBySaleOrderIdAndProductId(Long saleOrderId, Long productId);
-
-    List<SaleOrderItem> findBySaleOrderIdAndProductIdOrderByIdDesc(Long id, Long productId);
 
     //report
 
@@ -58,4 +55,6 @@ public interface SaleOrderItemRepository extends JpaRepository<SaleOrderItem, Lo
     // Phương thức cho báo cáo khách hàng
     @Query("SELECT COALESCE(SUM(soi.quantity * soi.conversionFactor), 0) FROM SaleOrderItem soi WHERE soi.saleOrder.saleDate BETWEEN :startDate AND :endDate AND soi.saleOrder.customer IS NOT NULL AND soi.saleOrder.paymentStatus = com.fu.pha.enums.PaymentStatus.PAID")
     Integer sumTotalQuantitySoldToCustomersBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+
+    Optional<SaleOrderItem> findBySaleOrderIdAndProductIdOrderById(Long id, Long productId);
 }

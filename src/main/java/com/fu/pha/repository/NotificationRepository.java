@@ -4,7 +4,6 @@ import com.fu.pha.entity.Notification;
 import com.fu.pha.entity.User;
 import com.fu.pha.enums.NotificationType;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -38,7 +37,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     // Lọc các thông báo đã đọc trong 6 ngày gần nhất của người dùng
     @Query("SELECT n FROM Notification n WHERE n.user = :user " +
             "AND (:notificationType IS NULL OR n.type = :notificationType) " +
-            "AND (:isRead IS NULL OR n.isRead = :isRead OR (:isRead = true AND n.createdAt > :sixDaysAgo))")
+            "AND (:isRead IS NULL OR n.isRead = :isRead OR (:isRead = true AND n.createdAt > :sixDaysAgo)) " +
+            "ORDER BY n.createdAt DESC")
     Page<Notification> findNotifications(
             @Param("user") User user,
             @Param("notificationType") NotificationType notificationType,

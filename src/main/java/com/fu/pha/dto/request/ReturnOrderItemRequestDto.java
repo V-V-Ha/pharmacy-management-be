@@ -1,6 +1,5 @@
 package com.fu.pha.dto.request;
 
-import com.fu.pha.exception.Message;
 import com.fu.pha.validate.anotation.ValidQuantity;
 import com.fu.pha.validate.anotation.ValidUnitPrice;
 import jakarta.validation.constraints.Min;
@@ -9,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,4 +27,5 @@ public class ReturnOrderItemRequestDto {
     @NotNull(message = "Hệ số quy đổi không được để trống")
     @Min(value = 1, message = "Hệ số quy đổi phải lớn hơn 0")
     private Integer conversionFactor;
+    private List<ReturnOrderBatchRequestDto> batchRequestDtos;
 }

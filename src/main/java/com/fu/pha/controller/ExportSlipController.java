@@ -61,13 +61,13 @@ public class ExportSlipController {
     // Từ chối phiếu xuất
     @PostMapping("/{id}/reject")
     @PreAuthorize("hasRole('PRODUCT_OWNER')")
-    public ResponseEntity<?> rejectExport(@PathVariable Long id, @RequestBody String reason) {
+    public ResponseEntity<?> rejectExport(@PathVariable Long id, @RequestParam(required = false) String reason) {
         exportSlipService.rejectExport(id, reason);
         return ResponseEntity.ok(Message.REJECT_SUCCESS);
     }
 
     @GetMapping("/get-export-slip/{exportSlipId}")
-    @PreAuthorize("hasRole('PRODUCT_OWNER')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<?> getExportSlip(@PathVariable Long exportSlipId) {
         return ResponseEntity.ok(exportSlipService.getActiveExportSlipById(exportSlipId));
     }

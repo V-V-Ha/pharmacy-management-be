@@ -2,7 +2,6 @@ package com.fu.pha.service;
 
 import com.fu.pha.dto.request.exportSlip.ExportSlipRequestDto;
 import com.fu.pha.dto.response.exportSlip.ExportSlipResponseDto;
-import com.fu.pha.entity.ExportSlip;
 import com.fu.pha.enums.ExportType;
 import com.fu.pha.enums.OrderStatus;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,7 +9,6 @@ import org.springframework.data.domain.Page;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.List;
 
 public interface ExportSlipService {
 

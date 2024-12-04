@@ -2,12 +2,9 @@ package com.fu.pha.dto.request.SaleOrder;
 
 import com.fu.pha.enums.OrderType;
 import com.fu.pha.enums.PaymentMethod;
-import com.fu.pha.enums.PaymentStatus;
 import com.fu.pha.exception.Message;
-import com.fu.pha.validate.anotation.ValidDiscount;
 import com.fu.pha.validate.anotation.ValidTotalAmount;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;

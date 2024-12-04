@@ -5,6 +5,7 @@ import com.fu.pha.dto.request.ReturnOrderRequestDto;
 import com.fu.pha.dto.response.PageResponseModel;
 import com.fu.pha.dto.response.ReturnOrderResponseDto;
 import com.fu.pha.dto.response.SaleOrder.SaleOrderResponseDto;
+import com.fu.pha.dto.response.SaleOrderForReturnDto;
 import com.fu.pha.exception.Message;
 import com.fu.pha.service.ReturnOrderService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -42,12 +43,6 @@ public class ReturnOrderController {
     public ResponseEntity<String> updateReturnOrder(@Valid @RequestParam Long returnOrderId,@Valid @RequestBody ReturnOrderRequestDto returnOrderRequestDto) {
         returnOrderService.updateReturnOrder(returnOrderId, returnOrderRequestDto);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
-    }
-
-    @GetMapping("/get-sale-order-by-invoice-number")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
-    public ResponseEntity<SaleOrderResponseDto> getSaleOrderByInvoiceNumber(@RequestParam String invoiceNumber) {
-        return ResponseEntity.ok(returnOrderService.getSaleOrderByInvoiceNumber(invoiceNumber));
     }
 
     @GetMapping("/get-return-order-by-id")
@@ -102,5 +97,17 @@ public class ReturnOrderController {
         returnOrderService.exportReturnOrdersToExcel(response, fromDateStart, toDateEnd);
     }
 
+
+    @GetMapping("/get-sale-order-for-return")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    public ResponseEntity<SaleOrderForReturnDto> getSaleOrderForReturn(@RequestParam String invoiceNumber) {
+        return ResponseEntity.ok(returnOrderService.getSaleOrderForReturn(invoiceNumber));
+    }
+
+    @GetMapping("/get-sale-order-for-return-id")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    public ResponseEntity<SaleOrderForReturnDto> getSaleOrderForReturnById(@RequestParam Long id) {
+        return ResponseEntity.ok(returnOrderService.getSaleOrderForReturnById(id));
+    }
 
 }

@@ -121,7 +121,6 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             saleOrderItem.setConversionFactor(itemRequestDto.getConversionFactor());
             saleOrderItem.setDosage(itemRequestDto.getDosage());
             saleOrderItem.setUnit(itemRequestDto.getUnit());
-            saleOrderItem.setReturnedQuantity(0);
 
             double itemTotalAmount = calculateSaleOrderItemTotalAmount(itemRequestDto);
             saleOrderItem.setTotalAmount(itemTotalAmount);
@@ -178,6 +177,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                     SaleOrderItemBatch saleOrderItemBatch = new SaleOrderItemBatch();
                     saleOrderItemBatch.setImportItem(batch);
                     saleOrderItemBatch.setQuantity(quantityFromBatch);
+                    saleOrderItemBatch.setReturnedQuantity(0);
                     saleOrderItemBatch.setSaleOrderItem(saleOrderItem);
                     saleOrderItemBatchRepository.save(saleOrderItemBatch);
 
@@ -305,7 +305,6 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                 saleOrderItemNew.setDosage(itemRequestDto.getDosage());
                 saleOrderItemNew.setUnit(itemRequestDto.getUnit());
                 saleOrderItemNew.setTotalAmount(calculateSaleOrderItemTotalAmount(itemRequestDto));
-                saleOrderItemNew.setReturnedQuantity(0);
 
                 saleOrderItemRepository.save(saleOrderItemNew);
             }

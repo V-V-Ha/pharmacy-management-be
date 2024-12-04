@@ -14,7 +14,6 @@ import org.springframework.data.domain.Page;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.List;
 
 public interface ReportService {
     // Báo cáo kho

@@ -17,14 +17,18 @@ public class JwtResponse {
     private Long id;
     private String username;
     private String email;
+    private String avatar;
+    private String fullName;
     private List<String> roles;
 
-    public JwtResponse(String token,String fcmToken, Long id, String username, String email, List<String> roles) {
+    public JwtResponse(String token,String fcmToken, Long id, String username, String email, List<String> roles, String avatar, String fullName) {
         this.token = token;
         this.fcmToken = fcmToken;
         this.id = id;
         this.username = username;
         this.email = email;
         this.roles = roles;
+        this.avatar = avatar;
+        this.fullName = fullName;
     }
 }

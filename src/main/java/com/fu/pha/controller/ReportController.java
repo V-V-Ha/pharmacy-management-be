@@ -34,6 +34,7 @@ public class ReportController {
 
     // Báo cáo kho
     @GetMapping("/inventory-report")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<InventoryReportDto> getInventoryReport(
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
@@ -45,6 +46,7 @@ public class ReportController {
     }
 
     @GetMapping("/inventory-report-product")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public ResponseEntity<Page<InventoryProductReportDto>> getInventoryReport(
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
@@ -62,6 +64,7 @@ public class ReportController {
     }
 
     @GetMapping("/out-of-stock")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public Page<OutOfStockProductDto> getOutOfStockProducts(
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String searchText,
@@ -76,6 +79,7 @@ public class ReportController {
         );
     }
     @GetMapping("/expired")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public Page<ExpiredProductDto> getExpiredProducts(
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String searchText,
@@ -111,6 +115,7 @@ public class ReportController {
 
     // Báo cáo bán hàng
     @GetMapping("/sales")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<SalesReportDto> getSalesReport(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
@@ -120,6 +125,7 @@ public class ReportController {
     }
 
     @GetMapping("/sales-list")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public Page<SalesTransactionDto> getSalesTransactions(
             @RequestParam(required = false) String paymentMethod,
             @RequestParam(required = false) String voucherType,
@@ -133,6 +139,7 @@ public class ReportController {
     }
 
     @GetMapping("/sales-product")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public Page<ProductSalesDto> getProductSales(
             @RequestParam(required = false) String productName,
             @RequestParam(required = false) String productCode,
@@ -164,6 +171,7 @@ public class ReportController {
 
     // Báo cáo nhà cung cấp
     @GetMapping("/suppliers")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<SupplierReportDto> getSupplierReport(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
@@ -173,6 +181,7 @@ public class ReportController {
     }
 
     @GetMapping("/list-suppliers")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<Page<SupplierInvoiceDto>> getSupplierInvoices(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Boolean isNewSupplier,
@@ -211,6 +220,7 @@ public class ReportController {
 
     // Báo cáo khách hàng
     @GetMapping("/customers")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') OR  hasRole('SALE')")
     public ResponseEntity<CustomerReportDto> getCustomerReport(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
@@ -220,6 +230,7 @@ public class ReportController {
     }
 
     @GetMapping("/list-customers")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') OR  hasRole('SALE')")
     public ResponseEntity<Page<CustomerInvoiceDto>> getCustomerInvoices(
             @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) Boolean isNewCustomer,
@@ -259,6 +270,7 @@ public class ReportController {
 
     // Báo cáo thu chi
     @GetMapping("/financial")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<FinancialReportDto> getFinancialReport(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
@@ -268,6 +280,7 @@ public class ReportController {
     }
 
     @GetMapping("/financial-transactions")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public Page<FinancialTransactionDto> getFinancialTransactions(
             @RequestParam(required = false) String paymentMethod,
             @RequestParam(required = false) String category,
@@ -282,7 +295,7 @@ public class ReportController {
     }
 
     @GetMapping("/export-excel-financial-report")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public void exportFinancialReportToExcel(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,

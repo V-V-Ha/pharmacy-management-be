@@ -38,7 +38,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -69,7 +68,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Transactional
     @Override
-    public void createProduct(ProductDTORequest productDTORequest, MultipartFile file) {
+    public ProductDTOResponse createProduct(ProductDTORequest productDTORequest, MultipartFile file) {
 
         //validate the request
         checkValidateProduct(productDTORequest);
@@ -137,6 +136,11 @@ public class ProductServiceImpl implements ProductService {
             productUnitList.add(productUnit);
         }
         productUnitRepository.saveAll(productUnitList);
+
+        product.setProductUnitList(productUnitList);
+        productRepository.save(product);
+
+        return new ProductDTOResponse(product);
     }
 
     @Transactional
@@ -475,11 +479,11 @@ public class ProductServiceImpl implements ProductService {
 //    }
 
     @Override
-    public Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size, String productName) {
+    public Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size, String productName, boolean isPrescription) {
         Pageable pageable = PageRequest.of(page, size);
 
         // Lấy danh sách sản phẩm với các điều kiện đã lọc trong repository
-        Page<ProductDTOResponse> products = productRepository.getListProductForSaleOrderPaging(productName, pageable);
+        Page<ProductDTOResponse> products = productRepository.getListProductForSaleOrderPaging(productName, isPrescription, pageable );
 
         // Nếu không có sản phẩm, throw exception
         if (products.isEmpty()) {
