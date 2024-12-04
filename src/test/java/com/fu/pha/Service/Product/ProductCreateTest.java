@@ -25,8 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyIterable;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ProductCreateTest {
@@ -90,7 +89,7 @@ public class ProductCreateTest {
 
         productService.createProduct(productDTORequest, null);
 
-        verify(productRepository).save(any(Product.class));
+        verify(productRepository, times(2)).save(any(Product.class));
         verify(productUnitRepository).saveAll(anyIterable());
     }
 
