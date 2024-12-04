@@ -860,7 +860,16 @@ public class ReportServiceImpl implements ReportService {
 
             createCellWithStyle(row, 3, transaction.getCustomerName(), leftAlignCellStyle);
             createCellWithStyle(row, 4, transaction.getVoucherType(), leftAlignCellStyle);
-            createCellWithStyle(row, 5, transaction.getPaymentMethod(), leftAlignCellStyle);
+
+            // Map payment method
+            String paymentMethod = transaction.getPaymentMethod();
+            if ("TRANSFER".equals(paymentMethod)) {
+                paymentMethod = "Chuyển khoản";
+            } else if ("CASH".equals(paymentMethod)) {
+                paymentMethod = "Tiền mặt";
+            }
+
+            createCellWithStyle(row, 5, paymentMethod, leftAlignCellStyle);
             createCellWithStyle(row, 6, transaction.getTotalAmount(), currencyStyle);
         }
 
