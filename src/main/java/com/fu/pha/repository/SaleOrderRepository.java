@@ -295,7 +295,7 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
             "AND (:productName IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :productName, '%'))) " +
             "AND (:productCode IS NULL OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :productCode, '%'))) " +
             "GROUP BY p.product_code, p.product_name, u.unit_name " +
-            "ORDER BY p.product_name ASC",
+            "ORDER BY totalAmount DESC",
             countQuery = "SELECT COUNT(*) FROM (" +
                     "SELECT p.id " +
                     "FROM sale_order_item soi " +

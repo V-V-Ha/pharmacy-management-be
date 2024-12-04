@@ -118,7 +118,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             "AND (:categoryId IS NULL OR p.category_id = :categoryId) " +
             "AND (:searchText IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "     OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :searchText, '%'))) " +
-            "ORDER BY p.product_name ASC",
+            "ORDER BY p.total_quantity ASC",
             countQuery = "SELECT COUNT(*) FROM product p " +
                     "WHERE p.total_quantity <= p.number_warning " +
                     "AND p.status = 'ACTIVE' " +
@@ -133,26 +133,27 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     );
 
 
-    @Query(value = "SELECT p.id AS productId, " +
-            "       p.product_code AS productCode, " +
-            "       p.product_name AS productName, " +
-            "       c.category_name AS categoryName, " +
-            "       u.unit_name AS unitName, " +
-            "       ii.batch_number AS batchNumber, " +
-            "       ii.expiry_date AS expiryDate, " +
-            "       GREATEST(FLOOR(EXTRACT(EPOCH FROM ii.expiry_date - NOW()) / 86400), 0) AS daysRemaining " +
-            "FROM import_item ii " +
-            "JOIN product p ON ii.product_id = p.id " +
-            "JOIN category c ON p.category_id = c.id " +
-            "JOIN product_unit pu ON pu.product_id = p.id AND pu.conversion_factor = 1 " +
-            "JOIN unit u ON pu.unit_id = u.id " +
-            "WHERE ii.expiry_date <= :warningDate " +
-            "AND ii.remaining_quantity > 0 " +
-            "AND p.status = 'ACTIVE' " +
-            "AND (:categoryId IS NULL OR p.category_id = :categoryId) " +
-            "AND (:searchText IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "     OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :searchText, '%'))) " +
-            "ORDER BY ii.expiry_date ASC",
+    @Query(
+            value = "SELECT p.id AS productId, " +
+                    "       p.product_code AS productCode, " +
+                    "       p.product_name AS productName, " +
+                    "       c.category_name AS categoryName, " +
+                    "       u.unit_name AS unitName, " +
+                    "       ii.batch_number AS batchNumber, " +
+                    "       ii.expiry_date AS expiryDate, " +
+                    "       GREATEST(FLOOR(EXTRACT(EPOCH FROM ii.expiry_date - NOW()) / 86400), 0) AS daysRemaining " +
+                    "FROM import_item ii " +
+                    "JOIN product p ON ii.product_id = p.id " +
+                    "JOIN category c ON p.category_id = c.id " +
+                    "JOIN product_unit pu ON pu.product_id = p.id AND pu.conversion_factor = 1 " +
+                    "JOIN unit u ON pu.unit_id = u.id " +
+                    "WHERE ii.expiry_date <= :warningDate " +
+                    "AND ii.remaining_quantity > 0 " +
+                    "AND p.status = 'ACTIVE' " +
+                    "AND (:categoryId IS NULL OR p.category_id = :categoryId) " +
+                    "AND (:searchText IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "     OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :searchText, '%'))) " +
+                    "ORDER BY ii.expiry_date DESC",
             countQuery = "SELECT COUNT(*) FROM (" +
                     "SELECT ii.id " +
                     "FROM import_item ii " +
@@ -164,13 +165,15 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
                     "AND (:searchText IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
                     "     OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :searchText, '%'))) " +
                     ") AS sub",
-            nativeQuery = true)
+            nativeQuery = true
+    )
     Page<ExpiredProductDto> findExpiredProducts(
             @Param("categoryId") Long categoryId,
             @Param("searchText") String searchText,
             @Param("warningDate") Instant warningDate,
             Pageable pageable
     );
+
 
 
     @Query(value = "SELECT p FROM Product p WHERE p.totalQuantity < p.numberWarning AND p.status = 'ACTIVE'")
