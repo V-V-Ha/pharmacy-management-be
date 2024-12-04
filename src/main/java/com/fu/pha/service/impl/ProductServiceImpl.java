@@ -468,22 +468,20 @@ public class ProductServiceImpl implements ProductService {
         return products;
     }
 
-//    @Override
-//    public Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size,  String productName) {
-//        Pageable pageable = PageRequest.of(page, size);
-//        Page<ProductDTOResponse> products = productRepository.getListProductForSaleOrderPaging(productName, pageable);
-//        if (products.isEmpty()) {
-//            throw new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND);
-//        }
-//        return products;
-//    }
+
 
     @Override
-    public Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size, String productName, boolean isPrescription) {
+    public Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size, String productName, boolean isPrescription , boolean isList) {
         Pageable pageable = PageRequest.of(page, size);
+        Page<ProductDTOResponse> products;
 
-        // Lấy danh sách sản phẩm với các điều kiện đã lọc trong repository
-        Page<ProductDTOResponse> products = productRepository.getListProductForSaleOrderPaging(productName, isPrescription, pageable );
+        if(isList == false) {
+            // Lấy danh sách sản phẩm với các điều kiện đã lọc trong repository
+             products = productRepository.getListProductForSaleOrderPaging(productName, isPrescription, pageable);
+        } else {
+            // Lấy danh sách sản phẩm với các điều kiện đã lọc trong repository
+             products = productRepository.getListProductForSaleOrderPagingisPre(productName, pageable);
+        }
 
         // Nếu không có sản phẩm, throw exception
         if (products.isEmpty()) {
