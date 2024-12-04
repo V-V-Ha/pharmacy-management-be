@@ -78,7 +78,7 @@ public class SaleController {
     }
 
     @GetMapping("/get-all-sale-order-paging")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<PageResponseModel<SaleOrderResponseDto>> getAllSaleOrderPaging(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
