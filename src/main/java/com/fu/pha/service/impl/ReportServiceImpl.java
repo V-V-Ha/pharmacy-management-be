@@ -429,15 +429,6 @@ public class ReportServiceImpl implements ReportService {
         );
     }
 
-    private void createAllBorderCellStyle(CellStyle style, Workbook workbook) {
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        style.setAlignment(HorizontalAlignment.CENTER);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-    }
-
     @Override
     public void exportInventoryReportToExcel(HttpServletResponse response, LocalDate fromDate, LocalDate toDate) throws IOException {
         Workbook workbook = new XSSFWorkbook();
