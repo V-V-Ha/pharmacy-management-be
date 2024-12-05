@@ -18,7 +18,6 @@ import java.util.List;
 public class ReturnOrderItemRequestDto {
     @NotNull(message = "Sản phẩm không được để trống")
     private Long productId;
-    @ValidQuantity
     private Integer quantity;
     @ValidUnitPrice
     private Double unitPrice;
