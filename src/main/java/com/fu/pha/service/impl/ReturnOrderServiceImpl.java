@@ -379,7 +379,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
                     ).orElseThrow(() -> new ResourceNotFoundException(Message.SALE_ORDER_ITEM_BATCH_NOT_FOUND));
 
                     int existingBatchQuantity = saleOrderItemBatch.getReturnedQuantity();
-                    int quantityDifference = newBatchQuantity - existingBatchQuantity;
+                    int quantityDifference = newBatchQuantity * conversionFactor - existingBatchQuantity;
 
                     if (quantityDifference > 0) {
                         // Tăng returnedQuantity
@@ -448,7 +448,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
 
                     String batchNumber = batchRequestDto.getBatchNumber();
                     String invoiceNumber = batchRequestDto.getInvoiceNumber();
-                    int batchQuantity = batchRequestDto.getQuantity();
+                    int batchQuantity = batchRequestDto.getQuantity() * conversionFactor;
 
                     // Tìm ImportItem dựa trên batchNumber, invoiceNumber, và productId
                     ImportItem importItem = importItemRepository.findByBatchNumberAndImportReceipt_InvoiceNumberAndProductId(
@@ -502,6 +502,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
         // Cập nhật trạng thái của SaleOrder nếu cần
         SaleOrder saleOrder = existingReturnOrder.getSaleOrder();
         saleOrder.setCheckBackOrder(true);
+
         saleOrderRepository.save(saleOrder);
     }
 
@@ -533,7 +534,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
                             .map(saleOrderItemBatch -> new SaleOrderItemBatchResponseDto(
                                     saleOrderItemBatch.getImportItem().getBatchNumber(),
                                     saleOrderItemBatch.getQuantity(),
-                                    saleOrderItemBatch.getReturnedQuantity(),
+                                    saleOrderItemBatch.getReturnedQuantity() / returnOrderItem.getConversionFactor() ,
                                     saleOrderItemBatch.getImportItem().getImportReceipt().getInvoiceNumber()
                             ))
                             .collect(Collectors.toList()));
