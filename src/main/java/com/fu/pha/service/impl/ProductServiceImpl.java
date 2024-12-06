@@ -229,15 +229,15 @@ public class ProductServiceImpl implements ProductService {
                     ProductUnitDTORequest productUnitDTORequest = new ProductUnitDTORequest();
                     if (unitNameStr.isEmpty() || conversionFactor == null) {
                         productUnitDTORequest.setUnitId(unitRepository.findByUnitName("Viên").getId());
-                        productUnitDTORequest.setImportPrice(importPrice);
-                        productUnitDTORequest.setRetailPrice(retailPrice);
+                        productUnitDTORequest.setImportPrice(importPrice != null ? importPrice : 0);
+                        productUnitDTORequest.setRetailPrice(retailPrice != null ? retailPrice : 0);
                         productUnitDTORequest.setConversionFactor(0);
                     } else if (unit == null) {
                         throw new ResourceNotFoundException(Message.UNIT_NOT_FOUND + ": " + unitNameStr);
                     } else {
                         productUnitDTORequest.setUnitId(unit.getId());
-                        productUnitDTORequest.setImportPrice(importPrice);
-                        productUnitDTORequest.setRetailPrice(retailPrice);
+                        productUnitDTORequest.setImportPrice(importPrice != null ? importPrice : 0);
+                        productUnitDTORequest.setRetailPrice(retailPrice != null ? retailPrice : 0);
                         productUnitDTORequest.setConversionFactor(conversionFactor);
                     }
                     // Tạo đối tượng ProductUnitDTORequest cho mỗi đơn vị
@@ -729,8 +729,8 @@ public class ProductServiceImpl implements ProductService {
         // Tạo dòng tiêu đề
         Row headerRow = sheet.createRow(0);
         String[] headers = {
-                "Tên sản phẩm *", "Nhóm sản phẩm *", "Số đăng ký *", "Thành phần hoạt tính *",
-                "Liều lượng *", "Phương pháp đóng gói *", "Nhà sản xuất *", "Xuất xứ *", "Dạng bào chế *",
+                "Tên sản phẩm *", "Nhóm sản phẩm *", "Số đăng ký *", "Thành phần hoạt tính",
+                "Liều lượng", "Phương pháp đóng gói *", "Nhà sản xuất *", "Xuất xứ *", "Dạng bào chế",
                 "Hạn mức thông báo *", "Đơn vị sản phẩm", "Giá nhập", "Giá bán lẻ",
                 "Hệ số chuyển đổi", "Hình thức bán(theo đơn) *", "Chỉ định", "Chống chỉ định",
                 "Tác dụng phụ", "Mô tả"
