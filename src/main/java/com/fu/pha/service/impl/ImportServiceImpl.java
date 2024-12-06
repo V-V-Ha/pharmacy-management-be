@@ -439,7 +439,7 @@ public class ImportServiceImpl implements ImportService {
         if(!currentUser.getRoles().stream().anyMatch(r -> r.getName().equals(ERole.ROLE_PRODUCT_OWNER))){
             for (User storeOwner : storeOwners) {
                 String title = "Phiếu nhập mới";
-                String message = "Nhân viên " + currentUser.getUsername() + " đã tạo một phiếu nhập mới.";
+                String message = "Nhân viên " + currentUser.getUsername() + " đã cập nhật một phiếu nhập mới.";
                 String url = "/import/receipt/detail/" +  importReceipt.getId();
                 notificationService.sendNotificationToUser(title, message, storeOwner ,url);
             }
