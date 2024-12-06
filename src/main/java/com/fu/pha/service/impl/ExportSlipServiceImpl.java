@@ -660,7 +660,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
         // Define column headers
         Row headerRow = sheet.createRow(0);
-        String[] headers = {"STT", "Mã phiếu", "Ngày tạo phiếu", "Loại phiếu", "Số lượng sản phẩm", "Tổng tiền"};
+        String[] headers = {"STT", "Mã phiếu", "Ngày tạo phiếu", "Loại phiếu", "Số lượng sản phẩm", "Tổng tiền", "Trạng thái"};
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
@@ -709,6 +709,21 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             Cell cell5 = row.createCell(5);
             cell5.setCellValue(slip.getTotalAmount());
             cell5.setCellStyle(currencyStyle);
+
+
+            // Trạng thái
+            String orderStatus = slip.getStatus();
+            if ("CONFIRMED".equals(orderStatus)) {
+                orderStatus = "Đã xác nhận";
+            } else if ("PENDING".equals(orderStatus)) {
+                orderStatus = "Chờ xác nhận";
+            } else if ("REJECT".equals(orderStatus)) {
+                orderStatus = "Từ chối";
+            }
+
+            Cell cell6 = row.createCell(6);
+            cell6.setCellValue(orderStatus);
+            cell6.setCellStyle(dataCellStyle);
         }
 
         // Auto-size columns to fit the content
