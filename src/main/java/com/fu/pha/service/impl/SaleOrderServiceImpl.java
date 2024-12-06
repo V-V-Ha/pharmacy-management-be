@@ -83,7 +83,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         SaleOrder saleOrder = new SaleOrder();
         String lastInvoiceNumber = saleOrderRepository.getLastInvoiceNumber();
         saleOrder.setInvoiceNumber(lastInvoiceNumber == null ? "XB000001" : generateCode.generateNewProductCode(lastInvoiceNumber));
-        saleOrder.setSaleDate(saleOrderRequestDto.getSaleDate() != null ? saleOrderRequestDto.getSaleDate() : Instant.now());
+        saleOrder.setSaleDate(Instant.now());
         saleOrder.setOrderType(saleOrderRequestDto.getOrderType());
         saleOrder.setPaymentMethod(saleOrderRequestDto.getPaymentMethod());
         saleOrder.setDiscount(saleOrderRequestDto.getDiscount() != null ? saleOrderRequestDto.getDiscount() : 0.0);

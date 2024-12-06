@@ -439,7 +439,7 @@ public class ImportServiceImpl implements ImportService {
         if(!currentUser.getRoles().stream().anyMatch(r -> r.getName().equals(ERole.ROLE_PRODUCT_OWNER))){
             for (User storeOwner : storeOwners) {
                 String title = "Phiếu nhập mới";
-                String message = "Nhân viên " + currentUser.getUsername() + " đã tạo một phiếu nhập mới.";
+                String message = "Nhân viên " + currentUser.getUsername() + " đã cập nhật một phiếu nhập mới.";
                 String url = "/import/receipt/detail/" +  importReceipt.getId();
                 notificationService.sendNotificationToUser(title, message, storeOwner ,url);
             }
@@ -789,7 +789,7 @@ public class ImportServiceImpl implements ImportService {
         currencyStyle.setDataFormat(workbook.createDataFormat().getFormat("₫ #,##0"));
 
         // Define column headers
-        String[] headers = {"STT", "Mã phiếu", "Ngày tạo phiếu", "Người tạo", "Số lượng sản phẩm", "Nhà cung cấp", "Tổng tiền"};
+        String[] headers = {"STT", "Mã phiếu", "Ngày tạo phiếu", "Người tạo", "Số lượng sản phẩm", "Nhà cung cấp", "Tổng tiền", "Trạng thái"};
         Row headerRow = sheet.createRow(0);
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
@@ -840,6 +840,20 @@ public class ImportServiceImpl implements ImportService {
             Cell cell6 = row.createCell(6);
             cell6.setCellValue(importDto.getTotalAmount());
             cell6.setCellStyle(currencyStyle);
+
+            // Trạng thái
+            String orderStatus = importDto.getStatus();
+            if ("CONFIRMED".equals(orderStatus)) {
+                orderStatus = "Đã xác nhận";
+            } else if ("PENDING".equals(orderStatus)) {
+                orderStatus = "Chờ xác nhận";
+            } else if ("REJECT".equals(orderStatus)) {
+                orderStatus = "Từ chối";
+            }
+
+            Cell cell7 = row.createCell(7);
+            cell7.setCellValue(orderStatus);
+            cell7.setCellStyle(dataCellStyle);
         }
 
         // Auto-size columns to fit the content

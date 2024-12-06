@@ -53,6 +53,8 @@ public class Message {
     public static final String INVALID_ROLE_COMBINATION = "Không thể chọn cùng lúc 2 quyền truy cập này";
     public static final String DELETE_SUCCESS = "Xóa thành công";
     public static final String SUPPLIER_EXIST = "Nhà cung cấp đã tồn tại";
+
+    public static final String TAX_EXIST = "Mã số thuế đã tồn tại";
     public static final String INVALID_TAX = "Mã số thuế không hợp lệ";
     public static final String SUPPLIER_NOT_FOUND = "Nhà cung cấp không tồn tại";
     public static final String IMPORT_NOT_FOUND = "Phiếu nhập không tồn tại";

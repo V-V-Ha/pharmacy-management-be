@@ -91,7 +91,7 @@ public class NotificationServiceImpl implements NotificationService {
                         .title("Sản phẩm sắp hết hàng")
                         .message("Sản phẩm " + product.getProductName() + " (Mã: " + product.getProductCode() +
                                 ") sắp hết hàng. Số lượng còn lại: " + product.getTotalQuantity() + ".")
-                        .type(NotificationType.STOCK_IN_OUT)
+                        .type(NotificationType.OUT_OF_STOCK)
                         .createdAt(Instant.now())
                         .user(user)
                         .product(product)

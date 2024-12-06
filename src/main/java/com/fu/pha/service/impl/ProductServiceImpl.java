@@ -418,10 +418,9 @@ public class ProductServiceImpl implements ProductService {
 
     private void checkValidateProduct(ProductDTORequest productDTORequest){
         if(productDTORequest.getProductName().isEmpty() || productDTORequest.getCategoryId() == null ||
-                productDTORequest.getRegistrationNumber().isEmpty() || productDTORequest.getActiveIngredient().isEmpty() ||
-                productDTORequest.getDosageConcentration().isEmpty() || productDTORequest.getPackingMethod().isEmpty() ||
+                productDTORequest.getRegistrationNumber().isEmpty() || productDTORequest.getPackingMethod().isEmpty() ||
                 productDTORequest.getManufacturer().isEmpty() || productDTORequest.getCountryOfOrigin().isEmpty() ||
-                productDTORequest.getDosageForms().isEmpty() || productDTORequest.getNumberWarning() == null ||
+                productDTORequest.getNumberWarning() == null ||
                 productDTORequest.getPrescriptionDrug() ==  null){
             throw new ResourceNotFoundException(Message.NULL_FILED);
         }
