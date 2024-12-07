@@ -209,6 +209,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
             saleOrderItemForReturnDto.setUnit(saleOrderItem.getUnit());
             saleOrderItemForReturnDto.setTotalAmount(saleOrderItem.getTotalAmount());
             saleOrderItemForReturnDto.setConversionFactor(saleOrderItem.getConversionFactor());
+            saleOrderItemForReturnDto.setDiscount(saleOrderItem.getDiscount());
 
             // Lấy thông tin sản phẩm
             ProductDTOResponse productDTO = new ProductDTOResponse(saleOrderItem.getProduct());
@@ -276,6 +277,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
             saleOrderItemForReturnDto.setUnit(saleOrderItem.getUnit());
             saleOrderItemForReturnDto.setTotalAmount(saleOrderItem.getTotalAmount());
             saleOrderItemForReturnDto.setConversionFactor(saleOrderItem.getConversionFactor());
+            saleOrderItemForReturnDto.setDiscount(saleOrderItem.getDiscount());
 
             // Lấy thông tin sản phẩm
             ProductDTOResponse productDTO = new ProductDTOResponse(saleOrderItem.getProduct());

@@ -38,17 +38,4 @@ public class ExportSlipItemRequestDto {
     @NotNull(message = "Hệ số quy đổi không được để trống")
     @Min(value = 1, message = "Hệ số quy đổi phải lớn hơn 0")
     private Integer conversionFactor;
-
-    public ExportSlipItemRequestDto(ExportSlipItem exportSlipItem) {
-        this.id = exportSlipItem.getId();
-        this.quantity = exportSlipItem.getQuantity();
-        this.unitPrice = exportSlipItem.getUnitPrice();
-        this.unit = exportSlipItem.getUnit();
-        this.discount = exportSlipItem.getDiscount();
-        this.batchNumber = exportSlipItem.getBatch_number();
-        this.productId = exportSlipItem.getProduct().getId();
-        this.exportSlipId = exportSlipItem.getExportSlip().getId();
-        this.totalAmount = exportSlipItem.getTotalAmount();
-        this.importItemId = exportSlipItem.getImportItem().getId();
-    }
 }

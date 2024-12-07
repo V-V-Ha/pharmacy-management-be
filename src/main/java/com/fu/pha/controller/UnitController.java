@@ -57,7 +57,7 @@ public class UnitController {
     }
 
     @PutMapping("/change-status-unit")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<String> updateUnitStatus(@RequestParam Long id) {
         unitService.updateUnitStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);

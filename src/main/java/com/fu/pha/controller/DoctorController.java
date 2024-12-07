@@ -42,7 +42,7 @@ public class DoctorController {
     }
 
     @PutMapping("/change-status-doctor")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<String> updateDoctorStatus(@RequestParam Long id) {
         doctorService.updateDoctorStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);

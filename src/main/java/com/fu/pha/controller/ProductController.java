@@ -125,7 +125,7 @@ public class ProductController {
     }
 
     @PutMapping("/change-status-product")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<String> updateProductStatus(@RequestParam Long id) {
         productService.updateProductStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
