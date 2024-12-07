@@ -1,6 +1,6 @@
 package com.fu.pha.dto.request;
 
-import com.fu.pha.validate.anotation.ValidQuantity;
+import com.fu.pha.validate.anotation.ValidReturnOrder;
 import com.fu.pha.validate.anotation.ValidUnitPrice;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
