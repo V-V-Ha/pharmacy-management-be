@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -81,7 +82,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
         // 3. Xử lý từng ReturnOrderItemRequestDto trong danh sách returnOrderItems
         for (ReturnOrderItemRequestDto itemRequestDto : returnOrderRequestDto.getReturnOrderItems()) {
             Long productId = itemRequestDto.getProductId();
-            Integer quantityToReturn = itemRequestDto.getQuantity();
+            Integer quantityToReturn = itemRequestDto.getQuantity() != null ? itemRequestDto.getQuantity() : 0;
             Double unitPrice = itemRequestDto.getUnitPrice();
 
             // Lấy sản phẩm và tính toán số lượng nhỏ nhất cần trả lại
@@ -533,17 +534,28 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
                     // Tạo DTO cho ReturnOrderItem và ánh xạ các SaleOrderItemBatch vào DTO
                     ReturnOrderItemResponseDto returnOrderItemResponseDto = new ReturnOrderItemResponseDto(returnOrderItem);
                     returnOrderItemResponseDto.setBatchResponseDtos(saleOrderItemBatches.stream()
-                            .map(saleOrderItemBatch -> new SaleOrderItemBatchResponseDto(
-                                    saleOrderItemBatch.getImportItem().getBatchNumber(),
-                                    saleOrderItemBatch.getQuantity(),
-                                    saleOrderItemBatch.getReturnedQuantity() / returnOrderItem.getConversionFactor() ,
-                                    saleOrderItemBatch.getImportItem().getImportReceipt().getInvoiceNumber()
-                            ))
+                            .map(saleOrderItemBatch -> {
+                                // Lấy SaleOrderItem tương ứng với SaleOrderItemBatch hiện tại
+                                Optional<SaleOrderItem> saleOrderItemOpt = saleOrderItemRepository.findBySaleOrderItemBatches_Id(saleOrderItemBatch.getId());
+
+                                // Lấy discount từ SaleOrderItem nếu tồn tại
+                                Double discount = saleOrderItemOpt.map(SaleOrderItem::getDiscount).orElse(0.0);
+
+                                return new SaleOrderItemBatchResponseDto(
+                                        saleOrderItemBatch.getImportItem().getBatchNumber(),
+                                        saleOrderItemBatch.getQuantity(),
+                                        saleOrderItemBatch.getReturnedQuantity() / returnOrderItem.getConversionFactor(),
+                                        saleOrderItemBatch.getImportItem().getImportReceipt().getInvoiceNumber(),
+                                        discount
+                                );
+                            })
                             .collect(Collectors.toList()));
 
                     return returnOrderItemResponseDto;
                 })
                 .collect(Collectors.toList()));
+
+
 
         return returnOrderResponseDto;
     }

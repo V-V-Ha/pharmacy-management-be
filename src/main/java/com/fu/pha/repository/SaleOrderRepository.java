@@ -5,6 +5,7 @@ import com.fu.pha.dto.response.report.FinancialTransactionDto;
 import com.fu.pha.dto.response.report.product.ProductSalesDto;
 import com.fu.pha.dto.response.report.sale.SalesTransactionDto;
 import com.fu.pha.entity.SaleOrder;
+import com.fu.pha.entity.SaleOrderItem;
 import com.fu.pha.enums.OrderType;
 import com.fu.pha.enums.PaymentMethod;
 import org.springframework.data.domain.Page;
@@ -322,7 +323,5 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
             "WHERE s.saleDate BETWEEN :fromDate AND :toDate")
     List<SaleOrderResponseDto> getSaleOrdersByDateRange(@Param("fromDate") Instant fromDate,
                                                         @Param("toDate") Instant toDate);
-
-
 
 }

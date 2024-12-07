@@ -18,7 +18,8 @@ public interface SaleOrderItemRepository extends JpaRepository<SaleOrderItem, Lo
 
     List<SaleOrderItem> findBySaleOrderId(Long saleOrderId);
 
-    Optional<SaleOrderItem> findBySaleOrderAndProduct(SaleOrder saleOrder, Product product);
+    @Query("SELECT soi FROM SaleOrderItem soi JOIN SaleOrderItemBatch soib ON soib.saleOrderItem = soi WHERE soib.id = :saleOrderItemBatchId")
+    Optional<SaleOrderItem> findBySaleOrderItemBatches_Id(Long saleOrderItemBatchId);
 
 
     //report
