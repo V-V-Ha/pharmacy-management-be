@@ -1,9 +1,9 @@
 image: maven:latest
 
 stages:
+  - cleanup
   - build
-  # - test
-  # - run
+  - deploy
 
 variables:
   MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
@@ -14,21 +14,30 @@ cache:
     - .m2/repository/
     - target/
 
+clean-env:
+  stage: cleanup
+  script:
+    - echo "Started leaning up temporary files..."
+    - rm -rf target/*
+
+
 build:
   stage: build
   script:
-    - mvn install -DskipTests
+    - mvn package -DskipTests=true
+  artifacts:
+    paths:
+      - target/pha-0.0.1-SNAPSHOT.jar
 
-    # test:
-    #   stage: test
-    #   script:
-    # - mvn $MAVEN_CLI_OPTS test
-    # - mvn test
-    # - echo "Skip test~~"
-
-# run:
-#   stage: run
-#   script:
-#     - mvn package
-#     - mvn exec:java -Dexec.mainClass="com.project.oss.OssApplication" -DskipTests
-
+deploy:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh sshpass
+  script:
+    - echo "Copying app.jar to $REMOTE_HOST:/home/pha"
+    - mv "target/pha-0.0.1-SNAPSHOT.jar" "target/app.jar"
+    - sshpass -p "$REMOTE_PW" scp -o StrictHostKeyChecking=no target/app.jar root@"$REMOTE_HOST":/home/pha
+    - sshpass -p "$REMOTE_PW" ssh -o StrictHostKeyChecking=no root@"$REMOTE_HOST" "systemctl stop pha-api; systemctl start pha-api"
+  only:
+    - feature/cicd-spike
