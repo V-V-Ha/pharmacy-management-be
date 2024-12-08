@@ -1,7 +1,5 @@
 package com.fu.pha.dto.response;
 
-
-import com.fu.pha.entity.Supplier;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

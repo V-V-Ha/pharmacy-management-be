@@ -1,0 +1,123 @@
+package com.fu.pha.Service.Export;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import com.fu.pha.dto.request.exportSlip.ExportSlipRequestDto;
+import com.fu.pha.enums.ERole;
+import com.fu.pha.enums.OrderStatus;
+import com.fu.pha.exception.BadRequestException;
+import com.fu.pha.exception.ResourceNotFoundException;
+import com.fu.pha.exception.UnauthorizedException;
+import com.fu.pha.repository.*;
+import com.fu.pha.entity.*;
+import com.fu.pha.exception.Message;
+import com.fu.pha.service.impl.ExportSlipServiceImpl;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+
+import java.util.Collections;
+import java.util.Optional;
+
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+public class UpdateTest {
+    @Mock private ExportSlipRepository exportSlipRepository;
+    @Mock private ImportItemRepository importItemRepository;
+    @Mock private ExportSlipItemRepository exportSlipItemRepository;
+    @Mock private UserRepository userRepository;
+    @Mock private ProductRepository productRepository;
+    @Mock private SupplierRepository supplierRepository;
+    @Mock private ImportRepository importReceiptRepository;
+
+    @InjectMocks private ExportSlipServiceImpl exportSlipService;
+
+    private User currentUser;
+    private ExportSlipRequestDto exportDto;
+    private ExportSlip exportSlip;
+    private User mockUser;
+
+    @Test
+    void testUpdateExport_ExportSlipNotFound() {
+        // Arrange
+        ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
+        doReturn(mockUser).when(exportSlipServiceSpy).getCurrentUser();
+        when(exportSlipRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            exportSlipServiceSpy.updateExport(1L, exportDto);
+        });
+
+        assertEquals(Message.EXPORT_SLIP_NOT_FOUND, exception.getMessage());
+    }
+
+    @Test
+    void testUpdateExport_StatusConfirmed_NotUpdatable() {
+        // Arrange
+        ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
+        doReturn(mockUser).when(exportSlipServiceSpy).getCurrentUser();
+
+        ExportSlip exportSlipMock = new ExportSlip();
+        exportSlipMock.setStatus(OrderStatus.CONFIRMED);
+        when(exportSlipRepository.findById(anyLong())).thenReturn(Optional.of(exportSlipMock));
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            exportSlipServiceSpy.updateExport(1L, exportDto);
+        });
+
+        assertEquals(Message.NOT_UPDATE_CONFIRMED, exception.getMessage());
+    }
+
+    @Test
+    void testUpdateExport_UnauthorizedUser() {
+        // Arrange
+        ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
+        User unauthorizedUser = new User();
+        unauthorizedUser.setRoles(Collections.singleton(new Role(ERole.ROLE_SALE.name())));
+        doReturn(unauthorizedUser).when(exportSlipServiceSpy).getCurrentUser();
+
+        User exportUser = new User();
+        exportUser.setId(1L);
+        ExportSlip exportSlipMock = new ExportSlip();
+        exportSlipMock.setUser(exportUser);
+        when(exportSlipRepository.findById(anyLong())).thenReturn(Optional.of(exportSlipMock));
+
+        // Act & Assert
+        UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
+            exportSlipServiceSpy.updateExport(1L, exportDto);
+        });
+
+        assertEquals(Message.REJECT_AUTHORIZATION, exception.getMessage());
+    }
+
+    @Test
+    void testUpdateExport_InvalidExportType() {
+        // Arrange
+        ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
+        User mockUser = new User();
+        mockUser.setId(1L); // Set the ID of the user
+        doReturn(mockUser).when(exportSlipServiceSpy).getCurrentUser();
+
+        ExportSlip exportSlipMock = new ExportSlip();
+        exportSlipMock.setStatus(OrderStatus.PENDING);
+        exportSlipMock.setUser(mockUser); // Set the user in the export slip
+        when(exportSlipRepository.findById(anyLong())).thenReturn(Optional.of(exportSlipMock));
+
+        exportDto = new ExportSlipRequestDto(); // Initialize exportDto
+        exportDto.setTypeDelivery(null); // Set invalid export type
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            exportSlipServiceSpy.updateExport(1L, exportDto);
+        });
+
+        assertEquals(Message.INVALID_EXPORT_TYPE, exception.getMessage());
+    }
+
+}

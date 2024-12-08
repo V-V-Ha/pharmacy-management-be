@@ -18,6 +18,7 @@ public class Message {
     public static final String INVALID_PASSWORD = "Mật khẩu không hợp lệ, mật khẩu phải có ít nhất 8 ký tự, " +
             "và phải có 1 ký tự hoa và 1 ký tự thường";
     public static final String INVALID_CCCD = "Số căn cước công dân không hợp lệ. Yêu cầu 12 chữ số";
+
     public static final String INVALID_PHONE = "Số điện thoại không hợp lệ";
     public static final String INVALID_GMAIL = "Gmail không hợp lệ";
     public static final String INVALID_USERNAME_C = "Tên đăng nhập không hợp lệ, tài khoản phải chứa 6-20 kí tự," +
@@ -52,6 +53,8 @@ public class Message {
     public static final String INVALID_ROLE_COMBINATION = "Không thể chọn cùng lúc 2 quyền truy cập này";
     public static final String DELETE_SUCCESS = "Xóa thành công";
     public static final String SUPPLIER_EXIST = "Nhà cung cấp đã tồn tại";
+
+    public static final String TAX_EXIST = "Mã số thuế đã tồn tại";
     public static final String INVALID_TAX = "Mã số thuế không hợp lệ";
     public static final String SUPPLIER_NOT_FOUND = "Nhà cung cấp không tồn tại";
     public static final String IMPORT_NOT_FOUND = "Phiếu nhập không tồn tại";
@@ -99,4 +102,11 @@ public class Message {
     public static final String IMPORT_ITEM_NOT_FOUND = "Không tìm thấy sản phẩm trong phiếu";
     public static final String CATEGORY_INACTIVE = "Nhóm sản phẩm đã bị vô hiệu hóa";
     public static final String UNIT_INACTIVE = "Đơn vị đã bị vô hiệu hóa";
+    public static final String ORDER_ALREADY_PAID = "Đơn hàng đã được thanh toán";
+    public static final String PAYMENT_COMPLETED = "Thanh toán thành công";
+    public static final String CANNOT_UPDATE_PAID_ORDER = "Không thể cập nhật đơn hàng đã thanh toán";
+    public static final String INVALID_PRESCRIPTION_DRUG = "Hình thức bán không hợp lệ";
+    public static final String SALE_ORDER_ITEM_BATCH_NOT_FOUND = "Không tìm thấy lô hàng";
+
+    public static final String NULL_NAME = "Tên không được trống";
 }

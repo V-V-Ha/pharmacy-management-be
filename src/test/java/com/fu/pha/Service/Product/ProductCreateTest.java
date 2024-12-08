@@ -3,6 +3,7 @@ package com.fu.pha.Service.Product;
 import com.fu.pha.dto.request.ProductDTORequest;
 import com.fu.pha.entity.Category;
 import com.fu.pha.entity.Product;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
@@ -24,8 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyIterable;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ProductCreateTest {
@@ -58,6 +58,8 @@ public class ProductCreateTest {
         productDTORequest.setManufacturer("Nam Hà");
         productDTORequest.setCountryOfOrigin("Việt Nam");
         productDTORequest.setDosageForms("Siro");
+        productDTORequest.setNumberWarning(10);
+        productDTORequest.setPrescriptionDrug(false);
         productDTORequest.setProductUnitListDTO(Collections.emptyList());
 
         product = new Product();
@@ -70,9 +72,12 @@ public class ProductCreateTest {
         product.setManufacturer("Nam Hà");
         product.setCountryOfOrigin("Việt Nam");
         product.setDosageForms("Siro");
+        product.setNumberWarning(10);
+        product.setPrescriptionDrug(false);
 
         category = new Category();
         category.setId(1L);
+        category.setStatus(Status.ACTIVE);
     }
 
     //test trường hợp tạo sản phẩm thành công
@@ -84,7 +89,7 @@ public class ProductCreateTest {
 
         productService.createProduct(productDTORequest, null);
 
-        verify(productRepository).save(any(Product.class));
+        verify(productRepository, times(2)).save(any(Product.class));
         verify(productUnitRepository).saveAll(anyIterable());
     }
 

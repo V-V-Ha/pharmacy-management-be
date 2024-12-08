@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import vn.payos.PayOS;
 import vn.payos.type.CheckoutResponseData;
-import vn.payos.type.ItemData;
 import vn.payos.type.PaymentData;
 import vn.payos.type.PaymentLinkData;
 
@@ -82,7 +81,6 @@ public class PaymentServiceImpl implements PaymentService {
         }
         return response;
     }
-
 
     @Override
     public ObjectNode getOrderById(long orderId) {

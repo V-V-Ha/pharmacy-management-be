@@ -21,7 +21,7 @@ public interface ExportSlipRepository extends JpaRepository<ExportSlip, Long> {
     @Query("SELECT e.invoiceNumber FROM ExportSlip e ORDER BY e.invoiceNumber DESC LIMIT 1")
     String getLastInvoiceNumber();
 
-    @Query("SELECT e FROM ExportSlip e WHERE e.isDeleted = false")
+    @Query("SELECT e FROM ExportSlip e")
     List<ExportSlip> findAllActive();
 
     @Query("SELECT new com.fu.pha.dto.response.exportSlip.ExportSlipResponseDto(e) " +
@@ -73,6 +73,11 @@ public interface ExportSlipRepository extends JpaRepository<ExportSlip, Long> {
 
     @Query("SELECT SUM(e.totalAmount) FROM ExportSlip e WHERE e.exportDate BETWEEN :startDate AND :endDate AND e.typeDelivery = :typeDelivery")
     Double sumTotalExportsByTypeBetweenDates(@Param("typeDelivery") ExportType typeDelivery, @Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+
+    @Query("SELECT new com.fu.pha.dto.response.exportSlip.ExportSlipResponseDto(e) FROM ExportSlip e " +
+            "WHERE e.exportDate BETWEEN :fromDate AND :toDate")
+    List<ExportSlipResponseDto> getExportSlipsByDateRange(@Param("fromDate") Instant fromDate,
+                                                          @Param("toDate") Instant toDate);
 
 
 }

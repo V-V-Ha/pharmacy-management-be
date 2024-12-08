@@ -28,7 +28,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Transactional
     @Override
-    public void createCustomer(CustomerDTORequest customerDTORequest) {
+    public CustomerDTOResponse createCustomer(CustomerDTORequest customerDTORequest) {
 
         // Check exist phone number
         Optional<Customer> customerOptional = customerRepository.findByPhoneNumber(customerDTORequest.getPhoneNumber());
@@ -36,11 +36,14 @@ public class CustomerServiceImpl implements CustomerService {
             throw new ResourceNotFoundException(Message.EXIST_PHONE);
         }
 
-        int yob = customerDTORequest.getYob();
+        Integer yob = customerDTORequest.getYob();
 
-        // Validate Year of Birth (should be greater than 1900 and not in the future)
-        if (yob <= 1900 || yob > Year.now().getValue()) {
-            throw new BadRequestException(Message.INVALID_YOB);
+        // Kiểm tra nếu người dùng nhập `yob` thì mới thực hiện validate
+        if (yob != null) {
+            // Validate Year of Birth (should be greater than 1900 and not in the future)
+            if (yob <= 1900 || yob > Year.now().getValue()) {
+                throw new BadRequestException(Message.INVALID_YOB);
+            }
         }
 
         Customer customer = new Customer();
@@ -51,6 +54,8 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setGender(customerDTORequest.getGender());
         customer.setStatus(Status.ACTIVE);
         customerRepository.save(customer);
+
+        return new CustomerDTOResponse(customer);
     }
 
 
@@ -68,11 +73,14 @@ public class CustomerServiceImpl implements CustomerService {
             throw new ResourceNotFoundException(Message.EXIST_PHONE);
         }
 
-        int yob = customerDTORequest.getYob();
+        Integer yob = customerDTORequest.getYob();
 
-        // Validate Year of Birth (should be greater than 1900 and not in the future)
-        if (yob <= 1900 || yob > Year.now().getValue()) {
-            throw new BadRequestException(Message.INVALID_YOB);
+        // Kiểm tra nếu người dùng nhập `yob` thì mới thực hiện validate
+        if (yob != null) {
+            // Validate Year of Birth (should be greater than 1900 and not in the future)
+            if (yob <= 1900 || yob > Year.now().getValue()) {
+                throw new BadRequestException(Message.INVALID_YOB);
+            }
         }
 
         Customer customer = customerOptional.get();
@@ -121,7 +129,8 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String phoneNumber, String status) {
+
+    public Page<CustomerDTOResponse> getAllCustomerByPaging(int size, int index, String keyword, String status) {
         Pageable pageable = PageRequest.of(size, index);
         Status customerStatus = null;
         if (status != null) {
@@ -131,27 +140,23 @@ public class CustomerServiceImpl implements CustomerService {
                 throw new ResourceNotFoundException(Message.STATUS_NOT_FOUND);
             }
         }
-        Page<CustomerDTOResponse> customerDTOResponses = customerRepository.getListCustomerPaging(phoneNumber, customerStatus, pageable);
+        Page<CustomerDTOResponse> customerDTOResponses = customerRepository.getListCustomerPaging(keyword, customerStatus, pageable);
         if (customerDTOResponses.isEmpty()) {
             throw new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND);
         }
         return customerDTOResponses;
     }
 
-    private void checkValidateCustomer(CustomerDTORequest customerDTORequest) {
-
-        if(customerDTORequest.getCustomerName().isEmpty() || customerDTORequest.getPhoneNumber().isEmpty()) {
-            throw new BadRequestException(Message.NULL_FILED);
+    //find customer by phone number
+    @Override
+    public List<CustomerDTOResponse> findByPhoneNumber(String phoneNumber) {
+        Optional<List<CustomerDTOResponse>> customers = customerRepository.findByPhoneNumberContaining(phoneNumber);
+        if (customers.isEmpty()) {
+            throw new ResourceNotFoundException(Message.CUSTOMER_NOT_FOUND);
         }
 
-       // if ()
+        return customers.get();
 
-        int yob = customerDTORequest.getYob();
-
-        // Validate Year of Birth (should be greater than 1900 and not in the future)
-        if (yob <= 1900 || yob > Year.now().getValue()) {
-            throw new BadRequestException(Message.INVALID_YOB);
-        }
     }
 
 }

@@ -16,18 +16,18 @@ spring:
       max-request-size: 2MB
 
 
-   #DB Postgres SQL
-  datasource:
-    url: jdbc:postgresql://139.180.155.250:5432/pha
-    username: postgres
-    password: 12345
-    driver-class-name: org.postgresql.Driver
-
+#   #DB Postgres SQL
 #  datasource:
-#    url: jdbc:postgresql://localhost:5432/pha
+#    url: jdbc:postgresql://139.180.155.250:5432/pha
 #    username: postgres
-#    password: 12345678
+#    password: 12345
 #    driver-class-name: org.postgresql.Driver
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pha
+    username: postgres
+    password: 12345678
+    driver-class-name: org.postgresql.Driver
 
   # JPA Setting
   jpa:
@@ -84,6 +84,11 @@ payment:
     client_id: 26876906-65fd-4d08-afd2-c19fcada6857
     api_key: 4fe2a0c9-5986-4150-be96-263684e0014f
     checkSum_key: ee3386799b1e49366fb904e05b8cf21ce13b682e188b805513c0c305696293e3
+
+logging:
+  level:
+    com.fu.pha.configuration.FirebaseConfig: INFO
+
 
 
 

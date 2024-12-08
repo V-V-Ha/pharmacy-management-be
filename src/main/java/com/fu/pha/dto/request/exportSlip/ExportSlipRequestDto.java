@@ -1,11 +1,8 @@
 package com.fu.pha.dto.request.exportSlip;
 
 import com.fu.pha.enums.ExportType;
-import com.fu.pha.validate.anotation.ValidDiscount;
 import com.fu.pha.validate.anotation.ValidTotalAmount;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -23,12 +20,10 @@ public class ExportSlipRequestDto {
     private Instant exportDate;
     @NotNull(message = "Loại phiếu xuất không được để trống")
     private ExportType typeDelivery;
-    @ValidDiscount
     private Double discount;
     @ValidTotalAmount
     private Double totalAmount;
     private String note;
-    @NotNull(message = "Người dùng không được để trống")
     private Long userId;
     private Long supplierId;
     @NotNull(message = "Danh sách sản phẩm nhập không được để trống")

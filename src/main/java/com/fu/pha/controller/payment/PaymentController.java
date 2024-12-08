@@ -85,13 +85,4 @@ public class PaymentController {
         paymentService.checkout(requestBody, httpServletResponse);
         return ResponseEntity.ok(Message.CREATE_SUCCESS);
     }
-
-
-
-
-
-
-
-
-
 }

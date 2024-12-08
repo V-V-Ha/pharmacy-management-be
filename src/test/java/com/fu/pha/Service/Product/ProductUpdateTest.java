@@ -3,6 +3,7 @@ package com.fu.pha.Service.Product;
 import com.fu.pha.dto.request.ProductDTORequest;
 import com.fu.pha.entity.Category;
 import com.fu.pha.entity.Product;
+import com.fu.pha.enums.Status;
 import com.fu.pha.exception.BadRequestException;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
@@ -16,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -54,7 +56,11 @@ public class ProductUpdateTest {
         productDTORequest.setManufacturer("Nam Hà");
         productDTORequest.setCountryOfOrigin("Việt Nam");
         productDTORequest.setDosageForms("Siro");
+        productDTORequest.setNumberWarning(10);
+        productDTORequest.setPrescriptionDrug(false);
         productDTORequest.setProductUnitListDTO(Collections.emptyList());
+        productDTORequest.setLastModifiedBy("minhhieu");
+        productDTORequest.setLastModifiedDate(Instant.now());
 
         product = new Product();
         product.setId(1L);
@@ -67,9 +73,14 @@ public class ProductUpdateTest {
         product.setManufacturer("Nam Hà");
         product.setCountryOfOrigin("Việt Nam");
         product.setDosageForms("Siro");
+        product.setNumberWarning(10);
+        product.setPrescriptionDrug(false);
+        product.setLastModifiedBy("minhhieu");
+        product.setLastModifiedDate(Instant.now());
 
         category = new Category();
         category.setId(1L);
+        category.setStatus(Status.ACTIVE);
     }
 
     //test trường hợp cập nhật sản phẩm thành công

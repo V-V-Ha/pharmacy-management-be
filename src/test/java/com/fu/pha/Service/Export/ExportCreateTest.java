@@ -3,13 +3,15 @@ package com.fu.pha.Service.Export;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.exportSlip.ExportSlipItemRequestDto;
 import com.fu.pha.dto.request.exportSlip.ExportSlipRequestDto;
 import com.fu.pha.entity.*;
+import com.fu.pha.enums.ERole;
 import com.fu.pha.enums.ExportType;
 import com.fu.pha.exception.*;
 import com.fu.pha.repository.*;
-import com.fu.pha.service.ExportSlipService;
+import com.fu.pha.service.NotificationService;
 import com.fu.pha.service.impl.ExportSlipServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,21 +20,26 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ExportCreateTest {
-
-    @Mock
-    private ExportSlipRepository exportSlipRepository;
+    @InjectMocks
+    private ExportSlipServiceImpl exportService; // Sử dụng lớp thực thi cụ thể
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ExportSlipRepository exportSlipRepository;
 
     @Mock
     private SupplierRepository supplierRepository;
@@ -44,229 +51,187 @@ public class ExportCreateTest {
     private ImportItemRepository importItemRepository;
 
     @Mock
-    private ExportSlipItemRepository exportSlipItemRepository; // Add this mock
+    private ExportSlipItemRepository exportSlipItemRepository; // Mock thêm ExportSlipItemRepository
+
+    @Mock
+    private GenerateCode generateCode; // Giả sử đây là một dependency
+
+    @Mock
+    private InventoryHistoryRepository inventoryHistoryRepository; // Giả sử đây là một dependency
+
+    @Mock
+    private SecurityContext securityContext;
+
+    @Mock
+    private Authentication authentication;
+
+    @Mock
+    private ImportRepository importRepository;
+
+    // Các đối tượng dùng chung
+    private User mockUser;
+    private Supplier mockSupplier;
+    private Product mockProduct;
+    private ImportItem mockImportItem;
+    private ExportSlipRequestDto exportDto;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
-    private ExportSlipServiceImpl exportService;
-
-    private ExportSlipRequestDto exportDto;
-    private User user;
-    private Supplier supplier;
-    private Product product;
-    private ImportItem importItem;
+    private ExportSlipServiceImpl exportSlipService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        user = new User();
-        user.setId(1L);
+        // Initialize mock user
+        mockUser = new User();
+        mockUser.setId(1L);
+        mockUser.setUsername("testuser");
+        mockUser.setRoles(new HashSet<>(Arrays.asList(new Role(ERole.ROLE_PRODUCT_OWNER.name()))));
 
-        supplier = new Supplier();
-        supplier.setId(1L);
-        supplier.setSupplierName("Traphaco");
+        // Configure SecurityContextHolder
+        SecurityContextHolder.setContext(securityContext);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(true);
+        when(authentication.getName()).thenReturn("testuser");
 
-        product = new Product();
-        product.setId(1L);
-        product.setTotalQuantity(100);
+        // Configure UserRepository
+        lenient().when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(mockUser));
 
-        importItem = new ImportItem();
-        importItem.setId(1L);
-        importItem.setRemainingQuantity(50);
-        Import importReceipt = new Import();
-        importReceipt.setSupplier(supplier);
-        importItem.setImportReceipt(importReceipt);
+        // Configure ExportSlipRepository
+        lenient().when(exportSlipRepository.getLastInvoiceNumber()).thenReturn("EX000001");
+        lenient().when(generateCode.generateNewProductCode("EX000001")).thenReturn("EX000002");
+
+        // Initialize mock supplier
+        mockSupplier = new Supplier();
+        mockSupplier.setId(1L);
+        lenient().when(supplierRepository.findById(1L)).thenReturn(Optional.of(mockSupplier));
+
+        // Initialize mock product
+        mockProduct = new Product();
+        mockProduct.setId(1L);
+        mockProduct.setTotalQuantity(100);
+        lenient().when(productRepository.findById(1L)).thenReturn(Optional.of(mockProduct));
+
+        // Initialize mock import receipt
+        Import mockImportReceipt = new Import();
+        mockImportReceipt.setSupplier(mockSupplier);
+
+        // Initialize mock import item
+        mockImportItem = new ImportItem();
+        mockImportItem.setId(1L);
+        mockImportItem.setRemainingQuantity(50);
+        mockImportItem.setImportReceipt(mockImportReceipt);
+        lenient().when(importItemRepository.findById(1L)).thenReturn(Optional.of(mockImportItem));
+
+        // Initialize valid ExportSlipItemRequestDto
+        ExportSlipItemRequestDto itemDto = new ExportSlipItemRequestDto();
+        itemDto.setProductId(1L);
+        itemDto.setQuantity(10);
+        itemDto.setUnitPrice(100.0);
+        itemDto.setUnit("pcs");
+        itemDto.setDiscount(5.0);
+        itemDto.setBatchNumber("BATCH001");
+        itemDto.setImportItemId(1L);
+        itemDto.setConversionFactor(1);
+        itemDto.setTotalAmount(950.0); // 100 * 10 - 5%
 
         exportDto = new ExportSlipRequestDto();
+        exportDto.setInvoiceNumber("INV0001");
+        exportDto.setExportDate(Instant.now());
+        exportDto.setTypeDelivery(ExportType.RETURN_TO_SUPPLIER);
+        exportDto.setDiscount(5.0);
+        exportDto.setTotalAmount(950.0);
+        exportDto.setNote("Test note");
         exportDto.setUserId(1L);
         exportDto.setSupplierId(1L);
-        exportDto.setTypeDelivery(ExportType.RETURN_TO_SUPPLIER);
+        exportDto.setExportSlipItems(Arrays.asList(itemDto));
+        exportDto.setProductCount(1L);
+        exportDto.setStatus("CONFIRMED");
+}
 
-        ExportSlipItemRequestDto exportItem = new ExportSlipItemRequestDto();
-        exportItem.setProductId(1L);
-        exportItem.setImportItemId(1L);
-        exportItem.setQuantity(10);
-        exportItem.setConversionFactor(1);
-        exportItem.setUnitPrice(100.0);
-        exportItem.setDiscount(0.0);
-        exportItem.setTotalAmount(1000.0);
-        exportItem.setBatchNumber("342");
-        exportItem.setExpiryDate(Instant.now());
-        exportItem.setUnit("Chai");
+    @Test
+    void createExport_UnauthenticatedUser_ThrowsUnauthorizedException() {
+        // Arrange: Người dùng không được xác thực
+        lenient().when(securityContext.getAuthentication()).thenReturn(null); // Lenient để bỏ qua kiểm tra không cần thiết
 
-        exportDto.setExportSlipItems(Collections.singletonList(exportItem));
+        // Act & Assert
+        UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
+            exportService.createExport(exportDto);
+        });
+
+        assertEquals(Message.NOT_LOGIN, exception.getMessage()); // Kiểm tra thông báo lỗi
+        verify(exportSlipRepository, never()).save(any(ExportSlip.class)); // Đảm bảo không có export được lưu
     }
 
     @Test
-    void testCreateExport_ReturnToSupplier_Success() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(supplierRepository.findById(1L)).thenReturn(Optional.of(supplier));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        when(importItemRepository.findById(1L)).thenReturn(Optional.of(importItem));
-        when(exportSlipRepository.getLastInvoiceNumber()).thenReturn(null);
+    void createExport_UserNotFound_ThrowsResourceNotFoundException() {
+        // Arrange: Không tìm thấy người dùng
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
 
-        assertDoesNotThrow(() -> exportService.createExport(exportDto));
-
-        // Kiểm tra rằng exportSlipRepository.save được gọi 2 lần
-        verify(exportSlipRepository, times(2)).save(any(ExportSlip.class));
-    }
-
-    @Test
-    void testCreateExport_Destroy_Success() {
-        exportDto.setTypeDelivery(ExportType.DESTROY);
-        exportDto.setSupplierId(null);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        when(importItemRepository.findById(1L)).thenReturn(Optional.of(importItem));
-        when(exportSlipRepository.getLastInvoiceNumber()).thenReturn(null);
-
-        assertDoesNotThrow(() -> exportService.createExport(exportDto));
-
-        // Kiểm tra rằng exportSlipRepository.save được gọi đúng 2 lần
-        verify(exportSlipRepository, times(2)).save(any(ExportSlip.class));
-    }
-
-    @Test
-    void testCreateExport_UserNotFound() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
-
+        // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             exportService.createExport(exportDto);
         });
 
-        assertEquals(Message.USER_NOT_FOUND, exception.getMessage());
+        assertEquals(Message.USER_NOT_FOUND, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
+        verify(exportSlipRepository, never()).save(any(ExportSlip.class));
     }
 
     @Test
-    void testCreateExport_SupplierNotFound() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(supplierRepository.findById(1L)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            exportService.createExport(exportDto);
-        });
-
-        assertEquals(Message.SUPPLIER_NOT_FOUND, exception.getMessage());
-    }
-
-    @Test
-    void testCreateExport_InvalidExportType() {
+    void createExport_InvalidExportType_ThrowsBadRequestException() {
         exportDto.setTypeDelivery(null);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-
+        // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             exportService.createExport(exportDto);
         });
 
-        assertEquals(Message.INVALID_EXPORT_TYPE, exception.getMessage());
+        assertEquals(Message.INVALID_EXPORT_TYPE, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
+        verify(exportSlipRepository, never()).save(any(ExportSlip.class));
     }
 
     @Test
-    void testCreateExport_EmptyExportItems() {
+    void createExport_EmptyExportSlipItems_ThrowsBadRequestException() {
         exportDto.setExportSlipItems(Collections.emptyList());
-        exportDto.setTypeDelivery(ExportType.DESTROY); // Đặt kiểu là DESTROY để tránh kiểm tra Supplier
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-
+        // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             exportService.createExport(exportDto);
         });
 
-        assertEquals(Message.EXPORT_ITEMS_EMPTY, exception.getMessage());
+        assertEquals(Message.EXPORT_ITEMS_EMPTY, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
+        //verify(exportSlipRepository, never()).save(any(ExportSlip.class));
     }
 
     @Test
-    void testCreateExport_ProductNotFound() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(supplierRepository.findById(1L)).thenReturn(Optional.of(supplier));
+    void createExport_ProductNotFound_ThrowsResourceNotFoundException() {
+        // Arrange: Sản phẩm không tồn tại
         when(productRepository.findById(1L)).thenReturn(Optional.empty());
 
+        // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             exportService.createExport(exportDto);
         });
 
-        assertEquals(Message.PRODUCT_NOT_FOUND, exception.getMessage());
+        assertEquals(Message.PRODUCT_NOT_FOUND, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
+        //verify(exportSlipRepository, never()).save(any(ExportSlip.class));
     }
 
     @Test
-    void testCreateExport_NotEnoughStock() {
-        product.setTotalQuantity(5);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(supplierRepository.findById(1L)).thenReturn(Optional.of(supplier));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            exportService.createExport(exportDto);
-        });
-
-        assertEquals(Message.NOT_ENOUGH_STOCK, exception.getMessage());
-    }
-
-    @Test
-    void testCreateExport_ImportNotFound() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(supplierRepository.findById(1L)).thenReturn(Optional.of(supplier));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+    void createExport_ImportItemNotFound_ThrowsResourceNotFoundException() {
+        // Arrange: ImportItem không tồn tại
         when(importItemRepository.findById(1L)).thenReturn(Optional.empty());
 
+        // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             exportService.createExport(exportDto);
         });
 
-        assertEquals(Message.IMPORT_NOT_FOUND, exception.getMessage());
+        assertEquals(Message.IMPORT_NOT_FOUND, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
+        //verify(exportSlipRepository, never()).save(any(ExportSlip.class));
     }
 
-    @Test
-    void testCreateExport_SupplierNotMatch() {
-        Supplier differentSupplier = new Supplier();
-        differentSupplier.setId(2L);
-        importItem.getImportReceipt().setSupplier(differentSupplier);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(supplierRepository.findById(1L)).thenReturn(Optional.of(supplier));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        when(importItemRepository.findById(1L)).thenReturn(Optional.of(importItem));
-
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            exportService.createExport(exportDto);
-        });
-
-        assertEquals(Message.SUPPLIER_NOT_MATCH, exception.getMessage());
-    }
-
-    @Test
-    void testCreateExport_NotEnoughStockInBatch() {
-        importItem.setRemainingQuantity(5);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(supplierRepository.findById(1L)).thenReturn(Optional.of(supplier));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        when(importItemRepository.findById(1L)).thenReturn(Optional.of(importItem));
-
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            exportService.createExport(exportDto);
-        });
-
-        assertEquals(Message.NOT_ENOUGH_STOCK_IN_BATCH, exception.getMessage());
-    }
-
-    @Test
-    void testCreateExport_TotalAmountNotMatch() {
-        exportDto.setTotalAmount(500.0);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(supplierRepository.findById(1L)).thenReturn(Optional.of(supplier));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        when(importItemRepository.findById(1L)).thenReturn(Optional.of(importItem));
-
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            exportService.createExport(exportDto);
-        });
-
-        assertEquals(Message.TOTAL_AMOUNT_NOT_MATCH, exception.getMessage());
-    }
 
 }

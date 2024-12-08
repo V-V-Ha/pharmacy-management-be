@@ -2,6 +2,8 @@ package com.fu.pha.Service.Import;
 
 import com.fu.pha.dto.response.importPack.ImportResponseDto;
 import com.fu.pha.entity.*;
+import com.fu.pha.enums.OrderStatus;
+import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.ImportRepository;
@@ -11,9 +13,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,70 +33,88 @@ public class ImportViewDetailTest {
     @InjectMocks
     private ImportServiceImpl importService;
 
-    private Import importReceipt;
+    private Import importMock;
 
     @BeforeEach
-    void setUp() {
-        // Tạo đối tượng Import và gán ID
-        importReceipt = new Import();
-        importReceipt.setId(1L);
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
 
-        // Tạo và gán User cho importReceipt
-        User user = new User();
-        user.setId(1L);
-        importReceipt.setUser(user);
+        // Tạo mock đối tượng Import
+        importMock = new Import();
+        importMock.setId(1L);
+        importMock.setInvoiceNumber("INV123");
+        importMock.setImportDate(Instant.now());
+        importMock.setPaymentMethod(PaymentMethod.CASH);
+        importMock.setTax(100.0);
+        importMock.setDiscount(50.0);
+        importMock.setTotalAmount(5000.0);
+        importMock.setNote("Import note");
 
-        // Tạo và gán Supplier cho importReceipt
-        Supplier supplier = new Supplier();
-        supplier.setId(1L);
-        supplier.setSupplierName("Traphaco");
-        importReceipt.setSupplier(supplier);
+        // Tạo mock đối tượng User và Supplier
+        User mockUser = new User();
+        mockUser.setId(1L);
+        importMock.setUser(mockUser);
 
-        // Thiết lập các giá trị khác của importReceipt
-        importReceipt.setTotalAmount(1000.0);
+        Supplier mockSupplier = new Supplier();
+        mockSupplier.setId(1L);
+        mockSupplier.setSupplierName("Supplier Name");
+        importMock.setSupplier(mockSupplier);
 
-        // Tạo danh sách ImportItems và gán vào importReceipt
-        ImportItem importItem = new ImportItem();
-        importItem.setId(1L);
-        importItem.setQuantity(10);
-        importItem.setUnitPrice(100.0);
-        importItem.setTotalAmount(1000.0);
-        importItem.setImportReceipt(importReceipt); // Gán ImportReceipt cho ImportItem
+        importMock.setCreateDate(Instant.now());
+        importMock.setLastModifiedDate(Instant.now());
+        importMock.setCreateBy("admin");
+        importMock.setLastModifiedBy("admin");
 
-        // Tạo và gán Category cho Product
-        Category category = new Category();
-        category.setCategoryName("Thuốc ho");
+        importMock.setStatus(OrderStatus.PENDING);
+        importMock.setImage("image-url");
 
-        // Tạo và gán Product cho ImportItem
-        Product product = new Product();
-        product.setCategoryId(category);
+        // Tạo mock ImportItems
+        Category mockCategory = new Category();
+        mockCategory.setId(1L);
+        mockCategory.setCategoryName("Category A");
 
-        // Tạo và gán ProductUnit cho Product với một Unit hợp lệ
-        ProductUnit productUnit = new ProductUnit();
-        productUnit.setConversionFactor(1);
-        productUnit.setImportPrice(100.0);
-        productUnit.setProduct(product); // Gán Product cho ProductUnit
+        Product product1 = new Product();
+        product1.setId(1L);
+        product1.setProductName("Product A");
+        product1.setCategoryId(mockCategory);
+        product1.setProductUnitList(Collections.emptyList()); // Initialize ProductUnitList
 
-        Unit unit = new Unit(); // Khởi tạo và gán đối tượng Unit cho ProductUnit
-        unit.setId(1L);
-        unit.setUnitName("Hộp");
-        productUnit.setUnit(unit);
+        Product product2 = new Product();
+        product2.setId(2L);
+        product2.setProductName("Product B");
+        product2.setCategoryId(mockCategory);
+        product2.setProductUnitList(Collections.emptyList()); // Initialize ProductUnitList
 
-        product.setProductUnitList(Collections.singletonList(productUnit)); // Gán ProductUnitList cho Product
+        ImportItem importItem1 = new ImportItem();
+        importItem1.setProduct(product1);
+        importItem1.setImportReceipt(importMock); // Set the Import object
 
-        importItem.setProduct(product);
-        importReceipt.setImportItems(Collections.singletonList(importItem));
+        ImportItem importItem2 = new ImportItem();
+        importItem2.setProduct(product2);
+        importItem2.setImportReceipt(importMock); // Set the Import object
+
+        List<ImportItem> importItems = Arrays.asList(importItem1, importItem2);
+        importMock.setImportItems(importItems);
     }
 
     @Test
-    void UTCIVD01() {
-        when(importRepository.findById(1L)).thenReturn(Optional.of(importReceipt));
+    public void testGetImportById_ImportExists() {
+        // Arrange
+        Long importId = 1L;
+        when(importRepository.findById(importId)).thenReturn(Optional.of(importMock));
 
-        ImportResponseDto response = importService.getImportById(1L);
+        // Act
+        ImportResponseDto result = importService.getImportById(importId);
 
-        assertNotNull(response);
-        assertEquals(1L, response.getId());
-        verify(importRepository, times(1)).findById(1L);
+        // Assert
+        assertNotNull(result);
+        assertEquals(importMock.getId(), result.getId());
+        assertEquals(importMock.getInvoiceNumber(), result.getInvoiceNumber());
+        assertEquals(importMock.getTotalAmount(), result.getTotalAmount());
+        assertEquals(importMock.getUser().getId(), result.getUserId());
+        assertEquals(importMock.getSupplier().getId(), result.getSupplierId());
+        assertEquals(importMock.getImportItems().size(), result.getImportItems().size());
+        verify(importRepository, times(1)).findById(importId);
     }
 
     @Test

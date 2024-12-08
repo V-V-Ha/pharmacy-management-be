@@ -1,14 +1,10 @@
 package com.fu.pha.dto.response.importPack;
 
-import com.fu.pha.dto.response.ProductUnitDTOResponse;
-import com.fu.pha.dto.response.exportSlip.BatchInfo;
-import com.fu.pha.entity.ImportItem;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -28,13 +24,15 @@ public class ImportItemResponseForExport {
     private Instant importDate;
     private Integer conversionFactor;
     private Integer remainingQuantity;
+    private String invoiceNumber;
     private Long supplierId;
 
 
-    public ImportItemResponseForExport(Long id, Integer quantity, Double unitPrice, String unit, Double discount,
+    public ImportItemResponseForExport(Long id ,String invoiceNumber,Integer quantity, Double unitPrice, String unit, Double discount,
                                        Double tax, Double totalAmount, String batchNumber,
                                        Long importId, Instant expiryDate,Instant importDate, Integer remainingQuantity,Long supplierId) {
         this.id = id;
+        this.invoiceNumber = invoiceNumber;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
         this.unit = unit;
@@ -50,7 +48,7 @@ public class ImportItemResponseForExport {
     }
 
 
-    public ImportItemResponseForExport(Long id, Integer quantity, Double unitPrice, String unit, Double discount, Double tax, Double totalAmount, String batchNumber, Instant expiryDate, Integer remainingQuantity) {
+    public ImportItemResponseForExport(Long id, String invoiceNumber,Integer quantity, Double unitPrice, String unit, Double discount, Double tax, Double totalAmount, String batchNumber, Instant expiryDate, Instant importDate,Integer remainingQuantity) {
         this.id = id;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
@@ -60,6 +58,8 @@ public class ImportItemResponseForExport {
         this.totalAmount = totalAmount;
         this.batchNumber = batchNumber;
         this.expiryDate = expiryDate;
+        this.importDate = importDate;
+        this.invoiceNumber = invoiceNumber;
         this.remainingQuantity = remainingQuantity;
     }
 }

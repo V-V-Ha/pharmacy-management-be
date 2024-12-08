@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
@@ -66,6 +65,11 @@ public class SaleOrder extends BaseEntity{
     @OneToMany(mappedBy = "saleOrder")
     private List<SaleOrderItem> saleOrderItemList;
 
+    @Column(name = "payment_status")
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
 
+    @Column(name = "check_back_order")
+    private Boolean checkBackOrder;
 
 }

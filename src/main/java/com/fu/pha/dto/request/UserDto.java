@@ -59,4 +59,5 @@ public class UserDto {
         this.lastModifiedDate=user.getLastModifiedDate();
         this.lastModifiedBy=user.getLastModifiedBy();
     }
+
 }

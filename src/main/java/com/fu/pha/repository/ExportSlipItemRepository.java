@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface ExportSlipItemRepository extends JpaRepository<ExportSlipItem, Long> {
 
-    @Query("SELECT i FROM ExportSlipItem i WHERE i.isDeleted = false AND i.exportSlip.id = :exportSlipId")
+    @Query("SELECT i FROM ExportSlipItem i WHERE i.exportSlip.id = :exportSlipId")
     List<ExportSlipItem> findByExportSlipId(@Param("exportSlipId") Long exportSlipId);
 
     //report

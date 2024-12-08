@@ -1,6 +1,5 @@
 package com.fu.pha.repository;
 
-import com.fu.pha.dto.request.importPack.ImportDto;
 import com.fu.pha.dto.request.importPack.ImportViewListDto;
 import com.fu.pha.entity.Import;
 import com.fu.pha.enums.OrderStatus;
@@ -32,7 +31,6 @@ public interface ImportRepository extends JpaRepository<Import, Long> {
                                                 @Param("toDate") Instant toDate,
                                                 Pageable pageable);
 
-
     @Query("SELECT new com.fu.pha.dto.request.importPack.ImportViewListDto(i) " +
             "FROM Import i " +
             "WHERE (:supplierName IS NULL OR i.supplier.supplierName = :supplierName OR :supplierName = '') " +
@@ -41,7 +39,6 @@ public interface ImportRepository extends JpaRepository<Import, Long> {
     Page<ImportViewListDto> getListImportPagingWithoutDate(@Param("supplierName") String supplierName,
                                                            @Param("status") OrderStatus status,
                                                            Pageable pageable);
-
 
     @Query("SELECT new com.fu.pha.dto.request.importPack.ImportViewListDto(i) " +
             "FROM Import i " +
@@ -54,7 +51,6 @@ public interface ImportRepository extends JpaRepository<Import, Long> {
                                                         @Param("fromDate") Instant fromDate,
                                                         Pageable pageable);
 
-
     @Query("SELECT new com.fu.pha.dto.request.importPack.ImportViewListDto(i) " +
             "FROM Import i " +
             "WHERE (:supplierName IS NULL OR i.supplier.supplierName = :supplierName OR :supplierName = '') " +
@@ -66,24 +62,25 @@ public interface ImportRepository extends JpaRepository<Import, Long> {
                                                       @Param("toDate") Instant toDate,
                                                       Pageable pageable);
 
-
-
-    @Query("SELECT COALESCE(SUM(i.totalAmount), 0) FROM Import i WHERE i.importDate BETWEEN :startDate AND :endDate")
+    @Query("SELECT COALESCE(SUM(i.totalAmount), 0) FROM Import i WHERE i.importDate BETWEEN :startDate AND :endDate AND i.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     Double sumTotalImportAmountBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
-    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate")
+    @Query("SELECT COALESCE(SUM(ii.quantity * ii.conversionFactor), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     Integer sumTotalImportQuantityBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
     @Query("SELECT COALESCE(SUM(i.totalAmount), 0) " +
             "FROM Import i " +
-            "WHERE i.supplier.createDate BETWEEN :startDate AND :endDate")
+            "WHERE i.supplier.createDate BETWEEN :startDate AND :endDate ")
     Double sumTotalImportNewAmountBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
-
 
     @Query("SELECT COALESCE(SUM(i.totalAmount), 0) " +
             "FROM Import i " +
-            "WHERE i.supplier.createDate < :startDate")
+            "WHERE i.supplier.createDate < :startDate ")
     Double sumTotalImportAmountBeforeDate(@Param("startDate") Instant startDate);
 
+    @Query("SELECT new com.fu.pha.dto.request.importPack.ImportViewListDto(i) FROM Import i " +
+            "WHERE i.importDate BETWEEN :fromDate AND :toDate")
+    List<ImportViewListDto> getImportsByDateRange(@Param("fromDate") Instant fromDate,
+                                                  @Param("toDate") Instant toDate);
 
 }

@@ -96,13 +96,20 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
+        userRepository.findByUsername(loginDtoRequest.getUsername())
+                .ifPresent(user -> {
+                    user.setFcmToken(loginDtoRequest.getFcmToken());
+                    userRepository.save(user);
+                });
+
         return new JwtResponse(
                 jwt,
+                loginDtoRequest.getFcmToken(),
                 userDetails.getUser().getId(),
                 userDetails.getUsername(),
                 userDetails.getUser().getEmail(),
-                roles);
-
+                roles, userDetails.getUser().getAvatar(),
+                userDetails.getUser().getFullName());
     }
 
     @Transactional
@@ -111,8 +118,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
         // Kiểm tra các giá trị đầu vào từ DTO
         checkValidate(userDto);
-
-        // Kiểm tra sự tồn tại của username, email, cic và phone
         userRepository.findByUsername(userDto.getUsername())
                 .ifPresent(user -> { throw new BadRequestException(Message.EXIST_USERNAME); });
 
@@ -125,7 +130,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         userRepository.getUserByPhone(userDto.getPhone())
                 .ifPresent(user -> { throw new BadRequestException(Message.EXIST_PHONE); });
 
-        // Xử lý các vai trò người dùng
         validateRoles(userDto.getRolesDto());
 
         // Tạo đối tượng User từ UserDto
@@ -432,12 +436,22 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         User user = userRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException(Message.USER_NOT_FOUND));
 
-        // Chuyển đổi trạng thái
+        // Kiểm tra xem người dùng có vai trò PRODUCT_OWNER không
+        boolean isProductOwner = user.getRoles().stream()
+                .anyMatch(role -> role.getName().equals(ERole.ROLE_PRODUCT_OWNER));
+
+        // Nếu là ROLE_PRODUCT_OWNER, không cho phép thay đổi trạng thái
+        if (isProductOwner) {
+            throw new BadRequestException("Không thể thay đổi trạng thái của chủ cửa hàng");
+        }
+
+        // Chuyển đổi trạng thái nếu không phải ROLE_PRODUCT_OWNER
         if (user.getStatus() == Status.ACTIVE) {
             user.setStatus(Status.INACTIVE);
         } else {
             user.setStatus(Status.ACTIVE);
         }
+
         userRepository.save(user);
     }
 

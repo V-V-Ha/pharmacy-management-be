@@ -5,9 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-
 @Entity
 @Getter
 @Setter
@@ -36,8 +33,6 @@ public class ExportSlipItem extends BaseEntity{
     @Column(name = "batch_number")
     private String batch_number;
 
-    @Column(name = "expiry_date")
-    private Instant expiryDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
@@ -56,7 +51,4 @@ public class ExportSlipItem extends BaseEntity{
 
     @Column(name = "conversion_factor")
     private Integer conversionFactor;
-
-    @Column(name = "is_deleted")
-    private Boolean isDeleted = false;
 }

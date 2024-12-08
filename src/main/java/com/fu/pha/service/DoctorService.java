@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 public interface DoctorService {
-    void createDoctor(DoctorDTORequest doctorDTORequest);
+    DoctorDTOResponse createDoctor(DoctorDTORequest doctorDTORequest);
 
     void updateDoctor(DoctorDTORequest doctorDTORequest);
 

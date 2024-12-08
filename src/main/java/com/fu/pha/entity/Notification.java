@@ -1,5 +1,6 @@
 package com.fu.pha.entity;
 
+import com.fu.pha.enums.NotificationType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,6 +25,10 @@ public class Notification {
     @Column(name = "message", nullable = false)
     private String message;
 
+    @Column(name = "type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private NotificationType type;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
@@ -33,4 +38,18 @@ public class Notification {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "import_item_id")
+    private ImportItem importItem;
+
+    @Column(name = "receipt_id")
+    private Long receiptId;
+
+    @Column(name = "url")
+    private String url;
 }

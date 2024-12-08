@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
@@ -58,8 +57,4 @@ public class ExportSlip extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supplier_id")
     private Supplier supplier;
-
-    @Column(name = "is_deleted")
-    private Boolean isDeleted = false;
-
 }

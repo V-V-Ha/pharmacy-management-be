@@ -19,4 +19,8 @@ public class Role extends BaseEntity{
     @Enumerated(EnumType.STRING)
     @Column(length = 30)
     private ERole name;
+
+    public Role(String name) {
+        this.name = ERole.valueOf(name);
+    }
 }

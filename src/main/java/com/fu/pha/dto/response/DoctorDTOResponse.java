@@ -33,4 +33,5 @@ public class DoctorDTOResponse {
         this.id = id;
         this.fullName = fullName;
     }
+
 }

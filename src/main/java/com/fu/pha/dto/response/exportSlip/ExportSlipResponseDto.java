@@ -1,7 +1,5 @@
 package com.fu.pha.dto.response.exportSlip;
 
-import com.fu.pha.dto.request.SupplierDto;
-import com.fu.pha.dto.request.exportSlip.ExportSlipItemRequestDto;
 import com.fu.pha.dto.response.SupplierResponseDto;
 import com.fu.pha.entity.ExportSlip;
 import com.fu.pha.enums.ExportType;
@@ -30,6 +28,11 @@ public class ExportSlipResponseDto {
     private List<ExportSlipItemResponseDto> exportSlipItems;
     private Long productCount;
     private String status;
+    private String createBy;
+    private String fullName;
+    private Instant createDate;
+    private Instant lastModifiedDate;
+    private String lastModifiedBy;
 
     // Constructor đúng để chuyển từ ExportSlip entity sang ExportSlipResponseDto
     public ExportSlipResponseDto(ExportSlip exportSlip) {
@@ -57,5 +60,10 @@ public class ExportSlipResponseDto {
                 .map(ExportSlipItem::getProduct)
                 .distinct()
                 .count();
+        this.createBy = exportSlip.getCreateBy();
+        this.fullName = exportSlip.getUser().getFullName();
+        this.createDate = exportSlip.getCreateDate();
+        this.lastModifiedBy = exportSlip.getLastModifiedBy();
+        this.lastModifiedDate = exportSlip.getLastModifiedDate();
     }
 }

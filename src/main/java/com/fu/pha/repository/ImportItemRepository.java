@@ -24,6 +24,20 @@ public interface ImportItemRepository extends JpaRepository<ImportItem, Long> {
     @Query("SELECT ii FROM ImportItem ii WHERE ii.importReceipt.id = :importId")
     List<ImportItem> findByImportId(@Param("importId") Long importId);
 
+    //find by batchNumber and invoiceNumber
+    @Query("SELECT ii FROM ImportItem ii " +
+            "JOIN ii.importReceipt ir " +
+            "JOIN ii.product p " +
+            "WHERE ii.batchNumber = :batchNumber " +
+            "AND ir.invoiceNumber = :invoiceNumber " +
+            "AND p.id = :productId")
+    Optional<ImportItem> findByBatchNumberAndImportReceipt_InvoiceNumberAndProductId(
+            @Param("batchNumber") String batchNumber,
+            @Param("productId") Long productId,
+            @Param("invoiceNumber") String invoiceNumber);
+
+
+
 
     @Query("SELECT i FROM ImportItem i JOIN i.product p WHERE LOWER(p.productName) LIKE LOWER(concat('%', :productName, '%')) AND i.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     List<ImportItem> findImportItemsByProductName(@Param("productName") String productName);
@@ -82,4 +96,13 @@ public interface ImportItemRepository extends JpaRepository<ImportItem, Long> {
     @Query("SELECT COALESCE(SUM(ii.totalAmount), 0) FROM ImportItem ii WHERE ii.importReceipt.importDate BETWEEN :startDate AND :endDate AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     Integer sumTotalQuantityBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
+    @Query(value = "SELECT ii FROM ImportItem ii " +
+            "JOIN ii.product p " +
+            "WHERE ii.expiryDate <= CURRENT_DATE " +
+            "AND ii.remainingQuantity > 0 " +
+            "AND p.status = 'ACTIVE'")
+    List<ImportItem> findExpiredProducts();
+
+
+    List<ImportItem> findByProductId(Long id);
 }

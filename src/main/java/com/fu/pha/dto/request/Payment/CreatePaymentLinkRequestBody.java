@@ -3,9 +3,6 @@ package com.fu.pha.dto.request.Payment;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import vn.payos.type.ItemData;
-
-import java.util.List;
 
 @AllArgsConstructor
 @Getter

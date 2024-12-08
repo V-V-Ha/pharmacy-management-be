@@ -42,7 +42,7 @@ public class DoctorController {
     }
 
     @PutMapping("/change-status-doctor")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<String> updateDoctorStatus(@RequestParam Long id) {
         doctorService.updateDoctorStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
@@ -50,9 +50,8 @@ public class DoctorController {
 
     @PostMapping("/create-doctor")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
-    public ResponseEntity<String> createDoctor(@Valid  @RequestBody DoctorDTORequest request) {
-        doctorService.createDoctor(request);
-        return ResponseEntity.ok(Message.CREATE_SUCCESS);
+    public ResponseEntity<DoctorDTOResponse> createDoctor(@Valid  @RequestBody DoctorDTORequest request) {
+        return ResponseEntity.ok( doctorService.createDoctor(request));
     }
 
     @PutMapping("/update-doctor")
