@@ -112,7 +112,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
             returnOrderItemRepository.save(returnOrderItem);
             // Duyệt qua từng lô trong DTO gửi về và xử lý trả lại
             for (ReturnOrderBatchRequestDto batchRequestDto : batchRequestDtos) {
-                if (remainingQuantityToReturn <= 0) {
+                if (remainingQuantityToReturn < 0) {
                     break;
                 }
 
@@ -131,7 +131,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
 
                 // Kiểm tra số lượng có thể trả lại cho từng SaleOrderItemBatch
                 int availableQuantityForReturn = saleOrderItemBatch.getQuantity();
-                int quantityReturn = batchRequestDto.getQuantity() * conversionFactor;
+                int quantityReturn = batchRequestDto.getQuantity() != null ? batchRequestDto.getQuantity() : 0  * conversionFactor;
                 if (availableQuantityForReturn < saleOrderItemBatch.getReturnedQuantity() || availableQuantityForReturn < quantityReturn) {
                     continue;
                 }
