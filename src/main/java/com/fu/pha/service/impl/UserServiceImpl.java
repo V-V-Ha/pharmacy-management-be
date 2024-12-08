@@ -118,8 +118,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
 
         // Kiểm tra các giá trị đầu vào từ DTO
         checkValidate(userDto);
-
-        // Kiểm tra sự tồn tại của username, email, cic và phone
         userRepository.findByUsername(userDto.getUsername())
                 .ifPresent(user -> { throw new BadRequestException(Message.EXIST_USERNAME); });
 
@@ -132,7 +130,6 @@ public class UserServiceImpl implements com.fu.pha.service.UserService {
         userRepository.getUserByPhone(userDto.getPhone())
                 .ifPresent(user -> { throw new BadRequestException(Message.EXIST_PHONE); });
 
-        // Xử lý các vai trò người dùng
         validateRoles(userDto.getRolesDto());
 
         // Tạo đối tượng User từ UserDto

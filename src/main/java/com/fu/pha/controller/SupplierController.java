@@ -69,7 +69,7 @@ public class SupplierController {
     }
 
     @PutMapping("/change-status-supplier")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<String> updateSupplierStatus(@RequestParam Long id) {
         supplierService.updateSupplierStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);

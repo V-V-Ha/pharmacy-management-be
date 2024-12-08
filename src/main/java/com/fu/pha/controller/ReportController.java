@@ -97,7 +97,7 @@ public class ReportController {
     }
 
     @GetMapping("/export-inventory-report")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
     public void exportInventoryReportToExcel(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
@@ -202,7 +202,7 @@ public class ReportController {
     }
 
     @GetMapping("/export-excel-supplier-report")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public void exportSupplierReportToExcel(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,

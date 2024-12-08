@@ -100,47 +100,4 @@ public class ScheduledTasks {
             notificationService.createExpiredProductNotifications(expiredProducts);
         }
     }
-
-
-//    @Scheduled(fixedRate = 5000) // Chạy mỗi 5 giây
-//    public void checkOutOfStockProducts() {
-//    log.info("Starting check for out-of-stock products...");
-//
-//    try {
-//        List<OutOfStockProductDto> outOfStockProducts = notificationService
-//            .getOutOfStockProducts(null, null, 0, 100).getContent();
-//
-//        if (outOfStockProducts.isEmpty()) {
-//            log.info("No out-of-stock products found.");
-//        } else {
-//            log.info("Found {} out-of-stock products.", outOfStockProducts.size());
-//            notificationService.createOutOfStockNotifications(outOfStockProducts);
-//            log.info("Notifications created for {} out-of-stock products.", outOfStockProducts.size());
-//        }
-//    } catch (Exception e) {
-//        log.error("Error during out-of-stock product check: {}", e.getMessage(), e);
-//    }
-//}
-//
-//    @Scheduled(fixedRate = 5000) // Chạy mỗi 5 giây
-//     public void checkExpiredProducts() {
-//    log.info("Starting check for expired products...");
-//    int warningDays = 60; // Kiểm tra sản phẩm sắp hết hạn trong 7 ngày
-//
-//    try {
-//        List<ExpiredProductDto> expiredProducts = notificationService
-//            .getExpiredProducts(null, null, warningDays, 0, 100).getContent();
-//
-//        if (expiredProducts.isEmpty()) {
-//            log.info("No expired products found.");
-//        } else {
-//            log.info("Found {} expired products.", expiredProducts.size());
-//            notificationService.createNearlyExpiredProductNotifications(expiredProducts);
-//            log.info("Notifications created for {} expired products.", expiredProducts.size());
-//        }
-//    } catch (Exception e) {
-//        log.error("Error during expired product check: {}", e.getMessage(), e);
-//    }
-//}
-
 }

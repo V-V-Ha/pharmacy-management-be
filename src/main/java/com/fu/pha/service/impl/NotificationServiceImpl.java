@@ -39,8 +39,6 @@ public class NotificationServiceImpl implements NotificationService {
     @Autowired
     private FirebaseNotificationService firebaseNotificationService;
 
-
-
     public List<User> getProductOwners() {
         return userRepository.findAllByRoles_NameIn(Arrays.asList(ERole.ROLE_PRODUCT_OWNER, ERole.ROLE_STOCK));
     }
