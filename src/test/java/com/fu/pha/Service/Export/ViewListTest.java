@@ -1,6 +1,7 @@
 package com.fu.pha.Service.Export;
 
 import com.fu.pha.entity.User;
+import com.fu.pha.enums.ExportType;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -44,16 +45,6 @@ public class ViewListTest {
     }
 
     @Test
-    void testGetAllExportSlipPaging_EmptyResult() {
-        when(exportSlipRepository.getListExportSlipPagingWithoutDate(any(), any(), any()))
-                .thenReturn(Page.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> {
-            exportSlipService.getAllExportSlipPaging(0, 10, null, null, null, null);
-        });
-    }
-
-    @Test
     void testGetAllExportSlipPaging_WithResults() {
         // Create a mock User object to avoid NullPointerException
         User mockUser = new User();
@@ -73,7 +64,7 @@ public class ViewListTest {
                 .thenReturn(page);
 
         // Act
-        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, null, null, null, null);
+        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, ExportType.DESTROY, OrderStatus.PENDING, null, null);
 
         // Assert
         assertNotNull(result);
@@ -100,7 +91,7 @@ public class ViewListTest {
                 .thenReturn(page);
 
         // Act
-        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, null, null, fromDate, null);
+        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, ExportType.DESTROY, OrderStatus.PENDING, fromDate, null);
 
         // Assert
         assertNotNull(result);
@@ -127,7 +118,7 @@ public class ViewListTest {
                 .thenReturn(page);
 
         // Act
-        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, null, null, null, toDate);
+        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, ExportType.DESTROY, OrderStatus.PENDING, null, toDate);
 
         // Assert
         assertNotNull(result);
@@ -154,7 +145,7 @@ public class ViewListTest {
                 .thenReturn(page);
 
         // Act
-        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, null, null, fromDate, toDate);
+        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, ExportType.DESTROY, OrderStatus.PENDING, fromDate, toDate);
 
         // Assert
         assertNotNull(result);
@@ -167,7 +158,7 @@ public class ViewListTest {
                 .thenReturn(Page.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> {
-            exportSlipService.getAllExportSlipPaging(0, 10, null, null, null, null);
+            exportSlipService.getAllExportSlipPaging(0, 10, ExportType.DESTROY, OrderStatus.PENDING, null, null);
         });
     }
 

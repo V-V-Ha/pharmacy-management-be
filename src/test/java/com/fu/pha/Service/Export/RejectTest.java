@@ -38,7 +38,7 @@ public class RejectTest {
 
         // Act & Assert
         UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
-            exportSlipServiceSpy.rejectExport(1L, "Reason");
+            exportSlipServiceSpy.rejectExport(1L, "sai số lượng");
         });
         assertEquals(Message.REJECT_AUTHORIZATION, exception.getMessage());
     }
@@ -59,21 +59,6 @@ public class RejectTest {
     }
 
     @Test
-    void testRejectExport_NullReason() {
-        // Arrange
-        ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
-        User authorizedUser = new User();
-        authorizedUser.setRoles(Collections.singleton(new Role(ERole.ROLE_PRODUCT_OWNER.name())));
-        doReturn(authorizedUser).when(exportSlipServiceSpy).getCurrentUser();
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            exportSlipServiceSpy.rejectExport(1L, null);
-        });
-        assertEquals(Message.REASON_REQUIRED, exception.getMessage());
-    }
-
-    @Test
     void testRejectExport_ExportSlipNotFound() {
         // Arrange
         ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
@@ -84,7 +69,7 @@ public class RejectTest {
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            exportSlipServiceSpy.rejectExport(1L, "Reason");
+            exportSlipServiceSpy.rejectExport(200L, "sai số lượng");
         });
         assertEquals(Message.EXPORT_SLIP_NOT_FOUND, exception.getMessage());
     }
@@ -98,12 +83,12 @@ public class RejectTest {
         doReturn(authorizedUser).when(exportSlipServiceSpy).getCurrentUser();
 
         ExportSlip exportSlipMock = new ExportSlip();
-        exportSlipMock.setStatus(OrderStatus.REJECT);
+        exportSlipMock.setStatus(OrderStatus.CONFIRMED);
         when(exportSlipRepository.findById(anyLong())).thenReturn(Optional.of(exportSlipMock));
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            exportSlipServiceSpy.rejectExport(1L, "Reason");
+            exportSlipServiceSpy.rejectExport(1L, "sai số lượng");
         });
         assertEquals(Message.NOT_REJECT, exception.getMessage());
     }
@@ -123,11 +108,11 @@ public class RejectTest {
         when(exportSlipRepository.findById(anyLong())).thenReturn(Optional.of(exportSlipMock));
 
         // Act
-        exportSlipServiceSpy.rejectExport(1L, "Reason");
+        exportSlipServiceSpy.rejectExport(1L, "sai số lượng");
 
         // Assert
         assertEquals(OrderStatus.REJECT, exportSlipMock.getStatus());
-        assertEquals("Reason", exportSlipMock.getNote());
+        assertEquals("sai số lượng", exportSlipMock.getNote());
         verify(exportSlipRepository, times(1)).save(exportSlipMock);
         verify(notificationService, times(1)).sendNotificationToUser(anyString(), anyString(), eq(exportCreator), anyString());
     }

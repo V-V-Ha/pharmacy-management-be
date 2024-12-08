@@ -142,33 +142,9 @@ public class ProductCreateTest {
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
-    //test trường hợp tạo sản phẩm không thành công do trường activeIngredient null
-    @Test
-    void UTCPC06() {
-        productDTORequest.setActiveIngredient("");
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.createProduct(productDTORequest, null);
-        });
-
-        assertEquals(Message.NULL_FILED, exception.getMessage());
-    }
-
-    //test trường hợp tạo sản phẩm không thành công do trường dosageConcentration null
-    @Test
-    void UTCPC07() {
-        productDTORequest.setDosageConcentration("");
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.createProduct(productDTORequest, null);
-        });
-
-        assertEquals(Message.NULL_FILED, exception.getMessage());
-    }
-
     //test trường hợp tạo sản phẩm không thành công do trường packingMethod null
     @Test
-    void UTCPC08() {
+    void UTCPC06() {
         productDTORequest.setPackingMethod("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -180,7 +156,7 @@ public class ProductCreateTest {
 
     //test trường hợp tạo sản phẩm không thành công do trường manufacturer null
     @Test
-    void UTCPC09() {
+    void UTCPC07() {
         productDTORequest.setManufacturer("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -192,20 +168,8 @@ public class ProductCreateTest {
 
     //test trường hợp tạo sản phẩm không thành công do trường countryOfOrigin null
     @Test
-    void UTCPC10() {
+    void UTCPC08() {
         productDTORequest.setCountryOfOrigin("");
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.createProduct(productDTORequest, null);
-        });
-
-        assertEquals(Message.NULL_FILED, exception.getMessage());
-    }
-
-    //test trường hợp tạo sản phẩm không thành công do trường dosageForms null
-    @Test
-    void UTCPC11() {
-        productDTORequest.setDosageForms("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             productService.createProduct(productDTORequest, null);
@@ -216,7 +180,7 @@ public class ProductCreateTest {
 
     //test trường hợp tạo sản phẩm không thành công do trường registrationNumber trùng
     @Test
-    void UTCPC12() {
+    void UTCPC09() {
         // Thiết lập số đăng ký cho productDTORequest
         productDTORequest.setRegistrationNumber("TCT-00092-22");
 

@@ -92,7 +92,7 @@ public class SupplierUpdateTest {
         assertFalse(violations.isEmpty(), "Expected validation errors for null supplier name");
 
         ConstraintViolation<SupplierDto> violation = violations.iterator().next();
-        assertEquals(Message.NULL_FILED, violation.getMessage());
+        assertEquals(Message.NULL_NAME, violation.getMessage());
     }
 
     //Test trường hợp nhà cung cấp với số điện thoại không hợp lệ

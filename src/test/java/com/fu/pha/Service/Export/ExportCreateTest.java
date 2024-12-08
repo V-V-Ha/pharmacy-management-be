@@ -153,7 +153,7 @@ public class ExportCreateTest {
 }
 
     @Test
-    void createExport_UnauthenticatedUser_ThrowsUnauthorizedException() {
+    void UTCEC01() {
         // Arrange: Người dùng không được xác thực
         lenient().when(securityContext.getAuthentication()).thenReturn(null); // Lenient để bỏ qua kiểm tra không cần thiết
 
@@ -167,9 +167,9 @@ public class ExportCreateTest {
     }
 
     @Test
-    void createExport_UserNotFound_ThrowsResourceNotFoundException() {
+    void UTCEC02() {
         // Arrange: Không tìm thấy người dùng
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
+        when(userRepository.findByUsername("havv123")).thenReturn(Optional.empty());
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -181,7 +181,7 @@ public class ExportCreateTest {
     }
 
     @Test
-    void createExport_InvalidExportType_ThrowsBadRequestException() {
+    void UTCEC03() {
         exportDto.setTypeDelivery(null);
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
@@ -193,7 +193,7 @@ public class ExportCreateTest {
     }
 
     @Test
-    void createExport_EmptyExportSlipItems_ThrowsBadRequestException() {
+    void UTCEC04() {
         exportDto.setExportSlipItems(Collections.emptyList());
 
         // Act & Assert
@@ -202,13 +202,12 @@ public class ExportCreateTest {
         });
 
         assertEquals(Message.EXPORT_ITEMS_EMPTY, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
-        //verify(exportSlipRepository, never()).save(any(ExportSlip.class));
     }
 
     @Test
-    void createExport_ProductNotFound_ThrowsResourceNotFoundException() {
+    void UTCEC05() {
         // Arrange: Sản phẩm không tồn tại
-        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+        when(productRepository.findById(200L)).thenReturn(Optional.empty());
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -216,11 +215,10 @@ public class ExportCreateTest {
         });
 
         assertEquals(Message.PRODUCT_NOT_FOUND, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
-        //verify(exportSlipRepository, never()).save(any(ExportSlip.class));
     }
 
     @Test
-    void createExport_ImportItemNotFound_ThrowsResourceNotFoundException() {
+    void UTCEC06() {
         // Arrange: ImportItem không tồn tại
         when(importItemRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -230,8 +228,6 @@ public class ExportCreateTest {
         });
 
         assertEquals(Message.IMPORT_NOT_FOUND, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
-        //verify(exportSlipRepository, never()).save(any(ExportSlip.class));
     }
-
 
 }

@@ -59,18 +59,18 @@ public class ExportConfirmTest {
     }
 
     @Test
-    void testConfirmExport_UserNotFound() {
+    void UTCECF01() {
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            exportSlipService.confirmExport(1L);
+            exportSlipService.confirmExport(200L);
         });
 
         assertEquals(Message.USER_NOT_FOUND, exception.getMessage());
     }
 
     @Test
-    void testConfirmExport_UnauthorizedUser() {
+    void UTCECF02() {
         currentUser.setRoles(Collections.singleton(new Role(ERole.ROLE_STOCK.name())));  // Change to stock role
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(currentUser));
 
@@ -82,18 +82,18 @@ public class ExportConfirmTest {
     }
 
     @Test
-    void testConfirmExport_ExportSlipNotFound() {
-        when(exportSlipRepository.findById(1L)).thenReturn(Optional.empty());
+    void UTCECF03() {
+        when(exportSlipRepository.findById(200L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            exportSlipService.confirmExport(1L);
+            exportSlipService.confirmExport(200L);
         });
 
         assertEquals(Message.EXPORT_SLIP_NOT_FOUND, exception.getMessage());
     }
 
     @Test
-    void testConfirmExport_ExportSlipNotPending() {
+    void UTCECF04() {
         exportSlip.setStatus(OrderStatus.CONFIRMED);
         when(exportSlipRepository.findById(1L)).thenReturn(Optional.of(exportSlip));
 
@@ -105,7 +105,7 @@ public class ExportConfirmTest {
     }
 
     @Test
-    void testConfirmExport_Success() {
+    void UTCECF05() {
         // Mock to ensure exportSlip is found
         when(exportSlipRepository.findById(1L)).thenReturn(Optional.of(exportSlip));
 

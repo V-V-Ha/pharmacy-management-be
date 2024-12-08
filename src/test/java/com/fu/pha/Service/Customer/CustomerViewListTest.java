@@ -39,6 +39,7 @@ public class CustomerViewListTest {
         pageable = PageRequest.of(0, 10);
     }
 
+    // Test case: Found customers
     @Test
     public void testGetAllCustomerByPaging_FoundCustomers() {
         List<CustomerDTOResponse> customers = List.of(new CustomerDTOResponse());
@@ -47,7 +48,7 @@ public class CustomerViewListTest {
         when(customerRepository.getListCustomerPaging(anyString(), any(), any(Pageable.class)))
                 .thenReturn(customerPage);
 
-        Page<CustomerDTOResponse> result = customerService.getAllCustomerByPaging(0, 10, "keyword", "ACTIVE");
+        Page<CustomerDTOResponse> result = customerService.getAllCustomerByPaging(0, 10, "0987654321", "ACTIVE");
 
         assertFalse(result.isEmpty());
         assertEquals(1, result.getTotalElements());

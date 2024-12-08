@@ -78,7 +78,7 @@ public class DoctorCreateTest {
         assertFalse(violations.isEmpty(), "Expected validation errors for null full name");
 
         ConstraintViolation<DoctorDTORequest> violation = violations.iterator().next();
-        assertEquals(Message.NULL_FILED, violation.getMessage());
+        assertEquals(Message.NULL_NAME, violation.getMessage());
     }
 
     //Test trường hợp create doctor không thành công do address null

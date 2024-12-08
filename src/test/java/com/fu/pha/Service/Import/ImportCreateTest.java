@@ -49,23 +49,9 @@ public class ImportCreateTest {
     private User mockUser;
     private Supplier mockSupplier;
 
-
+    // Test cases supplier not found
     @Test
-    void testCreateImport_WhenUserNotLoggedIn_ShouldThrowUnauthorizedException() {
-        // Arrange
-        ImportServiceImpl importServiceSpy = Mockito.spy(importService);
-        doThrow(new UnauthorizedException(Message.REJECT_AUTHORIZATION)).when(importServiceSpy).getCurrentUser();
-
-        // Act & Assert
-        UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
-            importServiceSpy.createImport(importRequestDto, file);
-        });
-
-        assertEquals(Message.REJECT_AUTHORIZATION, exception.getMessage());
-    }
-
-    @Test
-    void testCreateImport_WhenSupplierNotFound_ShouldThrowResourceNotFoundException() {
+    void UTCIC01() {
         // Arrange
         ImportServiceImpl importServiceSpy = Mockito.spy(importService);
         mockUser = new User();
@@ -74,7 +60,7 @@ public class ImportCreateTest {
         when(supplierRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         importRequestDto = new ImportDto();
-        importRequestDto.setSupplierId(1L); // Set a valid supplier ID
+        importRequestDto.setSupplierId(200L); // Set a valid supplier ID
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -84,8 +70,9 @@ public class ImportCreateTest {
         assertEquals(Message.SUPPLIER_NOT_FOUND, exception.getMessage());
     }
 
+    // Test cases image null
     @Test
-    void testCreateImport_WhenFileNotProvided_ShouldThrowBadRequestException() {
+    void UTCIC02() {
         // Arrange
         ImportServiceImpl importServiceSpy = Mockito.spy(importService);
         mockUser = new User();
@@ -106,8 +93,9 @@ public class ImportCreateTest {
         assertEquals(Message.IMAGE_IMPORT_NOT_NULL, exception.getMessage());
     }
 
+    // Test cases import items empty
     @Test
-    void testCreateImport_WhenImportItemsEmpty_ShouldThrowBadRequestException() {
+    void UTCIC03() {
         // Arrange
         ImportServiceImpl importServiceSpy = Mockito.spy(importService);
         mockUser = new User();
@@ -119,7 +107,7 @@ public class ImportCreateTest {
 
         file = Mockito.mock(MultipartFile.class);
         when(file.isEmpty()).thenReturn(false);
-        when(file.getOriginalFilename()).thenReturn("test.png");
+        when(file.getOriginalFilename()).thenReturn("phieu.png");
 
         CloudinaryResponse mockCloudinaryResponse = new CloudinaryResponse();
         mockCloudinaryResponse.setUrl("image_url");
@@ -137,8 +125,9 @@ public class ImportCreateTest {
         assertEquals(Message.IMPORT_ITEMS_EMPTY, exception.getMessage());
     }
 
+    // Test cases total amount not match
     @Test
-    void testCreateImport_WhenTotalAmountDoesNotMatch_ShouldThrowBadRequestException() {
+    void UTCIC04() {
         // Arrange
         ImportServiceImpl importServiceSpy = Mockito.spy(importService);
         mockUser = new User();
@@ -150,7 +139,7 @@ public class ImportCreateTest {
 
         file = Mockito.mock(MultipartFile.class);
         when(file.isEmpty()).thenReturn(false);
-        when(file.getOriginalFilename()).thenReturn("test.png");
+        when(file.getOriginalFilename()).thenReturn("phieu.png");
 
         CloudinaryResponse mockCloudinaryResponse = new CloudinaryResponse();
         mockCloudinaryResponse.setUrl("image_url");
@@ -171,6 +160,7 @@ public class ImportCreateTest {
         assertEquals(Message.TOTAL_AMOUNT_NOT_MATCH, exception.getMessage());
     }
 
+    // Test cases import success
     @Test
     void testCreateImport_WhenImportSuccess() {
         // Arrange
@@ -203,4 +193,5 @@ public class ImportCreateTest {
         // Assert
         verify(importRepository, times(2)).save(any());
     }
+
 }

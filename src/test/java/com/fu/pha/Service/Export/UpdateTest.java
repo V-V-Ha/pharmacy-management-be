@@ -27,12 +27,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class UpdateTest {
     @Mock private ExportSlipRepository exportSlipRepository;
-    @Mock private ImportItemRepository importItemRepository;
-    @Mock private ExportSlipItemRepository exportSlipItemRepository;
-    @Mock private UserRepository userRepository;
-    @Mock private ProductRepository productRepository;
-    @Mock private SupplierRepository supplierRepository;
-    @Mock private ImportRepository importReceiptRepository;
 
     @InjectMocks private ExportSlipServiceImpl exportSlipService;
 
@@ -42,7 +36,7 @@ public class UpdateTest {
     private User mockUser;
 
     @Test
-    void testUpdateExport_ExportSlipNotFound() {
+    void UTCEU01() {
         // Arrange
         ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
         doReturn(mockUser).when(exportSlipServiceSpy).getCurrentUser();
@@ -50,14 +44,14 @@ public class UpdateTest {
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            exportSlipServiceSpy.updateExport(1L, exportDto);
+            exportSlipServiceSpy.updateExport(200L, exportDto);
         });
 
         assertEquals(Message.EXPORT_SLIP_NOT_FOUND, exception.getMessage());
     }
 
     @Test
-    void testUpdateExport_StatusConfirmed_NotUpdatable() {
+    void UTCEU02() {
         // Arrange
         ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
         doReturn(mockUser).when(exportSlipServiceSpy).getCurrentUser();
@@ -75,7 +69,7 @@ public class UpdateTest {
     }
 
     @Test
-    void testUpdateExport_UnauthorizedUser() {
+    void UTCEU03() {
         // Arrange
         ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
         User unauthorizedUser = new User();
@@ -83,7 +77,7 @@ public class UpdateTest {
         doReturn(unauthorizedUser).when(exportSlipServiceSpy).getCurrentUser();
 
         User exportUser = new User();
-        exportUser.setId(1L);
+        exportUser.setId(200L);
         ExportSlip exportSlipMock = new ExportSlip();
         exportSlipMock.setUser(exportUser);
         when(exportSlipRepository.findById(anyLong())).thenReturn(Optional.of(exportSlipMock));
