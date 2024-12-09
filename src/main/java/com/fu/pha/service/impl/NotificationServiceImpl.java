@@ -19,9 +19,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {
@@ -42,6 +45,11 @@ public class NotificationServiceImpl implements NotificationService {
     public List<User> getProductOwners() {
         return userRepository.findAllByRoles_NameIn(Arrays.asList(ERole.ROLE_PRODUCT_OWNER, ERole.ROLE_STOCK));
     }
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+            .withLocale(Locale.getDefault())
+            .withZone(ZoneId.systemDefault());
+
 
     @Override
     public void createOutOfStockNotifications(List<OutOfStockProductDto> products) {
@@ -110,6 +118,8 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
+
+
     @Override
     public void createNearlyExpiredProductNotifications(List<ExpiredProductDto> products) {
         Instant fiveDaysAgo = Instant.now().minus(5, ChronoUnit.DAYS);
@@ -123,14 +133,18 @@ public class NotificationServiceImpl implements NotificationService {
             Product productEntity = productRepository.findById(product.getProductId())
                     .orElseThrow(() -> new RuntimeException(Message.PRODUCT_NOT_FOUND));
 
+            Instant expiryInstant = product.getExpiryDate();
+            String formattedExpiryDate = FORMATTER.format(expiryInstant);
+
             if (!hasRecentNotification) {
                 // Tạo thông báo trong cơ sở dữ liệu
                 for (User user : productOwners) {
+
                     Notification notification = Notification.builder()
                             .title("Sản phẩm sắp hết hạn")
                             .message("Sản phẩm " + product.getProductName() + " (Mã: " + product.getProductCode() +
                                     "), Lô: " + product.getBatchNumber() + " sắp hết hạn vào ngày " +
-                                    product.getExpiryDate() + ".")
+                                    formattedExpiryDate + ".")
                             .type(NotificationType.EXPIRED)
                             .createdAt(Instant.now())
                             .user(user)
@@ -160,6 +174,9 @@ public class NotificationServiceImpl implements NotificationService {
         for (ImportItem importItem : expiredProducts) {
             Product productEntity = productRepository.findById(importItem.getProduct().getId())
                     .orElseThrow(() -> new RuntimeException(Message.PRODUCT_NOT_FOUND));
+            Instant expiryInstant = importItem.getExpiryDate();
+            String formattedExpiryDate = FORMATTER.format(expiryInstant);
+
             for (User user : productOwners) {
                 String url = "/report/inventory/expired";
                 // Tạo thông báo trong cơ sở dữ liệu
@@ -168,7 +185,7 @@ public class NotificationServiceImpl implements NotificationService {
                         .message("Lô sản phẩm " + importItem.getProduct().getProductName() +
                                 " (Mã: " + importItem.getProduct().getProductCode() + "), Lô: " +
                                 importItem.getBatchNumber() + " đã hết hạn vào ngày " +
-                                importItem.getExpiryDate() + ".")
+                                formattedExpiryDate + ".")
                         .type(NotificationType.EXPIRED)
                         .createdAt(Instant.now())
                         .user(user)
