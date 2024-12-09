@@ -24,10 +24,16 @@ spring:
 #    driver-class-name: org.postgresql.Driver
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: jdbc:postgresql://157.66.26.21:5432/pha
     username: postgres
-    password: 23112002
+    password: 12345
     driver-class-name: org.postgresql.Driver
+
+  # datasource:
+  #   url: jdbc:postgresql://localhost:5432/pha
+  #   username: postgres
+  #   password: 12345678
+  #   driver-class-name: org.postgresql.Driver
 
   # JPA Setting
   jpa:
