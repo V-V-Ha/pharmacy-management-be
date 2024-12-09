@@ -5,6 +5,7 @@ import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.exception.Message;
 import com.fu.pha.validate.anotation.ValidTotalAmount;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,7 +38,7 @@ public class SaleOrderRequestDto {
     private Long userId;
     private String diagnosis;
 
-    @NotNull(message = Message.LIST_ITEM_NOT_NULL)
+    @NotEmpty(message = Message.LIST_ITEM_NOT_NULL)
     @Valid
     private List<SaleOrderItemRequestDto> saleOrderItems;
 }

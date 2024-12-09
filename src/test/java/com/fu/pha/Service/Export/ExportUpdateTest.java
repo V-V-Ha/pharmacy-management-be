@@ -25,7 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class UpdateTest {
+public class ExportUpdateTest {
     @Mock private ExportSlipRepository exportSlipRepository;
 
     @InjectMocks private ExportSlipServiceImpl exportSlipService;
@@ -35,6 +35,7 @@ public class UpdateTest {
     private ExportSlip exportSlip;
     private User mockUser;
 
+    //Tese case không tìm thấy phiếu xuất kho
     @Test
     void UTCEU01() {
         // Arrange
@@ -50,6 +51,7 @@ public class UpdateTest {
         assertEquals(Message.EXPORT_SLIP_NOT_FOUND, exception.getMessage());
     }
 
+    //Test case cập nhật phiếu xuất kho đã xác nhận
     @Test
     void UTCEU02() {
         // Arrange
@@ -68,6 +70,7 @@ public class UpdateTest {
         assertEquals(Message.NOT_UPDATE_CONFIRMED, exception.getMessage());
     }
 
+    //Test case người dùng không có quyền cập nhật phiếu xuất kho
     @Test
     void UTCEU03() {
         // Arrange
@@ -90,8 +93,9 @@ public class UpdateTest {
         assertEquals(Message.REJECT_AUTHORIZATION, exception.getMessage());
     }
 
+    //Test case loại phiếu xuất kho không hợp lệ
     @Test
-    void testUpdateExport_InvalidExportType() {
+    void UTCEU04() {
         // Arrange
         ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
         User mockUser = new User();

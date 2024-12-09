@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ViewDetailTest {
+public class ExportViewDetailTest {
 
     @Mock private ExportSlipRepository exportSlipRepository;
 
@@ -45,8 +45,9 @@ public class ViewDetailTest {
         when(exportSlipRepository.findById(exportSlipId)).thenReturn(Optional.of(exportSlip));
     }
 
+    //Test case lấy thông tin phiếu xuất thành công
     @Test
-    void testGetActiveExportSlipById_Success() {
+    void UTCEVD01() {
         // Initialize the export slip item list
         exportSlip.setExportSlipItemList(Collections.emptyList());
 
@@ -59,8 +60,9 @@ public class ViewDetailTest {
         // Thêm các kiểm tra khác nếu DTO có thêm các trường cần kiểm tra
     }
 
+    //Test case không tìm thấy phiếu xuất
     @Test
-    void testGetActiveExportSlipById_ExportSlipNotFound() {
+    void UTCEVD02() {
         // Kiểm tra khi không tìm thấy phiếu xuất
         when(exportSlipRepository.findById(exportSlipId)).thenReturn(Optional.empty());
 
