@@ -41,8 +41,9 @@ public class ReturnOrderViewListTest {
         returnOrderResponseDto = new ReturnOrderResponseDto();
     }
 
+    // Test case lấy danh sách phiếu trả hàng không có filter ngày
     @Test
-    public void testGetAllReturnOrderPaging_NoDates() {
+    public void UTCSOC01() {
         Page<ReturnOrderResponseDto> page = new PageImpl<>(Collections.singletonList(returnOrderResponseDto));
         when(returnOrderRepository.getListReturnOrderPagingWithoutDate("INV123", pageable)).thenReturn(page);
 
@@ -52,8 +53,9 @@ public class ReturnOrderViewListTest {
         assertEquals(1, result.getTotalElements());
     }
 
+    // Test case lấy danh sách phiếu trả hàng có filter fromdate
     @Test
-    public void testGetAllReturnOrderPaging_FromDateOnly() {
+    public void UTCSOC02() {
         Instant fromDate = Instant.now();
         Page<ReturnOrderResponseDto> page = new PageImpl<>(Collections.singletonList(returnOrderResponseDto));
         when(returnOrderRepository.getListReturnOrderPagingFromDate("INV123", fromDate, pageable)).thenReturn(page);
@@ -64,8 +66,9 @@ public class ReturnOrderViewListTest {
         assertEquals(1, result.getTotalElements());
     }
 
+    // Test case lấy danh sách phiếu trả hàng có filter toDate
     @Test
-    public void testGetAllReturnOrderPaging_ToDateOnly() {
+    public void UTCSOC03() {
         Instant toDate = Instant.now();
         Page<ReturnOrderResponseDto> page = new PageImpl<>(Collections.singletonList(returnOrderResponseDto));
         when(returnOrderRepository.getListReturnOrderPagingToDate("INV123", toDate, pageable)).thenReturn(page);
@@ -76,8 +79,9 @@ public class ReturnOrderViewListTest {
         assertEquals(1, result.getTotalElements());
     }
 
+    // Test case lấy danh sách phiếu trả hàng có filter fromDate và toDate
     @Test
-    public void testGetAllReturnOrderPaging_BothDates() {
+    public void UTCSOC04() {
         Instant fromDate = Instant.now();
         Instant toDate = Instant.now();
         Page<ReturnOrderResponseDto> page = new PageImpl<>(Collections.singletonList(returnOrderResponseDto));
@@ -89,8 +93,9 @@ public class ReturnOrderViewListTest {
         assertEquals(1, result.getTotalElements());
     }
 
+    // Test case lấy danh sách phiếu trả hàng không tìm thấy
     @Test
-    public void testGetAllReturnOrderPaging_NotFound() {
+    public void UTCSOC05() {
         when(returnOrderRepository.getListReturnOrderPagingWithoutDate("INV123", pageable)).thenReturn(Page.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
