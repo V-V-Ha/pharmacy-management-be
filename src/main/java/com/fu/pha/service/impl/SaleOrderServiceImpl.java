@@ -131,6 +131,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             totalOrderAmount += itemTotalAmount;
         }
 
+        checkInventory(saleOrderRequestDto.getSaleOrderItems());
         if (saleOrderRequestDto.getTotalAmount() != null) {
             double feTotalAmount = saleOrderRequestDto.getTotalAmount();
             if (Math.abs(totalOrderAmount - feTotalAmount) > 0.01) { // Cho phép sai số nhỏ
@@ -151,6 +152,28 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         }
 
         return saleOrder.getId().intValue();
+    }
+
+    public void checkInventory(List<SaleOrderItemRequestDto> saleOrderItems) {
+        for (SaleOrderItemRequestDto item : saleOrderItems) {
+            int requiredQuantity = item.getQuantity() * item.getConversionFactor();
+            List<ImportItem> batches = importItemRepository.findByProductIdOrderByCreateDateAsc(item.getProductId());
+
+            int availableQuantity = 0;
+
+            for (ImportItem batch : batches) {
+                if (batch.getExpiryDate() != null && batch.getExpiryDate().isBefore(Instant.now())) {
+                    continue;
+                }
+                availableQuantity += batch.getRemainingQuantity();
+                if (availableQuantity >= requiredQuantity) {
+                    break;
+                }
+            }
+            if (availableQuantity < requiredQuantity) {
+                throw new BadRequestException(Message.OUT_OF_STOCK);
+            }
+        }
     }
 
     // Xử lý logic cập nhật kho, batch, product khi thanh toán hoàn tất

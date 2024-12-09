@@ -1,6 +1,7 @@
 package com.fu.pha.dto.request.SaleOrder;
 
 import com.fu.pha.validate.anotation.ValidDiscount;
+import com.fu.pha.validate.anotation.ValidQuantity;
 import com.fu.pha.validate.anotation.ValidTotalAmount;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -16,7 +17,7 @@ public class SaleOrderItemRequestDto {
 
     @NotNull(message = "Sản phẩm không được để trống")
     private Long productId;
-    @NotNull(message = "Số lượng không được để trống")
+    @ValidQuantity
     private Integer quantity;
     @DecimalMin(value = "0.01", message = "Đơn giá phải lớn hơn 0")
     private Double unitPrice;

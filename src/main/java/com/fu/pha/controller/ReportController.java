@@ -117,8 +117,8 @@ public class ReportController {
     @GetMapping("/sales")
     @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
     public ResponseEntity<SalesReportDto> getSalesReport(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
         SalesReportDto report = reportService.getSalesReport(startDate, endDate);
         return ResponseEntity.ok(report);
