@@ -23,7 +23,7 @@ import java.time.Instant;
 import java.util.Collections;
 
 @ExtendWith(MockitoExtension.class)
-public class ViewListTest {
+public class ExportViewListTest {
 
 
     @Mock private ExportSlipRepository exportSlipRepository;
@@ -44,8 +44,9 @@ public class ViewListTest {
         exportSlip.setStatus(OrderStatus.PENDING);
     }
 
+    // Test case lấy danh sách phiếu xuất kho thành công
     @Test
-    void testGetAllExportSlipPaging_WithResults() {
+    void UTCEL01() {
         // Create a mock User object to avoid NullPointerException
         User mockUser = new User();
         mockUser.setId(1L);  // Set some valid ID
@@ -71,8 +72,9 @@ public class ViewListTest {
         assertEquals(1, result.getTotalElements());
     }
 
+    // Test case trường hợp chỉ có fromDate
     @Test
-    void testGetAllExportSlipPaging_WithFromDate() {
+    void UTCEL02() {
         // Create a mock User object to avoid NullPointerException
         User mockUser = new User();
         mockUser.setId(1L);  // Set some valid ID
@@ -98,8 +100,9 @@ public class ViewListTest {
         assertEquals(1, result.getTotalElements());
     }
 
+    // Test case trường hợp chỉ có toDate
     @Test
-    void testGetAllExportSlipPaging_WithToDate() {
+    void UTCEL03() {
         // Create a mock User object to avoid NullPointerException
         User mockUser = new User();
         mockUser.setId(1L);  // Set some valid ID
@@ -125,8 +128,9 @@ public class ViewListTest {
         assertEquals(1, result.getTotalElements());
     }
 
+    // Test case trường hợp có cả fromDate và toDate
     @Test
-    void testGetAllExportSlipPaging_WithFromDateAndToDate() {
+    void UTCEL04() {
         // Create a mock User object to avoid NullPointerException
         User mockUser = new User();
         mockUser.setId(1L);  // Set some valid ID
@@ -152,8 +156,9 @@ public class ViewListTest {
         assertEquals(1, result.getTotalElements());
     }
 
+    // Test case không tìm thấy phiếu xuất
     @Test
-    void testGetAllExportSlipPaging_NoExportSlipFound() {
+    void UTCEL05() {
         when(exportSlipRepository.getListExportSlipPagingWithoutDate(any(), any(), any()))
                 .thenReturn(Page.empty());
 

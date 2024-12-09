@@ -99,7 +99,7 @@ public class ImportViewListTest {
 
     // Test case for getImport list
     @Test
-    public void testGetAllImportPaging_NoDateFilters() {
+    public void UTCIL01() {
         PageRequest pageRequest = PageRequest.of(0, 10);
         List<ImportViewListDto> importList = Arrays.asList(new ImportViewListDto(importMock));
         Page<ImportViewListDto> importPage = new PageImpl<>(importList, pageRequest, importList.size());
@@ -115,7 +115,7 @@ public class ImportViewListTest {
     }
 
     @Test
-    public void testGetAllImportPaging_WithFromDateOnly() {
+    public void UTCIL02() {
         PageRequest pageRequest = PageRequest.of(0, 10);
         List<ImportViewListDto> importList = Arrays.asList(new ImportViewListDto(importMock));
         Page<ImportViewListDto> importPage = new PageImpl<>(importList, pageRequest, importList.size());
@@ -132,7 +132,7 @@ public class ImportViewListTest {
     }
 
     @Test
-    public void testGetAllImportPaging_WithToDateOnly() {
+    public void UTCIL03() {
         PageRequest pageRequest = PageRequest.of(0, 10);
         List<ImportViewListDto> importList = Arrays.asList(new ImportViewListDto(importMock));
         Page<ImportViewListDto> importPage = new PageImpl<>(importList, pageRequest, importList.size());
@@ -149,7 +149,7 @@ public class ImportViewListTest {
     }
 
     @Test
-    public void testGetAllImportPaging_WithFromAndToDate() {
+    public void UTCIL04() {
         PageRequest pageRequest = PageRequest.of(0, 10);
         List<ImportViewListDto> importList = Arrays.asList(new ImportViewListDto(importMock));
         Page<ImportViewListDto> importPage = new PageImpl<>(importList, pageRequest, importList.size());
@@ -167,7 +167,7 @@ public class ImportViewListTest {
     }
 
     @Test
-    public void testGetAllImportPaging_NoImportsFound() {
+    public void UTCIL05() {
         PageRequest pageRequest = PageRequest.of(0, 10);
         Page<ImportViewListDto> emptyPage = Page.empty(pageRequest);
 

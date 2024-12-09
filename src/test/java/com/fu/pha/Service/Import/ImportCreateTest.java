@@ -162,7 +162,7 @@ public class ImportCreateTest {
 
     // Test cases import success
     @Test
-    void testCreateImport_WhenImportSuccess() {
+    void UTCIC05() {
         // Arrange
         ImportServiceImpl importServiceSpy = Mockito.spy(importService);
         mockUser = new User();

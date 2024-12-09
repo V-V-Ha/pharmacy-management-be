@@ -41,7 +41,7 @@ public class CustomerViewListTest {
 
     // Test case: Found customers
     @Test
-    public void testGetAllCustomerByPaging_FoundCustomers() {
+    public void UTCCL01() {
         List<CustomerDTOResponse> customers = List.of(new CustomerDTOResponse());
         Page<CustomerDTOResponse> customerPage = new PageImpl<>(customers, pageable, customers.size());
 
@@ -54,8 +54,9 @@ public class CustomerViewListTest {
         assertEquals(1, result.getTotalElements());
     }
 
+    // Test case: No customers found
     @Test
-    public void testGetAllCustomerByPaging_NoCustomersFound() {
+    public void UTCCL02() {
         Page<CustomerDTOResponse> customerPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         when(customerRepository.getListCustomerPaging(anyString(), any(), any(Pageable.class)))
@@ -68,8 +69,9 @@ public class CustomerViewListTest {
         assertEquals(Message.CUSTOMER_NOT_FOUND, exception.getMessage());
     }
 
+    // Test case: Invalid status value
     @Test
-    public void testGetAllCustomerByPaging_InvalidStatus() {
+    public void UTCCL03() {
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             customerService.getAllCustomerByPaging(0, 10, "keyword", "INVALID_STATUS");
         });
@@ -77,8 +79,9 @@ public class CustomerViewListTest {
         assertEquals(Message.STATUS_NOT_FOUND, exception.getMessage());
     }
 
+    // Test case: Status is null
     @Test
-    public void testGetAllCustomerByPaging_StatusNull() {
+    public void UTCCL04() {
         List<CustomerDTOResponse> customers = List.of(new CustomerDTOResponse());
         Page<CustomerDTOResponse> customerPage = new PageImpl<>(customers, pageable, customers.size());
 
@@ -91,8 +94,9 @@ public class CustomerViewListTest {
         assertEquals(1, result.getTotalElements());
     }
 
+    // Test case: Null or empty phone number
     @Test
-    public void testGetAllCustomerByPaging_PhoneNumberNull() {
+    public void UTCCL05() {
         List<CustomerDTOResponse> customers = List.of(new CustomerDTOResponse());
         Page<CustomerDTOResponse> customerPage = new PageImpl<>(customers, pageable, customers.size());
 
@@ -105,8 +109,9 @@ public class CustomerViewListTest {
         assertEquals(1, result.getTotalElements());
     }
 
+    // Test case: Null or empty phone number
     @Test
-    public void testGetAllCustomerByPaging_PhoneNumberEmpty() {
+    public void UTCCL06() {
         List<CustomerDTOResponse> customers = List.of(new CustomerDTOResponse());
         Page<CustomerDTOResponse> customerPage = new PageImpl<>(customers, pageable, customers.size());
 
@@ -119,8 +124,9 @@ public class CustomerViewListTest {
         assertEquals(1, result.getTotalElements());
     }
 
+    //Test case: Status is empty
     @Test
-    public void testGetAllCustomerByPaging_StatusEmpty() {
+    public void UTCCL07() {
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             customerService.getAllCustomerByPaging(0, 10, "keyword", "");
         });
@@ -128,8 +134,9 @@ public class CustomerViewListTest {
         assertEquals(Message.STATUS_NOT_FOUND, exception.getMessage());
     }
 
+    //Test case: phone and Status is null
     @Test
-    public void testGetAllCustomerByPaging_PhoneNumberAndStatusNull() {
+    public void UTCCL08() {
         List<CustomerDTOResponse> customers = List.of(new CustomerDTOResponse());
         Page<CustomerDTOResponse> customerPage = new PageImpl<>(customers, pageable, customers.size());
 
@@ -142,17 +149,4 @@ public class CustomerViewListTest {
         assertEquals(1, result.getTotalElements());
     }
 
-    @Test
-    void testGetAllCustomerByPaging_ValidPage() {
-        List<CustomerDTOResponse> customers = List.of(new CustomerDTOResponse());
-        Page<CustomerDTOResponse> customerPage = new PageImpl<>(customers, pageable, customers.size());
-
-        when(customerRepository.getListCustomerPaging(anyString(), any(), any(Pageable.class)))
-                .thenReturn(customerPage);
-
-        Page<CustomerDTOResponse> result = customerService.getAllCustomerByPaging(0, 10, "keyword", "ACTIVE");
-
-        assertFalse(result.isEmpty());
-        assertEquals(1, result.getTotalElements());
-    }
 }

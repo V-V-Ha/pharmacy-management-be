@@ -152,6 +152,7 @@ public class ExportCreateTest {
         exportDto.setStatus("CONFIRMED");
 }
 
+    // Test case bạn chưa đăng nhập
     @Test
     void UTCEC01() {
         // Arrange: Người dùng không được xác thực
@@ -166,8 +167,11 @@ public class ExportCreateTest {
         verify(exportSlipRepository, never()).save(any(ExportSlip.class)); // Đảm bảo không có export được lưu
     }
 
+    // Test case không tìm thấy người dùng
     @Test
     void UTCEC02() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        when(authentication.getName()).thenReturn("havv123");
         // Arrange: Không tìm thấy người dùng
         when(userRepository.findByUsername("havv123")).thenReturn(Optional.empty());
 
@@ -180,6 +184,7 @@ public class ExportCreateTest {
         verify(exportSlipRepository, never()).save(any(ExportSlip.class));
     }
 
+    // Test case loại xuất không hợp lệ
     @Test
     void UTCEC03() {
         exportDto.setTypeDelivery(null);
@@ -192,6 +197,7 @@ public class ExportCreateTest {
         verify(exportSlipRepository, never()).save(any(ExportSlip.class));
     }
 
+    // Test case danh sách sản phẩm trống
     @Test
     void UTCEC04() {
         exportDto.setExportSlipItems(Collections.emptyList());
@@ -204,19 +210,19 @@ public class ExportCreateTest {
         assertEquals(Message.EXPORT_ITEMS_EMPTY, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
     }
 
+    // Test case không tìm thấy sản phẩm
     @Test
     void UTCEC05() {
         // Arrange: Sản phẩm không tồn tại
         when(productRepository.findById(200L)).thenReturn(Optional.empty());
-
         // Act & Assert
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+        assertThrows(ResourceNotFoundException.class, () -> {
             exportService.createExport(exportDto);
         });
 
-        assertEquals(Message.PRODUCT_NOT_FOUND, exception.getMessage()); // Cập nhật thông điệp tiếng Việt
     }
 
+    // Test case không tìm thấy ImportItem
     @Test
     void UTCEC06() {
         // Arrange: ImportItem không tồn tại

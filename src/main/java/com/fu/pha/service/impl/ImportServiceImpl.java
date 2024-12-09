@@ -633,7 +633,7 @@ public class ImportServiceImpl implements ImportService {
         return importItem;
     }
 
-    private void updateProductQuantityAndPrice(ImportItemRequestDto itemDto, ImportItem importItem) {
+    public void updateProductQuantityAndPrice(ImportItemRequestDto itemDto, ImportItem importItem) {
         Product product = importItem.getProduct();
         Integer currentTotalQuantity = product.getTotalQuantity();
         if (currentTotalQuantity == null) {
