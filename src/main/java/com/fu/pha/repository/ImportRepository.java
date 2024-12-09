@@ -79,7 +79,8 @@ public interface ImportRepository extends JpaRepository<Import, Long> {
     Double sumTotalImportAmountBeforeDate(@Param("startDate") Instant startDate ,@Param("endDate") Instant endDate);
 
     @Query("SELECT new com.fu.pha.dto.request.importPack.ImportViewListDto(i) FROM Import i " +
-            "WHERE i.importDate BETWEEN :fromDate AND :toDate")
+            "WHERE (i.importDate BETWEEN :fromDate AND :toDate) " +
+            " ORDER BY i.lastModifiedDate DESC")
     List<ImportViewListDto> getImportsByDateRange(@Param("fromDate") Instant fromDate,
                                                   @Param("toDate") Instant toDate);
 

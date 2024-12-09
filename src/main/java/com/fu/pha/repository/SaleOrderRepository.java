@@ -320,7 +320,9 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
 
     @Query("SELECT new com.fu.pha.dto.response.SaleOrder.SaleOrderResponseDto(s) " +
             "FROM SaleOrder s " +
-            "WHERE s.saleDate BETWEEN :fromDate AND :toDate")
+            "WHERE (s.saleDate BETWEEN :fromDate AND :toDate) " +
+            " AND s.paymentStatus = 'PAID' " +
+            " ORDER BY s.lastModifiedDate DESC")
     List<SaleOrderResponseDto> getSaleOrdersByDateRange(@Param("fromDate") Instant fromDate,
                                                         @Param("toDate") Instant toDate);
 

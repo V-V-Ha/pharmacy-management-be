@@ -860,6 +860,8 @@ public class ReportServiceImpl implements ReportService {
                 paymentMethod = "Chuyển khoản";
             } else if ("CASH".equals(paymentMethod)) {
                 paymentMethod = "Tiền mặt";
+            } else {
+                paymentMethod = "Tiền mặt";
             }
 
             createCellWithStyle(row, 5, paymentMethod, leftAlignCellStyle);
@@ -1611,6 +1613,8 @@ public class ReportServiceImpl implements ReportService {
             if ("TRANSFER".equals(paymentMethod)) {
                 paymentMethod = "Chuyển khoản";
             } else if ("CASH".equals(paymentMethod)) {
+                paymentMethod = "Tiền mặt";
+            } else {
                 paymentMethod = "Tiền mặt";
             }
             createCellWithStyle(row, 5, paymentMethod, leftAlignCellStyle); // Phương thức thanh toán
