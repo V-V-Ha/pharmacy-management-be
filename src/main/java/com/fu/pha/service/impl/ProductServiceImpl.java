@@ -1,5 +1,6 @@
 package com.fu.pha.service.impl;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.CategoryDto;
 import com.fu.pha.dto.request.ProductDTORequest;
@@ -38,6 +39,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -146,6 +148,8 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     @Override
     public void importProductsFromExcel(MultipartFile file) throws IOException {
+
+        validateExcelFile(file);
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
 
@@ -247,17 +251,22 @@ public class ProductServiceImpl implements ProductService {
                 // Sau khi tạo ProductDTORequest, gọi service để lưu vào DB
                 createProduct(productDTORequest, null);  // Nếu không có file đính kèm
             }
+        } catch (InvalidFormatException e) {
+            throw new BadRequestException("Định dạng file Excel không hợp lệ.");
         }
     }
 
     private boolean isRowEmpty(Row row) {
-        for (int cellIndex = 0; cellIndex < row.getPhysicalNumberOfCells(); cellIndex++) {
-            Cell cell = row.getCell(cellIndex);
-            if (cell != null && !getCellValueAsString(cell).trim().isEmpty()) {
-                return false;  // Nếu có ô có dữ liệu, trả về false
+        if (row == null) {
+            return true;
+        }
+        for (int cellNum = 0; cellNum < row.getLastCellNum(); cellNum++) {
+            Cell cell = row.getCell(cellNum);
+            if (cell != null && cell.getCellType() != CellType.BLANK && getCellValueAsString(cell).trim().length() > 0) {
+                return false; // Nếu có ô nào có giá trị, trả về false
             }
         }
-        return true;  // Nếu tất cả các ô đều trống, trả về true
+        return true; // Nếu tất cả các ô đều trống, trả về true
     }
 
     private String getCellValueAsString(Cell cell) {
@@ -425,6 +434,48 @@ public class ProductServiceImpl implements ProductService {
             throw new ResourceNotFoundException(Message.NULL_FILED);
         }
 
+    }
+
+    public void validateExcelFile(MultipartFile file) throws IOException {
+        // Kiểm tra xem file có phải là file Excel (.xlsx) hay không
+        if (!FileUploadUtil.isAllowedExcel(file.getOriginalFilename(), FileUploadUtil.EXCEL_PATTERN)) {
+            throw new BadRequestException(Message.INVALID_FILE_EXCEL);
+        }
+
+        if (file.getSize() > FileUploadUtil.MAX_FILE_SIZE) {
+            throw new MaxUploadSizeExceededException(Message.INVALID_FILE_SIZE);
+        }
+
+        // Kiểm tra dữ liệu trong file Excel
+        try (InputStream is = file.getInputStream(); Workbook workbook = WorkbookFactory.create(is)) {
+            Sheet sheet = workbook.getSheetAt(0); // Lấy sheet đầu tiên
+
+            if (sheet == null) {
+                throw new BadRequestException("File Excel không có sheet nào.");
+            }
+
+            int totalRows = sheet.getPhysicalNumberOfRows();
+            if (totalRows <= 1) { // Chỉ có tiêu đề hoặc trống
+                throw new BadRequestException(Message.NULL_FILE_EXCEL);
+            }
+
+            boolean hasData = false;
+
+            // Bỏ qua hàng đầu (tiêu đề)
+            for (int i = 1; i < totalRows; i++) {
+                Row row = sheet.getRow(i);
+                if (row != null && !isRowEmpty(row)) {
+                    hasData = true;
+                    break; // Nếu tìm thấy dữ liệu, thoát khỏi vòng lặp
+                }
+            }
+
+            if (!hasData) {
+                throw new BadRequestException(Message.NULL_FILE_EXCEL);
+            }
+        } catch (InvalidFormatException e) {
+            throw new BadRequestException("Định dạng file Excel không hợp lệ.");
+        }
     }
 
     public String uploadImage( final MultipartFile file) {
