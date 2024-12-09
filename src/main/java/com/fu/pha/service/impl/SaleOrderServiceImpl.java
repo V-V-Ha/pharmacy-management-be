@@ -196,7 +196,6 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         }
     }
 
-
     @Override
     @Transactional
     public void completePayment(long orderId) {
@@ -456,15 +455,32 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             cell3.setCellValue(saleOrder.getFullName());
             cell3.setCellStyle(dataCellStyle);
 
+
+
+
             // Loại hóa đơn
             Cell cell4 = row.createCell(4);
-            String orderType = saleOrder.getOrderType() == null ? "N/A" : saleOrder.getOrderType().toString();
+            String orderType = saleOrder.getOrderType().toString();
+            if ("NORMAL".equals(orderType)) {
+                orderType = "Bán thường";
+            } else if ("PRESCRIPTION".equals(orderType)) {
+                orderType = "Bán theo đơn bác sĩ";
+            } else {
+                orderType = "N/A";
+            }
             cell4.setCellValue(orderType);
             cell4.setCellStyle(dataCellStyle);
 
             // Phương thức thanh toán
             Cell cell5 = row.createCell(5);
-            String paymentMethod = saleOrder.getPaymentMethod() == null ? "N/A" : saleOrder.getPaymentMethod().toString();
+            String paymentMethod = saleOrder.getPaymentMethod().toString();
+            if ("CASH".equals(paymentMethod)) {
+                paymentMethod = "Tiền mặt";
+            } else if ("TRANSFER".equals(paymentMethod)) {
+                paymentMethod = "Chuyển khoản";
+            } else {
+                paymentMethod = "N/A";
+            }
             cell5.setCellValue(paymentMethod);
             cell5.setCellStyle(dataCellStyle);
 

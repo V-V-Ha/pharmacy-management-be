@@ -47,7 +47,7 @@ public class SaleOrderResponseDto {
         this.totalAmount = saleOrder.getTotalAmount();
         this.customer = new CustomerDTOResponse(saleOrder.getCustomer());
         this.doctor = saleOrder.getDoctor() != null ? new DoctorDTOResponse(saleOrder.getDoctor()) : null;
-        this.userId = saleOrder.getUser().getId();
+        this.userId = saleOrder.getUser() != null ? saleOrder.getUser().getId() : null;
         this.diagnosis = saleOrder.getDiagnosis();
         this.saleOrderItems = saleOrder.getSaleOrderItemList().stream()
                 .map(SaleOrderItemResponseDto::new)

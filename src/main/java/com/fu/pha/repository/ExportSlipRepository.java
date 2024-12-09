@@ -75,7 +75,8 @@ public interface ExportSlipRepository extends JpaRepository<ExportSlip, Long> {
     Double sumTotalExportsByTypeBetweenDates(@Param("typeDelivery") ExportType typeDelivery, @Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
     @Query("SELECT new com.fu.pha.dto.response.exportSlip.ExportSlipResponseDto(e) FROM ExportSlip e " +
-            "WHERE e.exportDate BETWEEN :fromDate AND :toDate")
+            "WHERE (e.exportDate BETWEEN :fromDate AND :toDate) " +
+            " ORDER BY e.lastModifiedDate DESC")
     List<ExportSlipResponseDto> getExportSlipsByDateRange(@Param("fromDate") Instant fromDate,
                                                           @Param("toDate") Instant toDate);
 
