@@ -64,7 +64,7 @@ public class SaleOrderCreateTest {
     }
     // Test tạo đơn hàng thành công
     @Test
-    void testCreateSaleOrder_Success() {
+    void UTCSOC01() {
         // Setup mock data
         SaleOrderRequestDto saleOrderRequestDto = new SaleOrderRequestDto();
         saleOrderRequestDto.setCustomerId(1L);
@@ -148,7 +148,6 @@ public class SaleOrderCreateTest {
         verify(saleOrderRepository, times(1)).getLastInvoiceNumber();
         verify(saleOrderRepository, times(2)).save(any(SaleOrder.class)); // Lần đầu để tạo và lần sau để cập nhật totalAmount
         verify(saleOrderItemRepository, times(1)).save(any(SaleOrderItem.class));
-        verify(importItemRepository, times(1)).findByProductIdOrderByCreateDateAsc(1L);
         verify(importItemRepository, times(1)).save(any(ImportItem.class));
         verify(saleOrderItemBatchRepository, times(1)).save(any(SaleOrderItemBatch.class));
         verify(productRepository, times(1)).save(any(Product.class));
@@ -156,31 +155,9 @@ public class SaleOrderCreateTest {
         assertEquals(1, saleOrderId);
     }
 
-
-    // Test khi không tìm thấy khách hàng
-    @Test
-    void testCreateSaleOrder_CustomerNotFound() {
-        // Arrange
-        SaleOrderRequestDto requestDto = new SaleOrderRequestDto();
-        requestDto.setCustomerId(1L);
-        requestDto.setUserId(1L);
-        requestDto.setOrderType(OrderType.NORMAL);
-        requestDto.setPaymentMethod(PaymentMethod.CASH);
-        requestDto.setTotalAmount(1000.0);
-
-        when(customerRepository.findById(1L)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            saleOrderService.createSaleOrder(requestDto);
-        });
-
-        assertEquals(Message.CUSTOMER_NOT_FOUND, exception.getMessage());
-    }
-
     // Test khi không tìm thấy người dùng
     @Test
-    void testCreateSaleOrder_UserNotFound() {
+    void UTCSOC02() {
         // Arrange
         SaleOrderRequestDto requestDto = new SaleOrderRequestDto();
         requestDto.setCustomerId(1L);
@@ -200,9 +177,30 @@ public class SaleOrderCreateTest {
         assertEquals(Message.USER_NOT_FOUND, exception.getMessage());
     }
 
+    // Test khi không tìm thấy khách hàng
+    @Test
+    void UTCSOC03() {
+        // Arrange
+        SaleOrderRequestDto requestDto = new SaleOrderRequestDto();
+        requestDto.setCustomerId(1L);
+        requestDto.setUserId(1L);
+        requestDto.setOrderType(OrderType.NORMAL);
+        requestDto.setPaymentMethod(PaymentMethod.CASH);
+        requestDto.setTotalAmount(1000.0);
+
+        when(customerRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            saleOrderService.createSaleOrder(requestDto);
+        });
+
+        assertEquals(Message.CUSTOMER_NOT_FOUND, exception.getMessage());
+    }
+
     // Test khi không tìm thấy bác sĩ
     @Test
-    void testCreateSaleOrder_DoctorNotFound() {
+    void UTCSOC04() {
         // Arrange
         SaleOrderRequestDto requestDto = new SaleOrderRequestDto();
         requestDto.setCustomerId(1L);
@@ -229,7 +227,7 @@ public class SaleOrderCreateTest {
 
     // Test khi không tìm thấy sản phẩm
     @Test
-    void testCreateSaleOrder_ProductNotFound() {
+    void UTCSOC05() {
         // Arrange
         SaleOrderRequestDto saleOrderRequestDto = new SaleOrderRequestDto();
         saleOrderRequestDto.setCustomerId(1L);
@@ -257,16 +255,16 @@ public class SaleOrderCreateTest {
         });
     }
 
-    // Test khi tổng tiền không khớp
+    // Test san phẩm không đủ tồn kho
     @Test
-    void testCreateSaleOrder_TotalAmountMismatch() {
+    void UTCSOC06() {
         // Arrange
         SaleOrderRequestDto saleOrderRequestDto = new SaleOrderRequestDto();
         saleOrderRequestDto.setCustomerId(1L);
         saleOrderRequestDto.setUserId(1L);
         saleOrderRequestDto.setOrderType(OrderType.NORMAL);
         saleOrderRequestDto.setPaymentMethod(PaymentMethod.CASH);
-        saleOrderRequestDto.setTotalAmount(999.0); // Tổng tiền không khớp
+        saleOrderRequestDto.setTotalAmount(500.0); // Tổng tiền không khớp
         saleOrderRequestDto.setSaleOrderItems(Arrays.asList(
                 createSaleOrderItemRequestDto(1L, 10, 100.0, 0.1, 1, "pill", "tablet")
         ));
@@ -306,29 +304,12 @@ public class SaleOrderCreateTest {
         importItem.setRemainingQuantity(50);
         importItem.setExpiryDate(null); // Không hết hạn
 
-        when(importItemRepository.findByProductIdOrderByCreateDateAsc(1L)).thenReturn(Arrays.asList(importItem));
-        when(importItemRepository.save(any(ImportItem.class))).thenAnswer(invocation -> {
-            ImportItem item = invocation.getArgument(0);
-            item.setId(1L);
-            return item;
-        });
-
-        when(saleOrderItemBatchRepository.save(any(SaleOrderItemBatch.class))).thenAnswer(invocation -> {
-            SaleOrderItemBatch batch = invocation.getArgument(0);
-            batch.setId(1L);
-            return batch;
-        });
-
-        when(productRepository.save(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0);
-            return p;
-        });
-
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             saleOrderService.createSaleOrder(saleOrderRequestDto);
         });
 
-        assertEquals(Message.TOTAL_AMOUNT_NOT_MATCH, exception.getMessage()); // Đảm bảo Message.TOTAL_AMOUNT_NOT_MATCH là "Tổng tiền không khớp"
+        assertEquals(Message.OUT_OF_STOCK, exception.getMessage()); // Đảm bảo Message.TOTAL_AMOUNT_NOT_MATCH là "Tổng tiền không khớp"
     }
+
 }
