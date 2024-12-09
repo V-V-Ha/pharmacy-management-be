@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Optional;
 
@@ -24,17 +25,12 @@ public class FirebaseConfig {
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
         logger.info("Đang khởi tạo Firebase...");
-        ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-        URL url = classloader.getResource("pharmacy-management-e6dd2-firebase-adminsdk-8bp3f-52aeed4337.json");
+        InputStream serviceAccount = getClass().getClassLoader()
+                .getResourceAsStream("pharmacy-management-e6dd2-firebase-adminsdk-8bp3f-52aeed4337.json");
 
-        final File fireSetting;
-        if (url != null) {
-            fireSetting = new File(url.getFile());
-        } else {
-            logger.error("Not exist file~~~");
-            throw new BadRequestException("File not found!!!");
+        if (serviceAccount == null) {
+            throw new IllegalStateException("Firebase configuration file not found");
         }
-        FileInputStream serviceAccount = new FileInputStream(fireSetting);
 
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
