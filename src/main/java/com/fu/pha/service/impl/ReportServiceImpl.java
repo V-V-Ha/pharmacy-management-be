@@ -109,11 +109,9 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
         }else {
-            LocalDate today = LocalDate.now();
-            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
-
-             startInstant = startZoned.toInstant();
-             endInstant = Instant.now();  // Thời điểm hiện tại
+            endInstant = Instant.now();
+            ZonedDateTime oneYearAgoZoned = ZonedDateTime.now(ZoneId.systemDefault()).minusYears(1);
+            startInstant = oneYearAgoZoned.toInstant();
         }
 
         // Tính tồn kho đầu kỳ
@@ -263,11 +261,9 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
         } else {
-            LocalDate today = LocalDate.now();
-            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
-
-            startInstant = startZoned.toInstant();
-            endInstant = Instant.now();  // Thời điểm hiện tại
+            endInstant = Instant.now();
+            ZonedDateTime oneYearAgoZoned = ZonedDateTime.now(ZoneId.systemDefault()).minusYears(1);
+            startInstant = oneYearAgoZoned.toInstant();
         }
 
         // Xây dựng Specification để tìm kiếm và lọc
@@ -639,11 +635,9 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            LocalDate today = LocalDate.now();
-            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
-
-            startInstant = startZoned.toInstant();
-            endInstant = Instant.now();  // Thời điểm hiện tại
+            endInstant = Instant.now();
+            ZonedDateTime oneYearAgoZoned = ZonedDateTime.now(ZoneId.systemDefault()).minusYears(1);
+            startInstant = oneYearAgoZoned.toInstant();
         }
 
         // Tổng số hóa đơn
@@ -691,11 +685,9 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            LocalDate today = LocalDate.now();
-            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
-
-            startInstant = startZoned.toInstant();
-            endInstant = Instant.now();  // Thời điểm hiện tại
+            endInstant = Instant.now();
+            ZonedDateTime oneYearAgoZoned = ZonedDateTime.now(ZoneId.systemDefault()).minusYears(1);
+            startInstant = oneYearAgoZoned.toInstant();
         }
 
         return saleOrderRepository.findSalesTransactions(
@@ -726,11 +718,9 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            LocalDate today = LocalDate.now();
-            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
-
-            startInstant = startZoned.toInstant();
-            endInstant = Instant.now();  // Thời điểm hiện tại
+            endInstant = Instant.now();
+            ZonedDateTime oneYearAgoZoned = ZonedDateTime.now(ZoneId.systemDefault()).minusYears(1);
+            startInstant = oneYearAgoZoned.toInstant();
         }
 
         return saleOrderRepository.findProductSales(
@@ -925,11 +915,9 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            LocalDate today = LocalDate.now();
-            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
-
-            startInstant = startZoned.toInstant();
-            endInstant = Instant.now();  // Thời điểm hiện tại
+            endInstant = Instant.now();
+            ZonedDateTime oneYearAgoZoned = ZonedDateTime.now(ZoneId.systemDefault()).minusYears(1);
+            startInstant = oneYearAgoZoned.toInstant();
         }
 
         // Số lượng nhà cung cấp mới và tổng tiền
@@ -937,23 +925,25 @@ public class ReportServiceImpl implements ReportService {
         if (startDate != null && endDate != null) {
             newSuppliers = supplierRepository.countNewSuppliersBetweenDates(startInstant, endInstant);
         }
-        Double totalImportNewAmount = importRepository.sumTotalImportNewAmountBetweenDates(startInstant, endInstant);
+        Double totalImportNewAmount1 = importRepository.sumTotalImportNewAmountBetweenDates(startInstant, endInstant);
+        Double totalImportNewAmount = totalImportNewAmount1 != null ? totalImportNewAmount1 : 0.0;
         report.setNewSuppliers(newSuppliers != 0L ? newSuppliers : 0);
-        report.setNewSuppliersAmount(totalImportNewAmount != null ? totalImportNewAmount : 0.0);
+        report.setNewSuppliersAmount(totalImportNewAmount);
 
         // Số lượng nhà cung cấp cũ và tổng tiền
         long oldSuppliers = supplierRepository.countOldSuppliersBeforeDate(startInstant);
-        Double totalImportOldAmount = importRepository.sumTotalImportAmountBeforeDate(startInstant);
+        Double totalImportOldAmount1 = importRepository.sumTotalImportAmountBeforeDate(startInstant ,endInstant);
+        Double totalImportOldAmount = totalImportOldAmount1 != null ? totalImportOldAmount1 : 0.0;
         report.setOldSuppliers(oldSuppliers != 0L ? oldSuppliers : 0);
-        report.setOldSuppliersAmount(totalImportOldAmount != null ? totalImportOldAmount : 0.0);
+        report.setOldSuppliersAmount(totalImportOldAmount);
 
         // Tổng số nhà cung cấp
         long totalSuppliers = supplierRepository.countTotalSuppliers();
         report.setTotalSuppliers(totalSuppliers != 0L ? totalSuppliers : 0);
 
         // Tổng tiền đã nhập hàng từ nhà cung cấp
-        Double totalImportAmount = importRepository.sumTotalImportAmountBetweenDates(startInstant, endInstant);
-        report.setTotalImportAmount(totalImportAmount != null ? totalImportAmount : 0.0);
+        Double totalImportAmount = totalImportNewAmount + totalImportOldAmount;
+        report.setTotalImportAmount(totalImportAmount);
 
         // Tổng số lượng nhập hàng từ nhà cung cấp
         Integer totalImportQuantity = importRepository.sumTotalImportQuantityBetweenDates(startInstant, endInstant);
@@ -974,13 +964,14 @@ public class ReportServiceImpl implements ReportService {
             int size) {
 
         Pageable pageable = PageRequest.of(page, size);
+        ZoneId systemZone = ZoneId.systemDefault();
+
         Instant startInstant = (startDate != null)
-                ? startDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
-                : LocalDate.now()
-                .atStartOfDay(ZoneId.systemDefault())
-                .toInstant();
+                ? startDate.atStartOfDay(systemZone).toInstant()
+                : ZonedDateTime.now(systemZone).minusYears(1).toInstant(); // Một năm trước hiện tại
+
         Instant endInstant = (endDate != null)
-                ? endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant()
+                ? endDate.atTime(23, 59, 59).atZone(systemZone).toInstant()
                 : Instant.now();
 
         Timestamp startTimestamp = Timestamp.from(startInstant);
@@ -1155,11 +1146,9 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            LocalDate today = LocalDate.now();
-            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
-
-            startInstant = startZoned.toInstant();
-            endInstant = Instant.now();  // Thời điểm hiện tại
+            endInstant = Instant.now();
+            ZonedDateTime oneYearAgoZoned = ZonedDateTime.now(ZoneId.systemDefault()).minusYears(1);
+            startInstant = oneYearAgoZoned.toInstant();
         }
 
         // Số lượng khách hàng mới
@@ -1178,9 +1167,6 @@ public class ReportServiceImpl implements ReportService {
         Double amountOldCustomers = saleOrderRepository.sumTotalAmountFromOldCustomersBetweenDates(startInstant, endInstant);
         report.setAmountOldCustomers(amountOldCustomers != null ? amountOldCustomers : 0.0);
 
-        // Tổng số khách hàng
-        long totalCustomers = customerRepository.countTotalCustomers();
-        report.setTotalCustomers(totalCustomers != 0L ? totalCustomers : 0);
 
         // Tổng tiền thu từ khách hàng
         Double totalRevenueFromCustomers = saleOrderRepository.sumTotalAmountByCustomersBetweenDates(startInstant, endInstant);
@@ -1198,6 +1184,10 @@ public class ReportServiceImpl implements ReportService {
         Double amountWalkinCustomer = saleOrderRepository.sumTotalAmountFromWalkInCustomersBetweenDates(startInstant, endInstant);
         report.setAmountWalkInCustomers(amountWalkinCustomer != null ? amountWalkinCustomer : 0.0);
 
+
+        // Tổng số khách hàng
+        long totalCustomers = oldCustomers + newCustomers + walkInCustomers;
+        report.setTotalCustomers(totalCustomers != 0L ? totalCustomers : 0);
 
         return report;
     }
@@ -1226,11 +1216,9 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            LocalDate today = LocalDate.now();
-            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
-
-            startInstant = startZoned.toInstant();
-            endInstant = Instant.now();  // Thời điểm hiện tại
+            endInstant = Instant.now();
+            ZonedDateTime oneYearAgoZoned = ZonedDateTime.now(ZoneId.systemDefault()).minusYears(1);
+            startInstant = oneYearAgoZoned.toInstant();
         }
 
         Timestamp startTimestamp = Timestamp.from(startInstant);
@@ -1423,11 +1411,9 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            LocalDate today = LocalDate.now();
-            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
-
-            startInstant = startZoned.toInstant();
-            endInstant = Instant.now();  // Thời điểm hiện tại
+            endInstant = Instant.now();
+            ZonedDateTime oneYearAgoZoned = ZonedDateTime.now(ZoneId.systemDefault()).minusYears(1);
+            startInstant = oneYearAgoZoned.toInstant();
         }
 
         // Tổng thu từ bán hàng
@@ -1490,11 +1476,9 @@ public class ReportServiceImpl implements ReportService {
             startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             endInstant = startDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();  // Cuối ngày
         } else {
-            LocalDate today = LocalDate.now();
-            ZonedDateTime startZoned = today.atStartOfDay(ZoneId.systemDefault());
-
-            startInstant = startZoned.toInstant();
-            endInstant = Instant.now();  // Thời điểm hiện tại
+            endInstant = Instant.now();
+            ZonedDateTime oneYearAgoZoned = ZonedDateTime.now(ZoneId.systemDefault()).minusYears(1);
+            startInstant = oneYearAgoZoned.toInstant();
         }
 
         return saleOrderRepository.findFinancialTransactions(
