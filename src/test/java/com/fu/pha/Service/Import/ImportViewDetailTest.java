@@ -98,7 +98,7 @@ public class ImportViewDetailTest {
     }
 
     @Test
-    public void testGetImportById_ImportExists() {
+    public void UTCIVD01() {
         // Arrange
         Long importId = 1L;
         when(importRepository.findById(importId)).thenReturn(Optional.of(importMock));

@@ -154,7 +154,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     }
 
     // Xử lý logic cập nhật kho, batch, product khi thanh toán hoàn tất
-    private void processOrderInventory(SaleOrder saleOrder) {
+    public void processOrderInventory(SaleOrder saleOrder) {
         for (SaleOrderItem saleOrderItem : saleOrder.getSaleOrderItemList()) {
             Product product = saleOrderItem.getProduct();
 

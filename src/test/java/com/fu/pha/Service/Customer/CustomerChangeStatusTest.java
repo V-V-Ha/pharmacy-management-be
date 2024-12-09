@@ -54,7 +54,6 @@ public class CustomerChangeStatusTest {
         customerService.updateCustomerStatus(1L);
 
         verify(customerRepository).save(customer);
-        //assertTrue(customer.isDeleted());
     }
 
     // Test trường hợp change status khách hàng không thành công vì không tìm thấy khách hàng

@@ -3,6 +3,7 @@ package com.fu.pha.Service.Import;
 import com.fu.pha.dto.request.importPack.ImportViewListDto;
 import com.fu.pha.entity.*;
 import com.fu.pha.enums.OrderStatus;
+import com.fu.pha.exception.Message;
 import com.fu.pha.service.impl.ImportServiceImpl;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -96,6 +97,7 @@ public class ImportViewListTest {
         importMock.setImportItems(importItems);
     }
 
+    // Test case for getImport list
     @Test
     public void testGetAllImportPaging_NoDateFilters() {
         PageRequest pageRequest = PageRequest.of(0, 10);
@@ -105,7 +107,7 @@ public class ImportViewListTest {
         when(importRepository.getListImportPagingWithoutDate(anyString(), any(OrderStatus.class), eq(pageRequest)))
                 .thenReturn(importPage);
 
-        Page<ImportViewListDto> result = importService.getAllImportPaging(0, 10, "Supplier Name", OrderStatus.PENDING, null, null);
+        Page<ImportViewListDto> result = importService.getAllImportPaging(0, 10, "Traphaco", OrderStatus.PENDING, null, null);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
@@ -139,7 +141,7 @@ public class ImportViewListTest {
         when(importRepository.getListImportPagingToDate(anyString(), any(OrderStatus.class), eq(toDate), eq(pageRequest)))
                 .thenReturn(importPage);
 
-        Page<ImportViewListDto> result = importService.getAllImportPaging(0, 10, "Supplier Name", OrderStatus.PENDING, null, toDate);
+        Page<ImportViewListDto> result = importService.getAllImportPaging(0, 10, "Traphaco", OrderStatus.PENDING, null, toDate);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
@@ -157,7 +159,7 @@ public class ImportViewListTest {
         when(importRepository.getListImportPaging(anyString(), any(OrderStatus.class), eq(fromDate), eq(toDate), eq(pageRequest)))
                 .thenReturn(importPage);
 
-        Page<ImportViewListDto> result = importService.getAllImportPaging(0, 10, "Supplier Name", OrderStatus.PENDING, fromDate, toDate);
+        Page<ImportViewListDto> result = importService.getAllImportPaging(0, 10, "Traphaco", OrderStatus.PENDING, fromDate, toDate);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
@@ -172,9 +174,10 @@ public class ImportViewListTest {
         when(importRepository.getListImportPagingWithoutDate(anyString(), any(OrderStatus.class), eq(pageRequest)))
                 .thenReturn(emptyPage);
 
-        assertThrows(ResourceNotFoundException.class, () -> {
-            importService.getAllImportPaging(0, 10, "Supplier Name", OrderStatus.PENDING, null, null);
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            importService.getAllImportPaging(0, 10, "Dược Nam Hà", OrderStatus.PENDING, null, null);
         });
+        assertEquals(Message.IMPORT_NOT_FOUND, exception.getMessage());
 
         verify(importRepository, times(1)).getListImportPagingWithoutDate(anyString(), any(OrderStatus.class), eq(pageRequest));
     }

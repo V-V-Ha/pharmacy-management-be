@@ -40,6 +40,7 @@ public class Message {
     public static final String INVALID_OLD_PASSWORD = "Mật khẩu cũ không chính xác";
     public static final String EMPTY_FILE = "File không được trống";
     public static final String INVALID_FILE = "Chỉ những định dạng ảnh sau được phép: jpg,png,gif,bmp";
+
     public static final String INVALID_FILE_SIZE = "Kích thước file phải bé hơn 2MB";
     public static final String PRODUCT_NOT_FOUND = "Không tìm thấy sản phẩm";
     public static final String EXIST_REGISTRATION_NUMBER = "Số đăng ký đã tồn tại";
@@ -109,4 +110,6 @@ public class Message {
     public static final String SALE_ORDER_ITEM_BATCH_NOT_FOUND = "Không tìm thấy lô hàng";
 
     public static final String NULL_NAME = "Tên không được trống";
+    public static final String INVALID_FILE_EXCEL = "Không phải file Excel định dạng .xlsx";
+    public static final String NULL_FILE_EXCEL = "File Excel trống";
 }

@@ -46,16 +46,6 @@ public class ViewDetailTest {
     }
 
     @Test
-    void testGetActiveExportSlipById_ExportSlipNotFound() {
-        // Kiểm tra khi không tìm thấy phiếu xuất
-        when(exportSlipRepository.findById(exportSlipId)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> {
-            exportSlipService.getActiveExportSlipById(exportSlipId);
-        });
-    }
-
-    @Test
     void testGetActiveExportSlipById_Success() {
         // Initialize the export slip item list
         exportSlip.setExportSlipItemList(Collections.emptyList());
@@ -68,5 +58,17 @@ public class ViewDetailTest {
         assertEquals(OrderStatus.PENDING.name(), result.getStatus()); // Trạng thái phải khớp với phiếu xuất gốc
         // Thêm các kiểm tra khác nếu DTO có thêm các trường cần kiểm tra
     }
+
+    @Test
+    void testGetActiveExportSlipById_ExportSlipNotFound() {
+        // Kiểm tra khi không tìm thấy phiếu xuất
+        when(exportSlipRepository.findById(exportSlipId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            exportSlipService.getActiveExportSlipById(exportSlipId);
+        });
+    }
+
+
 
 }

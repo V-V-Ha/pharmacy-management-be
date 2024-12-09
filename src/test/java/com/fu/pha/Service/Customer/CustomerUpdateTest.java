@@ -110,7 +110,7 @@ public class CustomerUpdateTest {
         assertFalse(violations.isEmpty(), "Expected validation errors for null customer name");
 
         ConstraintViolation<CustomerDTORequest> violation = violations.iterator().next();
-        assertEquals(Message.NULL_FILED, violation.getMessage());
+        assertEquals(Message.NULL_NAME, violation.getMessage());
     }
 
     // Test trường hợp cập nhật khách hàng không thành công vì trường phoneNumber không hợp lệ
