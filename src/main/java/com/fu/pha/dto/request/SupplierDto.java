@@ -1,5 +1,6 @@
 package com.fu.pha.dto.request;
 
+import com.fu.pha.entity.Supplier;
 import com.fu.pha.enums.Status;
 import com.fu.pha.exception.Message;
 import com.fu.pha.util.OptionalEmail;
@@ -43,5 +44,16 @@ public class SupplierDto {
         this.email = email;
         this.tax = tax;
         this.status = status;
+    }
+
+    public SupplierDto(Supplier supplier){
+        this.id = supplier.getId();
+        this.supplierName = supplier.getSupplierName();
+        this.address = supplier.getAddress();
+        this.phoneNumber = supplier.getPhoneNumber();
+        this.email = supplier.getEmail();
+        this.tax = supplier.getTax();
+        this.status = supplier.getStatus();
+        this.totalAmount = supplier.getImportList().stream().map(importReceipt -> importReceipt.getTotalAmount()).reduce(0.0, Double::sum);
     }
 }

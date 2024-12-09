@@ -3,6 +3,7 @@ package com.fu.pha.dto.request.exportSlip;
 import com.fu.pha.enums.ExportType;
 import com.fu.pha.validate.anotation.ValidTotalAmount;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -26,7 +27,7 @@ public class ExportSlipRequestDto {
     private String note;
     private Long userId;
     private Long supplierId;
-    @NotNull(message = "Danh sách sản phẩm nhập không được để trống")
+    @NotEmpty(message = "Danh sách sản phẩm nhập không được để trống")
     @Valid
     private List<ExportSlipItemRequestDto> exportSlipItems;
     private Long productCount;
