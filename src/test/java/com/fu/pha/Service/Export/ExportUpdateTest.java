@@ -25,14 +25,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class UpdateTest {
+public class ExportUpdateTest {
     @Mock private ExportSlipRepository exportSlipRepository;
-    @Mock private ImportItemRepository importItemRepository;
-    @Mock private ExportSlipItemRepository exportSlipItemRepository;
-    @Mock private UserRepository userRepository;
-    @Mock private ProductRepository productRepository;
-    @Mock private SupplierRepository supplierRepository;
-    @Mock private ImportRepository importReceiptRepository;
 
     @InjectMocks private ExportSlipServiceImpl exportSlipService;
 
@@ -41,8 +35,9 @@ public class UpdateTest {
     private ExportSlip exportSlip;
     private User mockUser;
 
+    //Tese case không tìm thấy phiếu xuất kho
     @Test
-    void testUpdateExport_ExportSlipNotFound() {
+    void UTCEU01() {
         // Arrange
         ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
         doReturn(mockUser).when(exportSlipServiceSpy).getCurrentUser();
@@ -50,14 +45,15 @@ public class UpdateTest {
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            exportSlipServiceSpy.updateExport(1L, exportDto);
+            exportSlipServiceSpy.updateExport(200L, exportDto);
         });
 
         assertEquals(Message.EXPORT_SLIP_NOT_FOUND, exception.getMessage());
     }
 
+    //Test case cập nhật phiếu xuất kho đã xác nhận
     @Test
-    void testUpdateExport_StatusConfirmed_NotUpdatable() {
+    void UTCEU02() {
         // Arrange
         ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
         doReturn(mockUser).when(exportSlipServiceSpy).getCurrentUser();
@@ -74,8 +70,9 @@ public class UpdateTest {
         assertEquals(Message.NOT_UPDATE_CONFIRMED, exception.getMessage());
     }
 
+    //Test case người dùng không có quyền cập nhật phiếu xuất kho
     @Test
-    void testUpdateExport_UnauthorizedUser() {
+    void UTCEU03() {
         // Arrange
         ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
         User unauthorizedUser = new User();
@@ -83,7 +80,7 @@ public class UpdateTest {
         doReturn(unauthorizedUser).when(exportSlipServiceSpy).getCurrentUser();
 
         User exportUser = new User();
-        exportUser.setId(1L);
+        exportUser.setId(200L);
         ExportSlip exportSlipMock = new ExportSlip();
         exportSlipMock.setUser(exportUser);
         when(exportSlipRepository.findById(anyLong())).thenReturn(Optional.of(exportSlipMock));
@@ -96,8 +93,9 @@ public class UpdateTest {
         assertEquals(Message.REJECT_AUTHORIZATION, exception.getMessage());
     }
 
+    //Test case loại phiếu xuất kho không hợp lệ
     @Test
-    void testUpdateExport_InvalidExportType() {
+    void UTCEU04() {
         // Arrange
         ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
         User mockUser = new User();

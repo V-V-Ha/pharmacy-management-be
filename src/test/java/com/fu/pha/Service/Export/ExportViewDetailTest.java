@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ViewDetailTest {
+public class ExportViewDetailTest {
 
     @Mock private ExportSlipRepository exportSlipRepository;
 
@@ -45,18 +45,9 @@ public class ViewDetailTest {
         when(exportSlipRepository.findById(exportSlipId)).thenReturn(Optional.of(exportSlip));
     }
 
+    //Test case lấy thông tin phiếu xuất thành công
     @Test
-    void testGetActiveExportSlipById_ExportSlipNotFound() {
-        // Kiểm tra khi không tìm thấy phiếu xuất
-        when(exportSlipRepository.findById(exportSlipId)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> {
-            exportSlipService.getActiveExportSlipById(exportSlipId);
-        });
-    }
-
-    @Test
-    void testGetActiveExportSlipById_Success() {
+    void UTCEVD01() {
         // Initialize the export slip item list
         exportSlip.setExportSlipItemList(Collections.emptyList());
 
@@ -68,5 +59,18 @@ public class ViewDetailTest {
         assertEquals(OrderStatus.PENDING.name(), result.getStatus()); // Trạng thái phải khớp với phiếu xuất gốc
         // Thêm các kiểm tra khác nếu DTO có thêm các trường cần kiểm tra
     }
+
+    //Test case không tìm thấy phiếu xuất
+    @Test
+    void UTCEVD02() {
+        // Kiểm tra khi không tìm thấy phiếu xuất
+        when(exportSlipRepository.findById(exportSlipId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            exportSlipService.getActiveExportSlipById(exportSlipId);
+        });
+    }
+
+
 
 }

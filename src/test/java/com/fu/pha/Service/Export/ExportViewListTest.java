@@ -1,6 +1,7 @@
 package com.fu.pha.Service.Export;
 
 import com.fu.pha.entity.User;
+import com.fu.pha.enums.ExportType;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -22,7 +23,7 @@ import java.time.Instant;
 import java.util.Collections;
 
 @ExtendWith(MockitoExtension.class)
-public class ViewListTest {
+public class ExportViewListTest {
 
 
     @Mock private ExportSlipRepository exportSlipRepository;
@@ -43,18 +44,9 @@ public class ViewListTest {
         exportSlip.setStatus(OrderStatus.PENDING);
     }
 
+    // Test case lấy danh sách phiếu xuất kho thành công
     @Test
-    void testGetAllExportSlipPaging_EmptyResult() {
-        when(exportSlipRepository.getListExportSlipPagingWithoutDate(any(), any(), any()))
-                .thenReturn(Page.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> {
-            exportSlipService.getAllExportSlipPaging(0, 10, null, null, null, null);
-        });
-    }
-
-    @Test
-    void testGetAllExportSlipPaging_WithResults() {
+    void UTCEL01() {
         // Create a mock User object to avoid NullPointerException
         User mockUser = new User();
         mockUser.setId(1L);  // Set some valid ID
@@ -73,15 +65,16 @@ public class ViewListTest {
                 .thenReturn(page);
 
         // Act
-        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, null, null, null, null);
+        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, ExportType.DESTROY, OrderStatus.PENDING, null, null);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
     }
 
+    // Test case trường hợp chỉ có fromDate
     @Test
-    void testGetAllExportSlipPaging_WithFromDate() {
+    void UTCEL02() {
         // Create a mock User object to avoid NullPointerException
         User mockUser = new User();
         mockUser.setId(1L);  // Set some valid ID
@@ -100,15 +93,16 @@ public class ViewListTest {
                 .thenReturn(page);
 
         // Act
-        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, null, null, fromDate, null);
+        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, ExportType.DESTROY, OrderStatus.PENDING, fromDate, null);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
     }
 
+    // Test case trường hợp chỉ có toDate
     @Test
-    void testGetAllExportSlipPaging_WithToDate() {
+    void UTCEL03() {
         // Create a mock User object to avoid NullPointerException
         User mockUser = new User();
         mockUser.setId(1L);  // Set some valid ID
@@ -127,15 +121,16 @@ public class ViewListTest {
                 .thenReturn(page);
 
         // Act
-        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, null, null, null, toDate);
+        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, ExportType.DESTROY, OrderStatus.PENDING, null, toDate);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
     }
 
+    // Test case trường hợp có cả fromDate và toDate
     @Test
-    void testGetAllExportSlipPaging_WithFromDateAndToDate() {
+    void UTCEL04() {
         // Create a mock User object to avoid NullPointerException
         User mockUser = new User();
         mockUser.setId(1L);  // Set some valid ID
@@ -154,20 +149,21 @@ public class ViewListTest {
                 .thenReturn(page);
 
         // Act
-        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, null, null, fromDate, toDate);
+        Page<ExportSlipResponseDto> result = exportSlipService.getAllExportSlipPaging(0, 10, ExportType.DESTROY, OrderStatus.PENDING, fromDate, toDate);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
     }
 
+    // Test case không tìm thấy phiếu xuất
     @Test
-    void testGetAllExportSlipPaging_NoExportSlipFound() {
+    void UTCEL05() {
         when(exportSlipRepository.getListExportSlipPagingWithoutDate(any(), any(), any()))
                 .thenReturn(Page.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> {
-            exportSlipService.getAllExportSlipPaging(0, 10, null, null, null, null);
+            exportSlipService.getAllExportSlipPaging(0, 10, ExportType.DESTROY, OrderStatus.PENDING, null, null);
         });
     }
 

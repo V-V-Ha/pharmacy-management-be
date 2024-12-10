@@ -70,16 +70,17 @@ public interface ImportRepository extends JpaRepository<Import, Long> {
 
     @Query("SELECT COALESCE(SUM(i.totalAmount), 0) " +
             "FROM Import i " +
-            "WHERE i.supplier.createDate BETWEEN :startDate AND :endDate ")
+            "WHERE i.supplier.createDate BETWEEN :startDate AND :endDate AND i.createDate BETWEEN :startDate AND :endDate AND i.status = com.fu.pha.enums.OrderStatus.CONFIRMED ")
     Double sumTotalImportNewAmountBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
     @Query("SELECT COALESCE(SUM(i.totalAmount), 0) " +
             "FROM Import i " +
-            "WHERE i.supplier.createDate < :startDate ")
-    Double sumTotalImportAmountBeforeDate(@Param("startDate") Instant startDate);
+            "WHERE i.supplier.createDate < :startDate AND i.createDate BETWEEN :startDate AND :endDate AND i.status = com.fu.pha.enums.OrderStatus.CONFIRMED ")
+    Double sumTotalImportAmountBeforeDate(@Param("startDate") Instant startDate ,@Param("endDate") Instant endDate);
 
     @Query("SELECT new com.fu.pha.dto.request.importPack.ImportViewListDto(i) FROM Import i " +
-            "WHERE i.importDate BETWEEN :fromDate AND :toDate")
+            "WHERE (i.importDate BETWEEN :fromDate AND :toDate) " +
+            " ORDER BY i.lastModifiedDate DESC")
     List<ImportViewListDto> getImportsByDateRange(@Param("fromDate") Instant fromDate,
                                                   @Param("toDate") Instant toDate);
 

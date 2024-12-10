@@ -5,6 +5,7 @@ import com.fu.pha.dto.response.report.FinancialTransactionDto;
 import com.fu.pha.dto.response.report.product.ProductSalesDto;
 import com.fu.pha.dto.response.report.sale.SalesTransactionDto;
 import com.fu.pha.entity.SaleOrder;
+import com.fu.pha.entity.SaleOrderItem;
 import com.fu.pha.enums.OrderType;
 import com.fu.pha.enums.PaymentMethod;
 import org.springframework.data.domain.Page;
@@ -295,7 +296,7 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
             "AND (:productName IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :productName, '%'))) " +
             "AND (:productCode IS NULL OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :productCode, '%'))) " +
             "GROUP BY p.product_code, p.product_name, u.unit_name " +
-            "ORDER BY p.product_name ASC",
+            "ORDER BY totalAmount DESC",
             countQuery = "SELECT COUNT(*) FROM (" +
                     "SELECT p.id " +
                     "FROM sale_order_item soi " +
@@ -319,10 +320,10 @@ public interface SaleOrderRepository extends JpaRepository<SaleOrder, Long> {
 
     @Query("SELECT new com.fu.pha.dto.response.SaleOrder.SaleOrderResponseDto(s) " +
             "FROM SaleOrder s " +
-            "WHERE s.saleDate BETWEEN :fromDate AND :toDate")
+            "WHERE (s.saleDate BETWEEN :fromDate AND :toDate) " +
+            " AND s.paymentStatus = 'PAID' " +
+            " ORDER BY s.lastModifiedDate DESC")
     List<SaleOrderResponseDto> getSaleOrdersByDateRange(@Param("fromDate") Instant fromDate,
                                                         @Param("toDate") Instant toDate);
-
-
 
 }

@@ -65,7 +65,7 @@ public class CategoryController {
         }
 
     @PutMapping("/change-status-category")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<String> updateCategoryStatus(@RequestParam Long id) {
         categoryService.updateCategoryStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);

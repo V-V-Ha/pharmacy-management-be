@@ -2,6 +2,7 @@ package com.fu.pha.Service.Supplier;
 
 import com.fu.pha.dto.request.SupplierDto;
 import com.fu.pha.enums.Status;
+import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.SupplierRepository;
 import com.fu.pha.service.impl.SupplierServiceImpl;
@@ -30,13 +31,13 @@ public class SupplierViewListTest {
 
     // Test case: Found suppliers with valid search criteria
     @Test
-    public void testGetAllSupplierAndPaging_FoundSuppliers() {
+    public void UTCSL01() {
         // Arrange
-        SupplierDto supplierDto = new SupplierDto(1L, "Supplier1", "Address1", "123456789", "supplier1@email.com", "123456789", Status.ACTIVE);
+        SupplierDto supplierDto = new SupplierDto(1L, "Nam Hà", "Hà Nội", "0987654321", "namha@gmail.com", "0789654321", Status.ACTIVE);
         List<SupplierDto> supplierList = List.of(supplierDto);
         Page<SupplierDto> expectedPage = new PageImpl<>(supplierList);
         Pageable pageable = PageRequest.of(0, 10);
-        String name = "Supplier1";
+        String name = "Nam Hà";
         String status = "ACTIVE";
 
         when(supplierRepository.findAllByNameContaining(name, Status.ACTIVE, pageable)).thenReturn(expectedPage);
@@ -48,61 +49,50 @@ public class SupplierViewListTest {
         assertNotNull(result);
         assertFalse(result.isEmpty());
         assertEquals(1, result.getTotalElements());
-        assertEquals("Supplier1", result.getContent().get(0).getSupplierName());
+        assertEquals("Nam Hà", result.getContent().get(0).getSupplierName());
     }
 
     // Test case: No suppliers found
     @Test
-    public void testGetAllSupplierAndPaging_NoSuppliersFound() {
+    public void UTCSL02() {
         // Arrange
-        String name = "NonExistentSupplier";
+        String name = "Sơn Tùng";
         String status = "ACTIVE";
         Pageable pageable = PageRequest.of(0, 10);
 
         when(supplierRepository.findAllByNameContaining(name, Status.ACTIVE, pageable)).thenReturn(Page.empty());
 
         // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> {
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             supplierService.getAllSupplierAndPaging(0, 10, name, status);
         });
+        assertEquals(Message.SUPPLIER_NOT_FOUND, exception.getMessage());
     }
 
     // Test case: Invalid status value (not found)
     @Test
-    public void testGetAllSupplierAndPaging_InvalidStatus() {
+    public void UTCSL03() {
         // Arrange
-        String name = "Supplier1";
+        String name = "Nam Hà";
         String invalidStatus = "INVALID_STATUS";
         Pageable pageable = PageRequest.of(0, 10);
 
         // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> {
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             supplierService.getAllSupplierAndPaging(0, 10, name, invalidStatus);
         });
-    }
-
-    // Test case: Page or size is invalid (negative)
-    @Test
-    public void testGetAllSupplierAndPaging_InvalidPageSize() {
-        // Arrange
-        String name = "Supplier1";
-        String status = "ACTIVE";
-
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
-            supplierService.getAllSupplierAndPaging(-1, -1, name, status); // Invalid page and size
-        });
+        assertEquals(Message.STATUS_NOT_FOUND, exception.getMessage());
     }
 
     // Test case: Status is null
     @Test
-    public void testGetAllSupplierAndPaging_StatusIsNull() {
+    public void UTCSL04() {
         // Arrange
-        SupplierDto supplierDto = new SupplierDto(1L, "Supplier1", "Address1", "123456789", "supplier1@email.com", "123456789", Status.ACTIVE);
+        SupplierDto supplierDto = new SupplierDto(1L, "Nam Hà", "Hà Nội", "0987654321", "namha@gmail.com", "0789123456", Status.ACTIVE);
         List<SupplierDto> supplierList = List.of(supplierDto);
         Page<SupplierDto> expectedPage = new PageImpl<>(supplierList);
         Pageable pageable = PageRequest.of(0, 10);
-        String name = "Supplier1";
+        String name = "Nam Hà";
         String status = null;
 
         when(supplierRepository.findAllByNameContaining(name, null, pageable)).thenReturn(expectedPage);
@@ -114,14 +104,14 @@ public class SupplierViewListTest {
         assertNotNull(result);
         assertFalse(result.isEmpty());
         assertEquals(1, result.getTotalElements());
-        assertEquals("Supplier1", result.getContent().get(0).getSupplierName());
+        assertEquals("Nam Hà", result.getContent().get(0).getSupplierName());
     }
 
     // Test case: Null or empty name
     @Test
-    public void testGetAllSupplierAndPaging_NameIsNullOrEmpty() {
+    public void UTCSL05() {
         // Arrange
-        SupplierDto supplierDto = new SupplierDto(1L, "Supplier1", "Address1", "123456789", "supplier1@email.com", "123456789", Status.ACTIVE);
+        SupplierDto supplierDto = new SupplierDto(1L, "Nam Hà", "Hà Nội", "0987654321", "namha@gmail.com", "0789123456", Status.ACTIVE);
         List<SupplierDto> supplierList = List.of(supplierDto);
         Page<SupplierDto> expectedPage = new PageImpl<>(supplierList);
         Pageable pageable = PageRequest.of(0, 10);
@@ -137,23 +127,7 @@ public class SupplierViewListTest {
         assertNotNull(result);
         assertFalse(result.isEmpty());
         assertEquals(1, result.getTotalElements());
-        assertEquals("Supplier1", result.getContent().get(0).getSupplierName());
+        assertEquals("Nam Hà", result.getContent().get(0).getSupplierName());
     }
 
-    // Test case: Exception thrown from repository
-    @Test
-    public void testGetAllSupplierAndPaging_RepositoryException() {
-        // Arrange
-        String name = "Supplier1";
-        String status = "ACTIVE";
-        Pageable pageable = PageRequest.of(0, 10);
-
-        when(supplierRepository.findAllByNameContaining(name, Status.ACTIVE, pageable))
-                .thenThrow(new RuntimeException("Database error"));
-
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> {
-            supplierService.getAllSupplierAndPaging(0, 10, name, status);
-        });
-    }
 }

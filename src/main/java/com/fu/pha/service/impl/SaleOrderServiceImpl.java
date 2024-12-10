@@ -83,7 +83,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         SaleOrder saleOrder = new SaleOrder();
         String lastInvoiceNumber = saleOrderRepository.getLastInvoiceNumber();
         saleOrder.setInvoiceNumber(lastInvoiceNumber == null ? "XB000001" : generateCode.generateNewProductCode(lastInvoiceNumber));
-        saleOrder.setSaleDate(saleOrderRequestDto.getSaleDate() != null ? saleOrderRequestDto.getSaleDate() : Instant.now());
+        saleOrder.setSaleDate(Instant.now());
         saleOrder.setOrderType(saleOrderRequestDto.getOrderType());
         saleOrder.setPaymentMethod(saleOrderRequestDto.getPaymentMethod());
         saleOrder.setDiscount(saleOrderRequestDto.getDiscount() != null ? saleOrderRequestDto.getDiscount() : 0.0);
@@ -131,6 +131,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             totalOrderAmount += itemTotalAmount;
         }
 
+        checkInventory(saleOrderRequestDto.getSaleOrderItems());
         if (saleOrderRequestDto.getTotalAmount() != null) {
             double feTotalAmount = saleOrderRequestDto.getTotalAmount();
             if (Math.abs(totalOrderAmount - feTotalAmount) > 0.01) { // Cho phép sai số nhỏ
@@ -153,8 +154,30 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         return saleOrder.getId().intValue();
     }
 
+    public void checkInventory(List<SaleOrderItemRequestDto> saleOrderItems) {
+        for (SaleOrderItemRequestDto item : saleOrderItems) {
+            int requiredQuantity = item.getQuantity() * item.getConversionFactor();
+            List<ImportItem> batches = importItemRepository.findByProductIdOrderByCreateDateAsc(item.getProductId());
+
+            int availableQuantity = 0;
+
+            for (ImportItem batch : batches) {
+                if (batch.getExpiryDate() != null && batch.getExpiryDate().isBefore(Instant.now())) {
+                    continue;
+                }
+                availableQuantity += batch.getRemainingQuantity();
+                if (availableQuantity >= requiredQuantity) {
+                    break;
+                }
+            }
+            if (availableQuantity < requiredQuantity) {
+                throw new BadRequestException(Message.OUT_OF_STOCK);
+            }
+        }
+    }
+
     // Xử lý logic cập nhật kho, batch, product khi thanh toán hoàn tất
-    private void processOrderInventory(SaleOrder saleOrder) {
+    public void processOrderInventory(SaleOrder saleOrder) {
         for (SaleOrderItem saleOrderItem : saleOrder.getSaleOrderItemList()) {
             Product product = saleOrderItem.getProduct();
 
@@ -195,7 +218,6 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             productRepository.save(product);
         }
     }
-
 
     @Override
     @Transactional
@@ -456,15 +478,32 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             cell3.setCellValue(saleOrder.getFullName());
             cell3.setCellStyle(dataCellStyle);
 
+
+
+
             // Loại hóa đơn
             Cell cell4 = row.createCell(4);
-            String orderType = saleOrder.getOrderType() == null ? "N/A" : saleOrder.getOrderType().toString();
+            String orderType = saleOrder.getOrderType().toString();
+            if ("NORMAL".equals(orderType)) {
+                orderType = "Bán thường";
+            } else if ("PRESCRIPTION".equals(orderType)) {
+                orderType = "Bán theo đơn bác sĩ";
+            } else {
+                orderType = "N/A";
+            }
             cell4.setCellValue(orderType);
             cell4.setCellStyle(dataCellStyle);
 
             // Phương thức thanh toán
             Cell cell5 = row.createCell(5);
-            String paymentMethod = saleOrder.getPaymentMethod() == null ? "N/A" : saleOrder.getPaymentMethod().toString();
+            String paymentMethod = saleOrder.getPaymentMethod().toString();
+            if ("CASH".equals(paymentMethod)) {
+                paymentMethod = "Tiền mặt";
+            } else if ("TRANSFER".equals(paymentMethod)) {
+                paymentMethod = "Chuyển khoản";
+            } else {
+                paymentMethod = "N/A";
+            }
             cell5.setCellValue(paymentMethod);
             cell5.setCellStyle(dataCellStyle);
 

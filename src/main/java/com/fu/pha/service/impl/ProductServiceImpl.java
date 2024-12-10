@@ -1,5 +1,6 @@
 package com.fu.pha.service.impl;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fu.pha.convert.GenerateCode;
 import com.fu.pha.dto.request.CategoryDto;
 import com.fu.pha.dto.request.ProductDTORequest;
@@ -38,6 +39,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -146,6 +148,8 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     @Override
     public void importProductsFromExcel(MultipartFile file) throws IOException {
+
+        validateExcelFile(file);
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
 
@@ -229,15 +233,15 @@ public class ProductServiceImpl implements ProductService {
                     ProductUnitDTORequest productUnitDTORequest = new ProductUnitDTORequest();
                     if (unitNameStr.isEmpty() || conversionFactor == null) {
                         productUnitDTORequest.setUnitId(unitRepository.findByUnitName("Viên").getId());
-                        productUnitDTORequest.setImportPrice(importPrice);
-                        productUnitDTORequest.setRetailPrice(retailPrice);
+                        productUnitDTORequest.setImportPrice(importPrice != null ? importPrice : 0);
+                        productUnitDTORequest.setRetailPrice(retailPrice != null ? retailPrice : 0);
                         productUnitDTORequest.setConversionFactor(0);
                     } else if (unit == null) {
                         throw new ResourceNotFoundException(Message.UNIT_NOT_FOUND + ": " + unitNameStr);
                     } else {
                         productUnitDTORequest.setUnitId(unit.getId());
-                        productUnitDTORequest.setImportPrice(importPrice);
-                        productUnitDTORequest.setRetailPrice(retailPrice);
+                        productUnitDTORequest.setImportPrice(importPrice != null ? importPrice : 0);
+                        productUnitDTORequest.setRetailPrice(retailPrice != null ? retailPrice : 0);
                         productUnitDTORequest.setConversionFactor(conversionFactor);
                     }
                     // Tạo đối tượng ProductUnitDTORequest cho mỗi đơn vị
@@ -247,17 +251,22 @@ public class ProductServiceImpl implements ProductService {
                 // Sau khi tạo ProductDTORequest, gọi service để lưu vào DB
                 createProduct(productDTORequest, null);  // Nếu không có file đính kèm
             }
+        } catch (InvalidFormatException e) {
+            throw new BadRequestException("Định dạng file Excel không hợp lệ.");
         }
     }
 
     private boolean isRowEmpty(Row row) {
-        for (int cellIndex = 0; cellIndex < row.getPhysicalNumberOfCells(); cellIndex++) {
-            Cell cell = row.getCell(cellIndex);
-            if (cell != null && !getCellValueAsString(cell).trim().isEmpty()) {
-                return false;  // Nếu có ô có dữ liệu, trả về false
+        if (row == null) {
+            return true;
+        }
+        for (int cellNum = 0; cellNum < row.getLastCellNum(); cellNum++) {
+            Cell cell = row.getCell(cellNum);
+            if (cell != null && cell.getCellType() != CellType.BLANK && getCellValueAsString(cell).trim().length() > 0) {
+                return false; // Nếu có ô nào có giá trị, trả về false
             }
         }
-        return true;  // Nếu tất cả các ô đều trống, trả về true
+        return true; // Nếu tất cả các ô đều trống, trả về true
     }
 
     private String getCellValueAsString(Cell cell) {
@@ -418,14 +427,55 @@ public class ProductServiceImpl implements ProductService {
 
     private void checkValidateProduct(ProductDTORequest productDTORequest){
         if(productDTORequest.getProductName().isEmpty() || productDTORequest.getCategoryId() == null ||
-                productDTORequest.getRegistrationNumber().isEmpty() || productDTORequest.getActiveIngredient().isEmpty() ||
-                productDTORequest.getDosageConcentration().isEmpty() || productDTORequest.getPackingMethod().isEmpty() ||
+                productDTORequest.getRegistrationNumber().isEmpty() || productDTORequest.getPackingMethod().isEmpty() ||
                 productDTORequest.getManufacturer().isEmpty() || productDTORequest.getCountryOfOrigin().isEmpty() ||
-                productDTORequest.getDosageForms().isEmpty() || productDTORequest.getNumberWarning() == null ||
+                productDTORequest.getNumberWarning() == null ||
                 productDTORequest.getPrescriptionDrug() ==  null){
             throw new ResourceNotFoundException(Message.NULL_FILED);
         }
 
+    }
+
+    public void validateExcelFile(MultipartFile file) throws IOException {
+        // Kiểm tra xem file có phải là file Excel (.xlsx) hay không
+        if (!FileUploadUtil.isAllowedExcel(file.getOriginalFilename(), FileUploadUtil.EXCEL_PATTERN)) {
+            throw new BadRequestException(Message.INVALID_FILE_EXCEL);
+        }
+
+        if (file.getSize() > FileUploadUtil.MAX_FILE_SIZE) {
+            throw new MaxUploadSizeExceededException(Message.INVALID_FILE_SIZE);
+        }
+
+        // Kiểm tra dữ liệu trong file Excel
+        try (InputStream is = file.getInputStream(); Workbook workbook = WorkbookFactory.create(is)) {
+            Sheet sheet = workbook.getSheetAt(0); // Lấy sheet đầu tiên
+
+            if (sheet == null) {
+                throw new BadRequestException("File Excel không có sheet nào.");
+            }
+
+            int totalRows = sheet.getPhysicalNumberOfRows();
+            if (totalRows <= 1) { // Chỉ có tiêu đề hoặc trống
+                throw new BadRequestException(Message.NULL_FILE_EXCEL);
+            }
+
+            boolean hasData = false;
+
+            // Bỏ qua hàng đầu (tiêu đề)
+            for (int i = 1; i < totalRows; i++) {
+                Row row = sheet.getRow(i);
+                if (row != null && !isRowEmpty(row)) {
+                    hasData = true;
+                    break; // Nếu tìm thấy dữ liệu, thoát khỏi vòng lặp
+                }
+            }
+
+            if (!hasData) {
+                throw new BadRequestException(Message.NULL_FILE_EXCEL);
+            }
+        } catch (InvalidFormatException e) {
+            throw new BadRequestException("Định dạng file Excel không hợp lệ.");
+        }
     }
 
     public String uploadImage( final MultipartFile file) {
@@ -468,22 +518,20 @@ public class ProductServiceImpl implements ProductService {
         return products;
     }
 
-//    @Override
-//    public Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size,  String productName) {
-//        Pageable pageable = PageRequest.of(page, size);
-//        Page<ProductDTOResponse> products = productRepository.getListProductForSaleOrderPaging(productName, pageable);
-//        if (products.isEmpty()) {
-//            throw new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND);
-//        }
-//        return products;
-//    }
+
 
     @Override
-    public Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size, String productName, boolean isPrescription) {
+    public Page<ProductDTOResponse> getListProductForSaleOrderPaging(int page, int size, String productName, boolean isPrescription , boolean isList) {
         Pageable pageable = PageRequest.of(page, size);
+        Page<ProductDTOResponse> products;
 
-        // Lấy danh sách sản phẩm với các điều kiện đã lọc trong repository
-        Page<ProductDTOResponse> products = productRepository.getListProductForSaleOrderPaging(productName, isPrescription, pageable );
+        if(isList == false) {
+            // Lấy danh sách sản phẩm với các điều kiện đã lọc trong repository
+             products = productRepository.getListProductForSaleOrderPaging(productName, isPrescription, pageable);
+        } else {
+            // Lấy danh sách sản phẩm với các điều kiện đã lọc trong repository
+             products = productRepository.getListProductForSaleOrderPagingisPre(productName, pageable);
+        }
 
         // Nếu không có sản phẩm, throw exception
         if (products.isEmpty()) {
@@ -731,8 +779,8 @@ public class ProductServiceImpl implements ProductService {
         // Tạo dòng tiêu đề
         Row headerRow = sheet.createRow(0);
         String[] headers = {
-                "Tên sản phẩm *", "Nhóm sản phẩm *", "Số đăng ký *", "Thành phần hoạt tính *",
-                "Liều lượng *", "Phương pháp đóng gói *", "Nhà sản xuất *", "Xuất xứ *", "Dạng bào chế *",
+                "Tên sản phẩm *", "Nhóm sản phẩm *", "Số đăng ký *", "Thành phần hoạt tính",
+                "Liều lượng", "Phương pháp đóng gói *", "Nhà sản xuất *", "Xuất xứ *", "Dạng bào chế",
                 "Hạn mức thông báo *", "Đơn vị sản phẩm", "Giá nhập", "Giá bán lẻ",
                 "Hệ số chuyển đổi", "Hình thức bán(theo đơn) *", "Chỉ định", "Chống chỉ định",
                 "Tác dụng phụ", "Mô tả"

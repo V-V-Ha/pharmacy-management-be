@@ -28,8 +28,9 @@ public class ImportRejectTest {
     @InjectMocks
     private ImportServiceImpl importService;
 
+    // Test case: Unauthorized user
     @Test
-    public void testRejectImport_UserUnauthorized() {
+    public void UTCIRJ01() {
         // Arrange
         ImportServiceImpl importServiceSpy = Mockito.spy(importService);
         User unauthorizedUser = new User();
@@ -38,18 +39,23 @@ public class ImportRejectTest {
 
         // Act & Assert
         UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
-            importServiceSpy.rejectImport(1L, "Reason");
+            importServiceSpy.rejectImport(1L, "sai số lượng");
         });
         assertEquals(Message.REJECT_AUTHORIZATION, exception.getMessage());
     }
 
+    // Test case: Empty reason
     @Test
-    public void testRejectImport_ReasonRequired() {
+    public void UTCIRJ02() {
         // Arrange
         ImportServiceImpl importServiceSpy = Mockito.spy(importService);
         User authorizedUser = new User();
         authorizedUser.setRoles(Collections.singleton(new Role(ERole.ROLE_PRODUCT_OWNER.name())));
         doReturn(authorizedUser).when(importServiceSpy).getCurrentUser();
+
+        Import importMock = new Import();
+        importMock.setStatus(OrderStatus.PENDING);
+        when(importRepository.findById(1L)).thenReturn(Optional.of(importMock));
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
@@ -58,8 +64,9 @@ public class ImportRejectTest {
         assertEquals(Message.REASON_REQUIRED, exception.getMessage());
     }
 
+    // Test case: Import not found
     @Test
-    public void testRejectImport_ImportNotFound() {
+    public void UTCIRJ03() {
         // Arrange
         ImportServiceImpl importServiceSpy = Mockito.spy(importService);
         User authorizedUser = new User();
@@ -69,13 +76,14 @@ public class ImportRejectTest {
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            importServiceSpy.rejectImport(1L, "Reason");
+            importServiceSpy.rejectImport(200L, "sai số lượng");
         });
         assertEquals(Message.IMPORT_NOT_FOUND, exception.getMessage());
     }
 
+    // Test case: Import status not pending
     @Test
-    public void testRejectImport_ImportNotPending() {
+    public void UTCIRJ04() {
         // Arrange
         ImportServiceImpl importServiceSpy = Mockito.spy(importService);
         User authorizedUser = new User();
@@ -83,18 +91,19 @@ public class ImportRejectTest {
         doReturn(authorizedUser).when(importServiceSpy).getCurrentUser();
 
         Import importMock = new Import();
-        importMock.setStatus(OrderStatus.REJECT);
+        importMock.setStatus(OrderStatus.CONFIRMED);
         when(importRepository.findById(anyLong())).thenReturn(Optional.of(importMock));
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            importServiceSpy.rejectImport(1L, "Reason");
+            importServiceSpy.rejectImport(1L, "sai số lượng");
         });
         assertEquals(Message.NOT_PENDING_IMPORT, exception.getMessage());
     }
 
+    // Test case: Success
     @Test
-    public void testRejectImport_Success() {
+    public void UTCIRJ05() {
         // Arrange
         ImportServiceImpl importServiceSpy = Mockito.spy(importService);
         User authorizedUser = new User();
@@ -108,11 +117,11 @@ public class ImportRejectTest {
         when(importRepository.findById(anyLong())).thenReturn(Optional.of(importMock));
 
         // Act
-        importServiceSpy.rejectImport(1L, "Reason");
+        importServiceSpy.rejectImport(1L, "sai số lượng");
 
         // Assert
         assertEquals(OrderStatus.REJECT, importMock.getStatus());
-        assertEquals("Reason", importMock.getNote());
+        assertEquals("sai số lượng", importMock.getNote());
         verify(importRepository, times(1)).save(importMock);
         verify(notificationService, times(1)).sendNotificationToUser(anyString(), anyString(), eq(importCreator), anyString());
     }

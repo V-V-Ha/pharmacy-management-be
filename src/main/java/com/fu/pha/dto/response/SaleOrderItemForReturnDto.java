@@ -16,6 +16,7 @@ public class SaleOrderItemForReturnDto {
     private Double unitPrice;
     private String unit;
     private Double totalAmount;
+    private Double discount;
     private Integer conversionFactor;
     private ProductDTOResponse product;
     private List<ImportItemBatchDto> importItemBatchDtos;

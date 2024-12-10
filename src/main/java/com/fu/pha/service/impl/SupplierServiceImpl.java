@@ -26,7 +26,7 @@ public class SupplierServiceImpl implements SupplierService {
         // Check exist tax
         Optional<Supplier> supplierExist = supplierRepository.findByTax(supplierDto.getTax());
         if (supplierExist.isPresent()) {
-            throw new BadRequestException(Message.SUPPLIER_EXIST);
+            throw new BadRequestException(Message.TAX_EXIST);
         }
 
         // Check exist phone number

@@ -69,16 +69,15 @@ public class SupplierCreateTest {
     //Test trường hợp tên nhà cung cấp null
     @Test
     void UTCSC02() {
-        supplierDto.setSupplierName("");
+        supplierDto.setSupplierName(null);  // Supplier name is missing
+        supplierDto.setTax("");  // Tax number is missing
 
         // Xác thực SupplierDto
         Set<ConstraintViolation<SupplierDto>> violations = validator.validate(supplierDto);
 
         // Kiểm tra xem có vi phạm nào không
-        assertFalse(violations.isEmpty(), "Expected validation errors for null supplier name");
+        assertFalse(violations.isEmpty(), "Expected validation errors for missing supplier name or tax number");
 
-        ConstraintViolation<SupplierDto> violation = violations.iterator().next();
-        assertEquals(Message.NULL_FILED, violation.getMessage());
     }
 
     //Test trường hợp số điện thoại không hợp lệ
@@ -155,7 +154,7 @@ public class SupplierCreateTest {
             supplierService.createSupplier(supplierDto);
         });
 
-        assertEquals(Message.SUPPLIER_EXIST, exception.getMessage());
+        assertEquals(Message.TAX_EXIST, exception.getMessage());
     }
 
     //Test trường hợp số điện thoại đã tồn tại

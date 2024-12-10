@@ -58,7 +58,7 @@ public class CustomerController {
     }
 
     @PutMapping("/change-status-customer")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('SALE')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<String> updateCustomerStatus(@RequestParam Long id) {
         customerService.updateCustomerStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);

@@ -1,6 +1,6 @@
 package com.fu.pha.dto.request;
 
-import com.fu.pha.validate.anotation.ValidQuantity;
+import com.fu.pha.validate.anotation.ValidReturnOrder;
 import com.fu.pha.validate.anotation.ValidUnitPrice;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -18,7 +18,6 @@ import java.util.List;
 public class ReturnOrderItemRequestDto {
     @NotNull(message = "Sản phẩm không được để trống")
     private Long productId;
-    @ValidQuantity
     private Integer quantity;
     @ValidUnitPrice
     private Double unitPrice;

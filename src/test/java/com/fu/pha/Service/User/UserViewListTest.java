@@ -4,9 +4,11 @@ import com.fu.pha.dto.request.UserDto;
 import com.fu.pha.enums.ERole;
 import com.fu.pha.enums.Gender;
 import com.fu.pha.enums.Status;
+import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.UserRepository;
 import com.fu.pha.service.impl.UserServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,70 +24,129 @@ import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class UserViewListTest {
+
     @Mock
     private UserRepository userRepository;
 
     @InjectMocks
     private UserServiceImpl userService;
 
-    // Test case: Found users with valid search criteria
+    private Pageable pageable;
+
+    @BeforeEach
+    public void setUp() {
+        pageable = PageRequest.of(0, 10);
+    }
+
+    // Test case: Found users
     @Test
-    public void testGetAllUserPaging_FoundUsers() {
+    public void UTCURL01() {
+        // Arrange
+        UserDto userDto = new UserDto();
+        userDto.setFullName("Minh Hiếu");
+        Page<UserDto> expectedPage = new PageImpl<>(List.of(userDto));
+        when(userRepository.getAllUserPaging("Minh Hiếu", null, Status.ACTIVE, pageable)).thenReturn(expectedPage);
+
+        // Act
+        Page<UserDto> result = userService.getAllUserPaging(0, 10, "Minh Hiếu", null, "ACTIVE");
+
+        // Assert
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.getTotalElements());
+        verify(userRepository).getAllUserPaging("Minh Hiếu", null, Status.ACTIVE, pageable);
     }
 
     // Test case: No users found
     @Test
-    public void testGetAllUserPaging_NoUsersFound() {
+    public void UTCURL02() {
+        // Arrange
+        Page<UserDto> expectedPage = Page.empty();
+        when(userRepository.getAllUserPaging("Hà", null, Status.ACTIVE, pageable)).thenReturn(expectedPage);
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
+                userService.getAllUserPaging(0, 10, "Hà", null, "ACTIVE"));
+        assertEquals(Message.USER_NOT_FOUND, exception.getMessage());
+        verify(userRepository).getAllUserPaging("Hà", null, Status.ACTIVE, pageable);
     }
 
     // Test case: Invalid role value (not found)
     @Test
-    public void testGetAllUserPaging_InvalidRole() {
+    public void UTCURL03() {
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
+                userService.getAllUserPaging(0, 10, "Minh Hiếu", "INVALID_ROLE", "ACTIVE"));
+        assertEquals(Message.ROLE_NOT_FOUND, exception.getMessage());
     }
 
     // Test case: Invalid status value (not found)
     @Test
-    public void testGetAllUserPaging_InvalidStatus() {
-    }
-
-    // Test case: Role is null
-    @Test
-    public void testGetAllUserPaging_RoleIsNull() {
-
-    }
-
-    // Test case: Status is null
-    @Test
-    public void testGetAllUserPaging_StatusIsNull() {
-    }
-
-    // Test case: Page or size is invalid (negative)
-    @Test
-    public void testGetAllUserPaging_InvalidPageSize() {
-        // Arrange
-        String fullName = "User One";
-        String role = "USER";
-        String status = "ACTIVE";
-
+    public void UTCURL04() {
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
-            userService.getAllUserPaging(-1, -1, fullName, role, status); // Invalid page and size
-        });
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
+                userService.getAllUserPaging(0, 10, "Minh Hiếu", null, "INVALID_STATUS"));
+        assertEquals(Message.STATUS_NOT_FOUND, exception.getMessage());
     }
 
-    // Test case: Exception thrown from repository
+    // Test case: role is null
     @Test
-    public void testGetAllUserPaging_RepositoryException() {
+    public void UTCURL05() {
+        // Arrange
+        UserDto userDto = new UserDto();
+        userDto.setFullName("Minh Hiếu");
+        Page<UserDto> expectedPage = new PageImpl<>(List.of(userDto));
+        when(userRepository.getAllUserPaging("Minh Hiếu", null, Status.ACTIVE, pageable)).thenReturn(expectedPage);
 
+        // Act
+        Page<UserDto> result = userService.getAllUserPaging(0, 10, "Minh Hiếu", null, "ACTIVE");
+
+        // Assert
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.getTotalElements());
+        verify(userRepository).getAllUserPaging("Minh Hiếu", null, Status.ACTIVE, pageable);
     }
 
-    // Test case: fullName is null or empty
+    // Test case: status is null
     @Test
-    public void testGetAllUserPaging_FullNameIsNullOrEmpty() {
+    public void UTCURL06() {
+        // Arrange
+        UserDto userDto = new UserDto();
+        userDto.setFullName("Minh Hiếu");
+        Page<UserDto> expectedPage = new PageImpl<>(List.of(userDto));
+        when(userRepository.getAllUserPaging("Minh Hiếu", null, null, pageable)).thenReturn(expectedPage);
 
+        // Act
+        Page<UserDto> result = userService.getAllUserPaging(0, 10, "Minh Hiếu", null, null);
+
+        // Assert
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.getTotalElements());
+        verify(userRepository).getAllUserPaging("Minh Hiếu", null, null, pageable);
+    }
+
+    @Test
+    public void UTCURL07() {
+        // Arrange
+        UserDto userDto = new UserDto();
+        userDto.setFullName("Minh Hiếu");
+        Page<UserDto> expectedPage = new PageImpl<>(List.of(userDto));
+        when(userRepository.getAllUserPaging(null, null, Status.ACTIVE, pageable)).thenReturn(expectedPage);
+
+        // Act
+        Page<UserDto> result = userService.getAllUserPaging(0, 10, null, null, "ACTIVE");
+
+        // Assert
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.getTotalElements());
+        verify(userRepository).getAllUserPaging(null, null, Status.ACTIVE, pageable);
     }
 }

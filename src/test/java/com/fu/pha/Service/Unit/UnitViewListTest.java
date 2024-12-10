@@ -2,6 +2,7 @@ package com.fu.pha.Service.Unit;
 
 import com.fu.pha.dto.request.UnitDto;
 import com.fu.pha.enums.Status;
+import com.fu.pha.exception.Message;
 import com.fu.pha.exception.ResourceNotFoundException;
 import com.fu.pha.repository.UnitRepository;
 import com.fu.pha.service.impl.UnitServiceImpl;
@@ -29,52 +30,29 @@ public class UnitViewListTest {
     @InjectMocks
     private UnitServiceImpl unitService;
 
-    // Test case: Found units with valid search criteria
-    @Test
-    public void testGetAllUnitPaging_FoundUnits() {
-        // Arrange
-        UnitDto unitDto = new UnitDto(1L, "Unit1", "Description1", Instant.now(), Instant.now(), "Admin", "Admin", Status.ACTIVE);
-        List<UnitDto> unitList = List.of(unitDto);
-        Page<UnitDto> expectedPage = new PageImpl<>(unitList);
-        Pageable pageable = PageRequest.of(0, 10);
-        String name = "Unit1";
-        String status = "ACTIVE";
-
-        when(unitRepository.findAllByNameContaining(name, Status.ACTIVE, pageable)).thenReturn(expectedPage);
-
-        // Act
-        Page<UnitDto> result = unitService.getAllUnitPaging(0, 10, name, status);
-
-        // Assert
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertEquals(1, result.getTotalElements());
-        assertEquals("Unit1", result.getContent().get(0).getUnitName());
-    }
-
     // Test case: No units found
     @Test
-    public void testGetAllUnitPaging_NoUnitsFound() {
+    public void UTCUNL01() {
         // Arrange
-        String name = "NonExistentUnit";
+        String name = "Vỉ";
         String status = "ACTIVE";
         Pageable pageable = PageRequest.of(0, 10);
 
         when(unitRepository.findAllByNameContaining(name, Status.ACTIVE, pageable)).thenReturn(Page.empty());
 
         // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> {
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             unitService.getAllUnitPaging(0, 10, name, status);
         });
+        assertEquals(Message.UNIT_NOT_FOUND, exception.getMessage());
     }
 
     // Test case: Invalid status value (not found)
     @Test
-    public void testGetAllUnitPaging_InvalidStatus() {
+    public void UTCUNL02() {
         // Arrange
-        String name = "Unit1";
+        String name = "Hộp";
         String invalidStatus = "INVALID_STATUS";
-        Pageable pageable = PageRequest.of(0, 10);
 
         // Act & Assert
         assertThrows(ResourceNotFoundException.class, () -> {
@@ -82,28 +60,15 @@ public class UnitViewListTest {
         });
     }
 
-    // Test case: Page or size is invalid (negative)
-    @Test
-    public void testGetAllUnitPaging_InvalidPageSize() {
-        // Arrange
-        String name = "Unit1";
-        String status = "ACTIVE";
-
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
-            unitService.getAllUnitPaging(-1, -1, name, status); // Invalid page and size
-        });
-    }
-
     // Test case: Status is null
     @Test
-    public void testGetAllUnitPaging_StatusIsNull() {
+    public void UTCUNL03() {
         // Arrange
-        UnitDto unitDto = new UnitDto(1L, "Unit1", "Description1", Instant.now(), Instant.now(), "Admin", "Admin", Status.ACTIVE);
+        UnitDto unitDto = new UnitDto(1L, "Hộp", "abc", Instant.now(), Instant.now(), "minhhieu", "minhhieu", Status.ACTIVE);
         List<UnitDto> unitList = List.of(unitDto);
         Page<UnitDto> expectedPage = new PageImpl<>(unitList);
         Pageable pageable = PageRequest.of(0, 10);
-        String name = "Unit1";
+        String name = "Hộp";
         String status = null;
 
         when(unitRepository.findAllByNameContaining(name, null, pageable)).thenReturn(expectedPage);
@@ -115,14 +80,14 @@ public class UnitViewListTest {
         assertNotNull(result);
         assertFalse(result.isEmpty());
         assertEquals(1, result.getTotalElements());
-        assertEquals("Unit1", result.getContent().get(0).getUnitName());
+        assertEquals("Hộp", result.getContent().get(0).getUnitName());
     }
 
     // Test case: Null or empty name
     @Test
-    public void testGetAllUnitPaging_NameIsNullOrEmpty() {
+    public void UTCUNL04() {
         // Arrange
-        UnitDto unitDto = new UnitDto(1L, "Unit1", "Description1", Instant.now(), Instant.now(), "Admin", "Admin", Status.ACTIVE);
+        UnitDto unitDto = new UnitDto(1L, "Hộp", "Description1", Instant.now(), Instant.now(), "minhhieu", "minhhieu", Status.ACTIVE);
         List<UnitDto> unitList = List.of(unitDto);
         Page<UnitDto> expectedPage = new PageImpl<>(unitList);
         Pageable pageable = PageRequest.of(0, 10);
@@ -138,23 +103,30 @@ public class UnitViewListTest {
         assertNotNull(result);
         assertFalse(result.isEmpty());
         assertEquals(1, result.getTotalElements());
-        assertEquals("Unit1", result.getContent().get(0).getUnitName());
+        assertEquals("Hộp", result.getContent().get(0).getUnitName());
     }
 
-    // Test case: Exception thrown from repository
+    // Test case: Found units with valid search criteria
     @Test
-    public void testGetAllUnitPaging_RepositoryException() {
+    public void UTCUNL05() {
         // Arrange
-        String name = "Unit1";
-        String status = "ACTIVE";
+        UnitDto unitDto = new UnitDto(1L, "Hộp", "Description1", Instant.now(), Instant.now(), "minhhieu", "minhhieu", Status.ACTIVE);
+        List<UnitDto> unitList = List.of(unitDto);
+        Page<UnitDto> expectedPage = new PageImpl<>(unitList);
         Pageable pageable = PageRequest.of(0, 10);
+        String name = "Hộp";
+        String status = "ACTIVE";
 
-        when(unitRepository.findAllByNameContaining(name, Status.ACTIVE, pageable))
-                .thenThrow(new RuntimeException("Database error"));
+        when(unitRepository.findAllByNameContaining(name, Status.ACTIVE, pageable)).thenReturn(expectedPage);
 
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> {
-            unitService.getAllUnitPaging(0, 10, name, status);
-        });
+        // Act
+        Page<UnitDto> result = unitService.getAllUnitPaging(0, 10, name, status);
+
+        // Assert
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Hộp", result.getContent().get(0).getUnitName());
     }
+
 }

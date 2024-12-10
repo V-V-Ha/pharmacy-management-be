@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.nio.DoubleBuffer;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -14,4 +16,5 @@ public class SaleOrderItemBatchResponseDto {
     private Integer quantity;
     private Integer returnedQuantity;
     private String invoiceNumber;
+    private Double discount;
 }

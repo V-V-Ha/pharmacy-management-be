@@ -55,8 +55,8 @@ public class ProductController {
     public ResponseEntity<PageResponseModel<ProductDTOResponse>> getListProductForSaleOrderPaging(@RequestParam(defaultValue = "0") int page,
                                                                                                   @RequestParam(defaultValue = "10") int size,
                                                                                                   @RequestParam(required = false) String productName) {
-        Boolean isPrescription = false;
-        Page<ProductDTOResponse> productDTOResponsePage = productService.getListProductForSaleOrderPaging(page, size, productName,isPrescription);
+
+        Page<ProductDTOResponse> productDTOResponsePage = productService.getListProductForSaleOrderPaging(page, size, productName,false , false);
 
         PageResponseModel<ProductDTOResponse> response = PageResponseModel.<ProductDTOResponse>builder()
                 .page(page)
@@ -72,8 +72,7 @@ public class ProductController {
     public ResponseEntity<PageResponseModel<ProductDTOResponse>> getListProductForSaleOrderPagingForPrescription(@RequestParam(defaultValue = "0") int page,
                                                                                                   @RequestParam(defaultValue = "10") int size,
                                                                                                   @RequestParam(required = false) String productName) {
-        Boolean isPrescription = true;
-        Page<ProductDTOResponse> productDTOResponsePage = productService.getListProductForSaleOrderPaging(page, size, productName,isPrescription);
+        Page<ProductDTOResponse> productDTOResponsePage = productService.getListProductForSaleOrderPaging(page, size, productName , false,true);
 
         PageResponseModel<ProductDTOResponse> response = PageResponseModel.<ProductDTOResponse>builder()
                 .page(page)
@@ -126,7 +125,7 @@ public class ProductController {
     }
 
     @PutMapping("/change-status-product")
-    @PreAuthorize("hasRole('PRODUCT_OWNER') or hasRole('STOCK')")
+    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<String> updateProductStatus(@RequestParam Long id) {
         productService.updateProductStatus(id);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);

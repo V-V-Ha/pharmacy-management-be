@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -81,7 +82,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
         // 3. Xử lý từng ReturnOrderItemRequestDto trong danh sách returnOrderItems
         for (ReturnOrderItemRequestDto itemRequestDto : returnOrderRequestDto.getReturnOrderItems()) {
             Long productId = itemRequestDto.getProductId();
-            Integer quantityToReturn = itemRequestDto.getQuantity();
+            Integer quantityToReturn = itemRequestDto.getQuantity() != null ? itemRequestDto.getQuantity() : 0;
             Double unitPrice = itemRequestDto.getUnitPrice();
 
             // Lấy sản phẩm và tính toán số lượng nhỏ nhất cần trả lại
@@ -130,7 +131,8 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
 
                 // Kiểm tra số lượng có thể trả lại cho từng SaleOrderItemBatch
                 int availableQuantityForReturn = saleOrderItemBatch.getQuantity();
-                int quantityReturn = batchRequestDto.getQuantity() * conversionFactor;
+                int quantityReturnB = batchRequestDto.getQuantity() != null ? batchRequestDto.getQuantity() : 0;
+                int quantityReturn = quantityReturnB  * conversionFactor;
                 if (availableQuantityForReturn < saleOrderItemBatch.getReturnedQuantity() || availableQuantityForReturn < quantityReturn) {
                     continue;
                 }
@@ -209,6 +211,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
             saleOrderItemForReturnDto.setUnit(saleOrderItem.getUnit());
             saleOrderItemForReturnDto.setTotalAmount(saleOrderItem.getTotalAmount());
             saleOrderItemForReturnDto.setConversionFactor(saleOrderItem.getConversionFactor());
+            saleOrderItemForReturnDto.setDiscount(saleOrderItem.getDiscount());
 
             // Lấy thông tin sản phẩm
             ProductDTOResponse productDTO = new ProductDTOResponse(saleOrderItem.getProduct());
@@ -276,6 +279,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
             saleOrderItemForReturnDto.setUnit(saleOrderItem.getUnit());
             saleOrderItemForReturnDto.setTotalAmount(saleOrderItem.getTotalAmount());
             saleOrderItemForReturnDto.setConversionFactor(saleOrderItem.getConversionFactor());
+            saleOrderItemForReturnDto.setDiscount(saleOrderItem.getDiscount());
 
             // Lấy thông tin sản phẩm
             ProductDTOResponse productDTO = new ProductDTOResponse(saleOrderItem.getProduct());
@@ -379,7 +383,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
                     ).orElseThrow(() -> new ResourceNotFoundException(Message.SALE_ORDER_ITEM_BATCH_NOT_FOUND));
 
                     int existingBatchQuantity = saleOrderItemBatch.getReturnedQuantity();
-                    int quantityDifference = newBatchQuantity - existingBatchQuantity;
+                    int quantityDifference = newBatchQuantity * conversionFactor - existingBatchQuantity;
 
                     if (quantityDifference > 0) {
                         // Tăng returnedQuantity
@@ -448,7 +452,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
 
                     String batchNumber = batchRequestDto.getBatchNumber();
                     String invoiceNumber = batchRequestDto.getInvoiceNumber();
-                    int batchQuantity = batchRequestDto.getQuantity();
+                    int batchQuantity = batchRequestDto.getQuantity() * conversionFactor;
 
                     // Tìm ImportItem dựa trên batchNumber, invoiceNumber, và productId
                     ImportItem importItem = importItemRepository.findByBatchNumberAndImportReceipt_InvoiceNumberAndProductId(
@@ -494,10 +498,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
         }
 
         // Sau khi xử lý các ReturnOrderItem từ DTO, tính lại tổng refundAmount
-        double newRefundAmount = existingReturnOrder.getReturnOrderItems().stream()
-                .mapToDouble(item -> item.getUnitPrice() * item.getQuantity())
-                .sum();
-        existingReturnOrder.setRefundAmount(newRefundAmount);
+        existingReturnOrder.setRefundAmount(returnOrderRequestDto.getTotalAmount());
 
         // Lưu lại ReturnOrder với thông tin cập nhật
         returnOrderRepository.save(existingReturnOrder);
@@ -505,11 +506,9 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
         // Cập nhật trạng thái của SaleOrder nếu cần
         SaleOrder saleOrder = existingReturnOrder.getSaleOrder();
         saleOrder.setCheckBackOrder(true);
+
         saleOrderRepository.save(saleOrder);
     }
-
-
-
 
     @Override
     @Transactional
@@ -533,18 +532,26 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
                     // Tạo DTO cho ReturnOrderItem và ánh xạ các SaleOrderItemBatch vào DTO
                     ReturnOrderItemResponseDto returnOrderItemResponseDto = new ReturnOrderItemResponseDto(returnOrderItem);
                     returnOrderItemResponseDto.setBatchResponseDtos(saleOrderItemBatches.stream()
-                            .map(saleOrderItemBatch -> new SaleOrderItemBatchResponseDto(
-                                    saleOrderItemBatch.getImportItem().getBatchNumber(),
-                                    saleOrderItemBatch.getQuantity(),
-                                    saleOrderItemBatch.getReturnedQuantity(),
-                                    saleOrderItemBatch.getImportItem().getImportReceipt().getInvoiceNumber()
-                            ))
+                            .map(saleOrderItemBatch -> {
+                                // Lấy SaleOrderItem tương ứng với SaleOrderItemBatch hiện tại
+                                Optional<SaleOrderItem> saleOrderItemOpt = saleOrderItemRepository.findBySaleOrderItemBatches_Id(saleOrderItemBatch.getId());
+
+                                // Lấy discount từ SaleOrderItem nếu tồn tại
+                                Double discount = saleOrderItemOpt.map(SaleOrderItem::getDiscount).orElse(0.0);
+
+                                return new SaleOrderItemBatchResponseDto(
+                                        saleOrderItemBatch.getImportItem().getBatchNumber(),
+                                        saleOrderItemBatch.getQuantity(),
+                                        saleOrderItemBatch.getReturnedQuantity() / returnOrderItem.getConversionFactor(),
+                                        saleOrderItemBatch.getImportItem().getImportReceipt().getInvoiceNumber(),
+                                        discount
+                                );
+                            })
                             .collect(Collectors.toList()));
 
                     return returnOrderItemResponseDto;
                 })
                 .collect(Collectors.toList()));
-
         return returnOrderResponseDto;
     }
 

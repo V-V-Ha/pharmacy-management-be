@@ -59,28 +59,38 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
                     "c.phone_number AS phoneNumber, " +
                     "COALESCE(sub.invoice_count, 0) AS invoiceCount, " +
                     "COALESCE(sub.total_quantity, 0) AS totalProductQuantity, " +
-                    "COALESCE(sub.total_amount, 0) AS totalAmount " +
+                    "COALESCE(sub_total.total_amount, 0) AS totalAmount " +
                     "FROM customer c " +
                     "LEFT JOIN ( " +
                     "    SELECT so.customer_id, " +
                     "           COUNT(DISTINCT so.id) AS invoice_count, " +
-                    "           SUM(soi.quantity) AS total_quantity, " +
-                    "           SUM(so.total_amount) AS total_amount " +
+                    "           SUM(soi.quantity * soi.conversion_factor) AS total_quantity " +
                     "    FROM sale_order so " +
-                    "    LEFT JOIN sale_order_item soi ON so.id = soi.sale_order_id " +
+                    "    JOIN sale_order_item soi ON so.id = soi.sale_order_id " + // Sử dụng INNER JOIN để tránh NULL
                     "    WHERE so.payment_status = 'PAID' " +
+                    "      AND so.sale_date BETWEEN :startDate AND :endDate " +
                     "    GROUP BY so.customer_id " +
                     ") sub ON c.id = sub.customer_id " +
+                    "LEFT JOIN ( " +
+                    "    SELECT so.customer_id, " +
+                    "           SUM(so.total_amount) AS total_amount " +
+                    "    FROM sale_order so " +
+                    "    WHERE so.payment_status = 'PAID' " +
+                    "      AND so.sale_date BETWEEN :startDate AND :endDate " +
+                    "    GROUP BY so.customer_id " +
+                    ") sub_total ON c.id = sub_total.customer_id " +
                     "WHERE (:searchTerm IS NULL OR LOWER(c.customer_name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
                     "       OR c.phone_number LIKE CONCAT('%', :searchTerm, '%')) " +
                     "AND (:isNewCustomer IS NULL OR " +
                     "     (:isNewCustomer = TRUE AND c.create_date BETWEEN :startDate AND :endDate) OR " +
-                    "     (:isNewCustomer = FALSE AND c.create_date < :startDate))",
+                    "     (:isNewCustomer = FALSE AND c.create_date < :startDate)) " +
+                    "ORDER BY COALESCE(sub_total.total_amount, 0) DESC",
             countQuery = "SELECT COUNT(*) FROM customer c " +
                     "LEFT JOIN ( " +
                     "    SELECT so.customer_id " +
                     "    FROM sale_order so " +
                     "    WHERE so.payment_status = 'PAID' " +
+                    "      AND so.sale_date BETWEEN :startDate AND :endDate " +
                     "    GROUP BY so.customer_id " +
                     ") sub ON c.id = sub.customer_id " +
                     "WHERE (:searchTerm IS NULL OR LOWER(c.customer_name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
@@ -90,6 +100,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
                     "     (:isNewCustomer = FALSE AND c.create_date < :startDate))",
             nativeQuery = true
     )
+
     Page<CustomerInvoiceProjection> findCustomerInvoices(
             @Param("searchTerm") String searchTerm,
             @Param("isNewCustomer") Boolean isNewCustomer,

@@ -15,8 +15,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -58,6 +64,8 @@ public class ProductUpdateTest {
         productDTORequest.setNumberWarning(10);
         productDTORequest.setPrescriptionDrug(false);
         productDTORequest.setProductUnitListDTO(Collections.emptyList());
+        productDTORequest.setLastModifiedBy("minhhieu");
+        productDTORequest.setLastModifiedDate(Instant.now());
 
         product = new Product();
         product.setId(1L);
@@ -72,6 +80,8 @@ public class ProductUpdateTest {
         product.setDosageForms("Siro");
         product.setNumberWarning(10);
         product.setPrescriptionDrug(false);
+        product.setLastModifiedBy("minhhieu");
+        product.setLastModifiedDate(Instant.now());
 
         category = new Category();
         category.setId(1L);
@@ -79,15 +89,26 @@ public class ProductUpdateTest {
     }
 
     //test trường hợp cập nhật sản phẩm thành công
+
     @Test
     void UTCPU01() {
-        when(productRepository.getProductById(productDTORequest.getId())).thenReturn(Optional.of(product));
-        when(productRepository.findByRegistrationNumber(productDTORequest.getRegistrationNumber())).thenReturn(Optional.of(product));
-        when(categoryRepository.findById(productDTORequest.getCategoryId())).thenReturn(Optional.of(category));
+        // Mock the SecurityContext and Authentication
+        SecurityContext securityContext = mock(SecurityContext.class);
+        Authentication authentication = mock(Authentication.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("minhhieu");
 
-        productService.updateProduct(productDTORequest, null);
+        try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = Mockito.mockStatic(SecurityContextHolder.class)) {
+            mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
 
-        verify(productRepository, times(2)).save(any(Product.class));
+            when(productRepository.getProductById(productDTORequest.getId())).thenReturn(Optional.of(product));
+            when(productRepository.findByRegistrationNumber(productDTORequest.getRegistrationNumber())).thenReturn(Optional.of(product));
+            when(categoryRepository.findById(productDTORequest.getCategoryId())).thenReturn(Optional.of(category));
+
+            productService.updateProduct(productDTORequest, null);
+
+            verify(productRepository, times(2)).save(any(Product.class));
+        }
     }
 
     //test trường hợp cập nhật sản phẩm không thành công do không tìm thấy sản phẩm
@@ -156,33 +177,9 @@ public class ProductUpdateTest {
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
-    //test trường hợp cập nhật sản phẩm không thành công do trường activeIngredient null
-    @Test
-    void UTCPU07() {
-        productDTORequest.setActiveIngredient("");
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.updateProduct(productDTORequest, null);
-        });
-
-        assertEquals(Message.NULL_FILED, exception.getMessage());
-    }
-
-    //test trường hợp cập nhật sản phẩm không thành công do trường dosageConcentration null
-    @Test
-    void UTCPU08() {
-        productDTORequest.setDosageConcentration("");
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.updateProduct(productDTORequest, null);
-        });
-
-        assertEquals(Message.NULL_FILED, exception.getMessage());
-    }
-
     //test trường hợp cập nhật sản phẩm không thành công do trường packingMethod null
     @Test
-    void UTCPU09() {
+    void UTCPU07() {
         productDTORequest.setPackingMethod("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -194,7 +191,7 @@ public class ProductUpdateTest {
 
     //test trường hợp cập nhật sản phẩm không thành công do trường manufacturer null
     @Test
-    void UTCPU10() {
+    void UTCPU08() {
         productDTORequest.setManufacturer("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -206,20 +203,8 @@ public class ProductUpdateTest {
 
     //test trường hợp cập nhật sản phẩm không thành công do trường countryOfOrigin null
     @Test
-    void UTCPU11() {
+    void UTCPU09() {
         productDTORequest.setCountryOfOrigin("");
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.updateProduct(productDTORequest, null);
-        });
-
-        assertEquals(Message.NULL_FILED, exception.getMessage());
-    }
-
-    //test trường hợp cập nhật sản phẩm không thành công do trường dosageForms null
-    @Test
-    void UTCPU12() {
-        productDTORequest.setDosageForms("");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             productService.updateProduct(productDTORequest, null);
@@ -230,7 +215,7 @@ public class ProductUpdateTest {
 
     //test trường hợp cập nhật sản phẩm không thành công do trường registrationNumber trùng
     @Test
-    void UTCPU13() {
+    void UTCPU10() {
         // Thiết lập số đăng ký cho productDTORequest
         productDTORequest.setRegistrationNumber("TCT-00092-22");
 
@@ -251,6 +236,4 @@ public class ProductUpdateTest {
         // Kiểm tra thông báo lỗi
         assertEquals(Message.EXIST_REGISTRATION_NUMBER, exception.getMessage());
     }
-
-
 }

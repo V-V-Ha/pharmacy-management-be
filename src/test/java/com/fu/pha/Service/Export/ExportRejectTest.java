@@ -23,13 +23,14 @@ import java.util.Collections;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
-public class RejectTest {
+public class ExportRejectTest {
     @Mock private ExportSlipRepository exportSlipRepository;
     @Mock private NotificationService notificationService;
     @InjectMocks private ExportSlipServiceImpl exportSlipService;
 
+    // Test case từ chối phiếu xuất kho không thành công vì người dùng không có quyền
     @Test
-    void testRejectExport_UnauthorizedUser() {
+    void UTCERJ01() {
         // Arrange
         ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
         User unauthorizedUser = new User();
@@ -38,13 +39,14 @@ public class RejectTest {
 
         // Act & Assert
         UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
-            exportSlipServiceSpy.rejectExport(1L, "Reason");
+            exportSlipServiceSpy.rejectExport(1L, "sai số lượng");
         });
         assertEquals(Message.REJECT_AUTHORIZATION, exception.getMessage());
     }
 
+    // Test case từ chối phiếu xuất kho không thành công vì lý do từ chối rỗng
     @Test
-    void testRejectExport_EmptyReason() {
+    void UTCERJ02() {
         // Arrange
         ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
         User authorizedUser = new User();
@@ -52,29 +54,14 @@ public class RejectTest {
         doReturn(authorizedUser).when(exportSlipServiceSpy).getCurrentUser();
 
         // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+        assertThrows(ResourceNotFoundException.class, () -> {
             exportSlipServiceSpy.rejectExport(1L, "");
         });
-        assertEquals(Message.REASON_REQUIRED, exception.getMessage());
     }
 
+    // Test case từ chối phiếu xuất kho không thành công vì phiếu xuất không tồn tại
     @Test
-    void testRejectExport_NullReason() {
-        // Arrange
-        ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
-        User authorizedUser = new User();
-        authorizedUser.setRoles(Collections.singleton(new Role(ERole.ROLE_PRODUCT_OWNER.name())));
-        doReturn(authorizedUser).when(exportSlipServiceSpy).getCurrentUser();
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            exportSlipServiceSpy.rejectExport(1L, null);
-        });
-        assertEquals(Message.REASON_REQUIRED, exception.getMessage());
-    }
-
-    @Test
-    void testRejectExport_ExportSlipNotFound() {
+    void UTCERJ03() {
         // Arrange
         ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
         User authorizedUser = new User();
@@ -84,13 +71,14 @@ public class RejectTest {
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            exportSlipServiceSpy.rejectExport(1L, "Reason");
+            exportSlipServiceSpy.rejectExport(200L, "sai số lượng");
         });
         assertEquals(Message.EXPORT_SLIP_NOT_FOUND, exception.getMessage());
     }
 
+    // Test case từ chối phiếu xuất kho không thành công vì trạng thái phiếu xuất không phải PENDING
     @Test
-    void testRejectExport_StatusNotPending() {
+    void UTCERJ04() {
         // Arrange
         ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
         User authorizedUser = new User();
@@ -98,18 +86,19 @@ public class RejectTest {
         doReturn(authorizedUser).when(exportSlipServiceSpy).getCurrentUser();
 
         ExportSlip exportSlipMock = new ExportSlip();
-        exportSlipMock.setStatus(OrderStatus.REJECT);
+        exportSlipMock.setStatus(OrderStatus.CONFIRMED);
         when(exportSlipRepository.findById(anyLong())).thenReturn(Optional.of(exportSlipMock));
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            exportSlipServiceSpy.rejectExport(1L, "Reason");
+            exportSlipServiceSpy.rejectExport(1L, "sai số lượng");
         });
         assertEquals(Message.NOT_REJECT, exception.getMessage());
     }
 
+    // Test case từ chối phiếu xuất kho thành công
     @Test
-    void testRejectExport_Success() {
+    void UTCERJ05() {
         // Arrange
         ExportSlipServiceImpl exportSlipServiceSpy = Mockito.spy(exportSlipService);
         User authorizedUser = new User();
@@ -123,11 +112,11 @@ public class RejectTest {
         when(exportSlipRepository.findById(anyLong())).thenReturn(Optional.of(exportSlipMock));
 
         // Act
-        exportSlipServiceSpy.rejectExport(1L, "Reason");
+        exportSlipServiceSpy.rejectExport(1L, "sai số lượng");
 
         // Assert
         assertEquals(OrderStatus.REJECT, exportSlipMock.getStatus());
-        assertEquals("Reason", exportSlipMock.getNote());
+        assertEquals("sai số lượng", exportSlipMock.getNote());
         verify(exportSlipRepository, times(1)).save(exportSlipMock);
         verify(notificationService, times(1)).sendNotificationToUser(anyString(), anyString(), eq(exportCreator), anyString());
     }

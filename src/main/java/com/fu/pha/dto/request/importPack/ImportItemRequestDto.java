@@ -33,6 +33,7 @@ public class ImportItemRequestDto {
     private String batchNumber;
     @NotNull(message = "Sản phẩm không được để trống")
     private Long productId;
+    @NotNull(message = "Ngày hết hạn không được để trống")
     private Instant expiryDate;
     @NotNull(message = "Hệ số quy đổi không được để trống")
     @Min(value = 1, message = "Hệ số quy đổi phải lớn hơn 0")
