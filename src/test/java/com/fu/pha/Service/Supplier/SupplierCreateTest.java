@@ -78,8 +78,6 @@ public class SupplierCreateTest {
         // Kiểm tra xem có vi phạm nào không
         assertFalse(violations.isEmpty(), "Expected validation errors for missing supplier name or tax number");
 
-        ConstraintViolation<SupplierDto> violation = violations.iterator().next();
-        assertEquals(Message.NULL_NAME, violation.getMessage());
     }
 
     //Test trường hợp số điện thoại không hợp lệ

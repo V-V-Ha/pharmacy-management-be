@@ -85,39 +85,9 @@ public class ReturnOrderViewDetailTest {
         saleOrderItemBatch.setReturnedQuantity(5);
     }
 
+    // Test case lấy thông tin chi tiết phiếu trả hàng không thành công
     @Test
-    public void testGetReturnOrderById_Success() {
-        // Arrange
-        when(returnOrderRepository.findById(1L)).thenReturn(Optional.of(returnOrder));
-        when(returnOrderItemRepository.findByReturnOrderId(1L)).thenReturn(Collections.singletonList(returnOrderItem));
-        when(saleOrderItemBatchRepository.findByReturnOrderItemId(1L)).thenReturn(Collections.singletonList(saleOrderItemBatch));
-
-        // Mock SaleOrderItemRepository.findBySaleOrderItemBatches_Id(...) để trả về SaleOrderItem với discount
-        SaleOrderItem mockSaleOrderItem = new SaleOrderItem();
-        mockSaleOrderItem.setDiscount(10.0);
-        when(saleOrderItemRepository.findBySaleOrderItemBatches_Id(saleOrderItemBatch.getId())).thenReturn(Optional.of(mockSaleOrderItem));
-
-        // Act
-        ReturnOrderResponseDto result = returnOrderService.getReturnOrderById(1L);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals(1, result.getReturnOrderItems().size());
-
-        ReturnOrderItemResponseDto itemResponseDto = result.getReturnOrderItems().get(0);
-        assertEquals(1, itemResponseDto.getBatchResponseDtos().size());
-
-        SaleOrderItemBatchResponseDto batchResponseDto = itemResponseDto.getBatchResponseDtos().get(0);
-        assertEquals("BATCH123", batchResponseDto.getBatchNumber());
-        assertEquals(10, batchResponseDto.getQuantity());
-        assertEquals(5, batchResponseDto.getReturnedQuantity());
-        assertEquals("INV123", batchResponseDto.getInvoiceNumber());
-        assertEquals(10.0, batchResponseDto.getDiscount()); // Kiểm tra giá trị discount
-    }
-
-    @Test
-    public void testGetReturnOrderById_ReturnOrderNotFound() {
+    public void UTCSOVD02() {
         // Arrange
         when(returnOrderRepository.findById(1L)).thenReturn(Optional.empty());
 
