@@ -8,10 +8,12 @@ import com.fu.pha.service.InvoiceService;
 import com.fu.pha.util.CustomMultipartFile;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
+import org.apache.commons.lang3.ClassLoaderUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -53,7 +55,14 @@ public class InvoiceServiceImpl implements InvoiceService {
 
             // Thêm logo nếu có
             try {
-                Image logo = Image.getInstance("src/main/resources/logo.png"); // Đường dẫn tới logo
+                URL logoUrl = getClass().getClassLoader().getResource("logo.png");
+                if(logoUrl == null) {
+                    throw new Exception("Không tìm thấy logo");
+                }
+                System.out.println("pathLogo" + logoUrl.toURI());
+                Image logo = Image.getInstance(logoUrl.toURI().toURL());
+
+
                 logo.scaleToFit(100, 100);
                 logo.setAlignment(Element.ALIGN_CENTER);
                 document.add(logo);
@@ -63,7 +72,12 @@ public class InvoiceServiceImpl implements InvoiceService {
             }
 
             // Load font Times New Roman hỗ trợ Unicode
-            BaseFont unicodeFont = BaseFont.createFont("src/main/resources/times.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+            URL fontUrl = getClass().getClassLoader().getResource("times.ttf");
+            if(fontUrl == null) {
+                throw new Exception("Không tìm thấy font times.ttf");
+            }
+            System.out.println("pathFont" + fontUrl.toURI());
+            BaseFont unicodeFont = BaseFont.createFont(fontUrl.toURI().toString(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
             Font font = new Font(unicodeFont, 8);
             Font boldFont = new Font(unicodeFont, 10, Font.BOLD);
             Font titleFont = new Font(unicodeFont, 14, Font.BOLD);
