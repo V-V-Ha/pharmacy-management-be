@@ -117,7 +117,10 @@ public class ProductServiceImpl implements ProductService {
         if (file != null && !file.isEmpty()) {
             String imageProduct = uploadImage(file);
             product.setImageProduct(imageProduct);
+        } else if (productDTORequest.getImageProduct() != null) {
+            product.setImageProduct(productDTORequest.getImageProduct());
         }
+
 
         productRepository.save(product);
         List<ProductUnit> productUnitList = new ArrayList<>();
@@ -193,6 +196,7 @@ public class ProductServiceImpl implements ProductService {
                 String contraindication = getCellValueAsString(row.getCell(16));
                 String sideEffect = getCellValueAsString(row.getCell(17));
                 String description = getCellValueAsString(row.getCell(18));
+                String image = getCellValueAsString(row.getCell(19));
 
                 Category category = categoryRepository.findByCategoryName(categoryName).orElseThrow(() -> new ResourceNotFoundException(Message.CATEGORY_NOT_FOUND));
 
@@ -211,6 +215,7 @@ public class ProductServiceImpl implements ProductService {
                 productDTORequest.setContraindication(contraindication);
                 productDTORequest.setSideEffect(sideEffect);
                 productDTORequest.setDescription(description);
+                productDTORequest.setImageProduct(image);
 
                 // Lấy thông tin đơn vị và các giá trị liên quan
                 List<ProductUnitDTORequest> productUnitListDTO = new ArrayList<>();
@@ -783,7 +788,7 @@ public class ProductServiceImpl implements ProductService {
                 "Liều lượng", "Phương pháp đóng gói *", "Nhà sản xuất *", "Xuất xứ *", "Dạng bào chế",
                 "Hạn mức thông báo *", "Đơn vị sản phẩm", "Giá nhập", "Giá bán lẻ",
                 "Hệ số chuyển đổi", "Hình thức bán(theo đơn) *", "Chỉ định", "Chống chỉ định",
-                "Tác dụng phụ", "Mô tả"
+                "Tác dụng phụ", "Mô tả", "Ảnh"
         };
 
         // Định dạng tiêu đề
@@ -838,7 +843,7 @@ public class ProductServiceImpl implements ProductService {
 
         // Gộp ô cho các cột cần gộp 3 hàng
         for (int rowIndex = 1; rowIndex <= 60; rowIndex += 3) {
-            for (int colIndex : new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 14, 15, 16, 17, 18}) {
+            for (int colIndex : new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 14, 15, 16, 17, 18, 19}) {
                 sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex + 2, colIndex, colIndex));
             }
 

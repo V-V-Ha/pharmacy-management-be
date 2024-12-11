@@ -60,5 +60,4 @@ public class DoctorController {
         doctorService.updateDoctor(request);
         return ResponseEntity.ok(Message.UPDATE_SUCCESS);
     }
-
 }
