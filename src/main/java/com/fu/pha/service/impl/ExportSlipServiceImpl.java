@@ -179,16 +179,16 @@ public class ExportSlipServiceImpl implements ExportSlipService {
         List<ExportSlipItem> existingItems = exportSlipItemRepository.findByExportSlipId(exportSlipId);
 
         // Sử dụng Map để tiện tra cứu các mục hiện tại theo ProductId và ImportItemId
-        Map<String, ExportSlipItem> existingItemMap = existingItems.stream()
+        Map<Long, ExportSlipItem> existingItemMap = existingItems.stream()
                 .collect(Collectors.toMap(
-                        item -> item.getProduct().getId() + "-" + item.getImportItem().getId(),
+                        item -> item.getProduct().getId(),
                         item -> item));
 
         double totalAmount = 0.0;
 
         // Xử lý các ExportSlipItem mới
         for (ExportSlipItemRequestDto itemDto : exportDto.getExportSlipItems()) {
-            String key = itemDto.getProductId() + "-" + itemDto.getImportItemId();
+            String key = itemDto.getProductId().toString();
             ExportSlipItem exportSlipItem = existingItemMap.get(key);
 
             Product product = productRepository.findById(itemDto.getProductId())
