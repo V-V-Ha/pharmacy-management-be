@@ -1,12 +1,14 @@
 package com.fu.pha.dto.response.exportSlip;
 
 import com.fu.pha.dto.response.ProductDTOResponse;
+import com.fu.pha.dto.response.importPack.ImportItemResponseDto;
 import com.fu.pha.dto.response.importPack.ImportItemResponseForExport;
+import com.fu.pha.dto.response.importPack.ImportResponseDto;
 import com.fu.pha.entity.ExportSlipItem;
+import com.fu.pha.entity.ImportItem;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,6 +43,7 @@ public class ExportSlipItemResponseDto {
                 exportSlipItem.getImportItem().getQuantity(),
                 exportSlipItem.getImportItem().getUnitPrice(),
                 exportSlipItem.getImportItem().getUnit(),
+                exportSlipItem.getConversionFactor(),
                 exportSlipItem.getImportItem().getDiscount(),
                 exportSlipItem.getImportItem().getTax(),
                 exportSlipItem.getImportItem().getTotalAmount(),
