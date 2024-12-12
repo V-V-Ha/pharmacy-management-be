@@ -60,6 +60,7 @@ public class ExportSlipItemResponseDto {
                             importItem.getQuantity(),
                             importItem.getUnitPrice(),
                             importItem.getUnit(),
+                            importItem.getConversionFactor(),
                             importItem.getDiscount(),
                             importItem.getTax(),
                             importItem.getTotalAmount(),
