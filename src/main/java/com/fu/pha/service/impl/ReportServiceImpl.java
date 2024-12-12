@@ -924,7 +924,7 @@ public class ReportServiceImpl implements ReportService {
 
         // Số lượng nhà cung cấp mới và tổng tiền
         long newSuppliers = 0;
-        if (startDate != null && endDate != null) {
+        if (startInstant != null && endInstant != null) {
             newSuppliers = supplierRepository.countNewSuppliersBetweenDates(startInstant, endInstant);
         }
         Double totalImportNewAmount1 = importRepository.sumTotalImportNewAmountBetweenDates(startInstant, endInstant);
