@@ -175,21 +175,17 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             throw new BadRequestException(Message.INVALID_EXPORT_TYPE);
         }
 
-        // Lấy danh sách ExportSlipItem hiện tại
         List<ExportSlipItem> existingItems = exportSlipItemRepository.findByExportSlipId(exportSlipId);
-
-        // Sử dụng Map để tiện tra cứu các mục hiện tại theo ProductId và ImportItemId
         Map<Long, ExportSlipItem> existingItemMap = existingItems.stream()
-                .collect(Collectors.toMap(
-                        item -> item.getProduct().getId(),
-                        item -> item));
+                .collect(Collectors.toMap(item -> item.getProduct().getId(), item -> item));
+
 
         double totalAmount = 0.0;
 
         // Xử lý các ExportSlipItem mới
         for (ExportSlipItemRequestDto itemDto : exportDto.getExportSlipItems()) {
-            String key = itemDto.getProductId().toString();
-            ExportSlipItem exportSlipItem = existingItemMap.get(key);
+            Long productId = itemDto.getProductId();
+            ExportSlipItem exportSlipItem = existingItemMap.get(productId);
 
             Product product = productRepository.findById(itemDto.getProductId())
                     .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
@@ -245,7 +241,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
                 exportSlipItem.setTotalAmount(itemTotalAmount);
 
                 exportSlipItemRepository.save(exportSlipItem);
-                existingItemMap.remove(key);
+                existingItemMap.remove(productId);
             } else {
                 // Nếu ExportSlipItem không tồn tại, tạo mới
                 exportSlipItem = createExportSlipItem(itemDto, exportSlip);
