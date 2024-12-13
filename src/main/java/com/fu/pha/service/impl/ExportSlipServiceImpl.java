@@ -211,11 +211,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
                 int oldSmallestQuantity = exportSlipItem.getQuantity() * exportSlipItem.getConversionFactor();
 
                 if (exportSlip.getStatus() == OrderStatus.CONFIRMED) {
-                    // Khôi phục tồn kho từ số lượng cũ
-                    product.setTotalQuantity(product.getTotalQuantity() + oldSmallestQuantity);
-                    importItem.setRemainingQuantity(importItem.getRemainingQuantity() + oldSmallestQuantity);
-
-                    // Giảm tồn kho theo số lượng mới
                     product.setTotalQuantity(product.getTotalQuantity() - smallestQuantity);
                     importItem.setRemainingQuantity(importItem.getRemainingQuantity() - smallestQuantity);
                     importItem.setBatchNumber(itemDto.getBatchNumber());
