@@ -26,7 +26,7 @@ spring:
   datasource:
     url: jdbc:postgresql://45.76.188.213:5432/pha
     username: postgres
-    password: 12345678
+    password: 12345
     driver-class-name: org.postgresql.Driver
 
   # datasource:
