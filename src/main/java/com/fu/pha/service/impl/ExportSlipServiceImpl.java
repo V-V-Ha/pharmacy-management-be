@@ -184,8 +184,8 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
         // Xử lý các ExportSlipItem mới
         for (ExportSlipItemRequestDto itemDto : exportDto.getExportSlipItems()) {
-            Long productId = itemDto.getProductId();
-            ExportSlipItem exportSlipItem = existingItemMap.get(productId);
+            String key = itemDto.getProductId().toString();
+            ExportSlipItem exportSlipItem = existingItemMap.get(key);
 
             Product product = productRepository.findById(itemDto.getProductId())
                     .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
@@ -218,7 +218,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
                     // Giảm tồn kho theo số lượng mới
                     product.setTotalQuantity(product.getTotalQuantity() - smallestQuantity);
                     importItem.setRemainingQuantity(importItem.getRemainingQuantity() - smallestQuantity);
-
+                    importItem.setBatchNumber(itemDto.getBatchNumber());
                     // Kiểm tra tồn kho sau khi cập nhật
                     if (product.getTotalQuantity() < 0 || importItem.getRemainingQuantity() < 0) {
                         throw new BadRequestException(Message.NOT_ENOUGH_STOCK);
@@ -241,7 +241,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
                 exportSlipItem.setTotalAmount(itemTotalAmount);
 
                 exportSlipItemRepository.save(exportSlipItem);
-                existingItemMap.remove(productId);
+                existingItemMap.remove(key);
             } else {
                 // Nếu ExportSlipItem không tồn tại, tạo mới
                 exportSlipItem = createExportSlipItem(itemDto, exportSlip);
