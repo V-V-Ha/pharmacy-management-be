@@ -343,20 +343,14 @@ public class ImportServiceImpl implements ImportService {
             totalAmount += itemTotalAmount;
 
             // Lấy sản phẩm
-            Product product = productRepository.getProductById(productId)
+            Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
             int smallestQuantity = itemDto.getQuantity() * itemDto.getConversionFactor();
 
             if (importItem != null) {
-                // Cập nhật ImportItem
-                int oldSmallestQuantity = importItem.getRemainingQuantity();
-                int quantityDifference = smallestQuantity - oldSmallestQuantity;
 
                 if (importReceipt.getStatus() == OrderStatus.CONFIRMED) {
-                    // Khôi phục tồn kho từ số lượng cũ
-                    product.setTotalQuantity(product.getTotalQuantity() - oldSmallestQuantity);
-                    // Cập nhật tồn kho với số lượng mới
                     product.setTotalQuantity(product.getTotalQuantity() + smallestQuantity);
                     productRepository.save(product);
                 }

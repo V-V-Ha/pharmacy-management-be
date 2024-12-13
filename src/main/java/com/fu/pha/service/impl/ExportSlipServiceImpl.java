@@ -184,7 +184,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
         // Xử lý các ExportSlipItem mới
         for (ExportSlipItemRequestDto itemDto : exportDto.getExportSlipItems()) {
-            String key = itemDto.getProductId().toString();
+            long key = itemDto.getProductId();
             ExportSlipItem exportSlipItem = existingItemMap.get(key);
 
             Product product = productRepository.findById(itemDto.getProductId())
@@ -211,9 +211,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
                 int oldSmallestQuantity = exportSlipItem.getQuantity() * exportSlipItem.getConversionFactor();
 
                 if (exportSlip.getStatus() == OrderStatus.CONFIRMED) {
-                    // Khôi phục tồn kho từ số lượng cũ
-                    product.setTotalQuantity(product.getTotalQuantity() + oldSmallestQuantity);
-                    importItem.setRemainingQuantity(importItem.getRemainingQuantity() + oldSmallestQuantity);
 
                     // Giảm tồn kho theo số lượng mới
                     product.setTotalQuantity(product.getTotalQuantity() - smallestQuantity);
