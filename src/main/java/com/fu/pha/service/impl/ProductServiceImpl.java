@@ -113,6 +113,7 @@ public class ProductServiceImpl implements ProductService {
         product.setPrescriptionDrug(productDTORequest.getPrescriptionDrug());
         product.setNumberWarning(productDTORequest.getNumberWarning());
         product.setStatus(Status.ACTIVE);
+        product.setTotalQuantity(0);
         // Upload the image product if there is a file
         if (file != null && !file.isEmpty()) {
             String imageProduct = uploadImage(file);
@@ -124,6 +125,10 @@ public class ProductServiceImpl implements ProductService {
 
         productRepository.save(product);
         List<ProductUnit> productUnitList = new ArrayList<>();
+
+        // Sử dụng Set để kiểm tra unitId trùng lặp khi conversionFactor != 0
+        Set<Long> unitIdsWithConversion = new HashSet<>();
+
         for (ProductUnitDTORequest productUnitDTORequest : productDTORequest.getProductUnitListDTO()) {
             Unit unit = unitRepository.findById(productUnitDTORequest.getUnitId())
                     .orElseThrow(() -> new ResourceNotFoundException(Message.UNIT_NOT_FOUND));
@@ -132,6 +137,14 @@ public class ProductServiceImpl implements ProductService {
             if (unit.getStatus() != Status.ACTIVE) {
                 throw new BadRequestException(Message.UNIT_INACTIVE);
             }
+
+            // Nếu conversionFactor != 0, kiểm tra unitId không trùng lặp
+            if (productUnitDTORequest.getConversionFactor() != 0) {
+                if (!unitIdsWithConversion.add(productUnitDTORequest.getUnitId())) {
+                    throw new BadRequestException(Message.DUPLICATE_UNIT);
+                }
+            }
+
             ProductUnit productUnit = new ProductUnit();
             productUnit.setProduct(product);
             productUnit.setUnit(unit);
@@ -383,7 +396,17 @@ public class ProductServiceImpl implements ProductService {
         if (productDTORequest.getProductUnitListDTO() != null) {
             List<ProductUnit> productUnitList = product.getProductUnitList();
 
+            // Để theo dõi các unitId đã được xử lý khi conversionFactor != 0
+            Set<Long> unitIdsWithConversion = new HashSet<>();
+
             for (ProductUnitDTORequest productUnitDTORequest : productDTORequest.getProductUnitListDTO()) {
+
+                // Nếu ConversionFactor != 0, kiểm tra unitId không trùng nhau trong danh sách yêu cầu
+                if (productUnitDTORequest.getConversionFactor() != 0) {
+                    if (!unitIdsWithConversion.add(productUnitDTORequest.getUnitId())) {
+                        throw new BadRequestException(Message.DUPLICATE_UNIT);
+                    }
+                }
 
                 // Check if the product unit exists
                 ProductUnit productUnit = productUnitRepository.findProductUnitsByIdAndProductId(productUnitDTORequest.getId(),

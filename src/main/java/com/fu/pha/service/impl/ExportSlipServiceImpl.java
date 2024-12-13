@@ -175,27 +175,23 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             throw new BadRequestException(Message.INVALID_EXPORT_TYPE);
         }
 
-        // Lấy danh sách ExportSlipItem hiện tại
         List<ExportSlipItem> existingItems = exportSlipItemRepository.findByExportSlipId(exportSlipId);
+        Map<Long, ExportSlipItem> existingItemMap = existingItems.stream()
+                .collect(Collectors.toMap(item -> item.getProduct().getId(), item -> item));
 
-        // Sử dụng Map để tiện tra cứu các mục hiện tại theo ProductId và ImportItemId
-        Map<String, ExportSlipItem> existingItemMap = existingItems.stream()
-                .collect(Collectors.toMap(
-                        item -> item.getProduct().getId() + "-" + item.getImportItem().getId(),
-                        item -> item));
 
         double totalAmount = 0.0;
 
         // Xử lý các ExportSlipItem mới
         for (ExportSlipItemRequestDto itemDto : exportDto.getExportSlipItems()) {
-            String key = itemDto.getProductId() + "-" + itemDto.getImportItemId();
+            long key = itemDto.getProductId();
             ExportSlipItem exportSlipItem = existingItemMap.get(key);
 
             Product product = productRepository.findById(itemDto.getProductId())
                     .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
-            ImportItem importItem = importItemRepository.findById(itemDto.getImportItemId())
-                    .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_ITEM_NOT_FOUND));
+            ImportItem importItem = importItemRepository.findByBatchNumberAndImportReceipt_InvoiceNumberAndProductId(itemDto.getBatchNumber(), itemDto.getProductId(),itemDto.getInvoiceNumber())
+                    .orElseThrow(() -> new ResourceNotFoundException(Message.IMPORT_NOT_FOUND));
 
             // Kiểm tra nhà cung cấp nếu là phiếu trả lại nhà cung cấp
             if (exportSlip.getTypeDelivery() == ExportType.RETURN_TO_SUPPLIER) {
@@ -210,23 +206,20 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             double itemTotalAmount = calculateExportItemTotalAmount(itemDto);
             totalAmount += itemTotalAmount;
 
+            long a = product.getTotalQuantity() - smallestQuantity;
+            long b = importItem.getRemainingQuantity() - smallestQuantity;
+
+            if (a < 0 || b < 0) {
+                throw new BadRequestException(Message.NOT_ENOUGH_STOCK);
+            }
+
+
             if (exportSlipItem != null) {
-                // Nếu ExportSlipItem đã tồn tại, cập nhật thông tin
-                int oldSmallestQuantity = exportSlipItem.getQuantity() * exportSlipItem.getConversionFactor();
 
                 if (exportSlip.getStatus() == OrderStatus.CONFIRMED) {
-                    // Khôi phục tồn kho từ số lượng cũ
-                    product.setTotalQuantity(product.getTotalQuantity() + oldSmallestQuantity);
-                    importItem.setRemainingQuantity(importItem.getRemainingQuantity() + oldSmallestQuantity);
-
-                    // Giảm tồn kho theo số lượng mới
                     product.setTotalQuantity(product.getTotalQuantity() - smallestQuantity);
                     importItem.setRemainingQuantity(importItem.getRemainingQuantity() - smallestQuantity);
-
-                    // Kiểm tra tồn kho sau khi cập nhật
-                    if (product.getTotalQuantity() < 0 || importItem.getRemainingQuantity() < 0) {
-                        throw new BadRequestException(Message.NOT_ENOUGH_STOCK);
-                    }
+                    importItem.setBatchNumber(itemDto.getBatchNumber());
 
                     productRepository.save(product);
                     importItemRepository.save(importItem);
@@ -243,6 +236,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
                 exportSlipItem.setUnitPrice(itemDto.getUnitPrice());
                 exportSlipItem.setDiscount(itemDto.getDiscount());
                 exportSlipItem.setTotalAmount(itemTotalAmount);
+                exportSlipItem.setImportItem(importItem);
 
                 exportSlipItemRepository.save(exportSlipItem);
                 existingItemMap.remove(key);
@@ -253,11 +247,6 @@ public class ExportSlipServiceImpl implements ExportSlipService {
                 if (exportSlip.getStatus() == OrderStatus.CONFIRMED) {
                     product.setTotalQuantity(product.getTotalQuantity() - smallestQuantity);
                     importItem.setRemainingQuantity(importItem.getRemainingQuantity() - smallestQuantity);
-
-                    // Kiểm tra tồn kho sau khi cập nhật
-                    if (product.getTotalQuantity() < 0 || importItem.getRemainingQuantity() < 0) {
-                        throw new BadRequestException(Message.NOT_ENOUGH_STOCK);
-                    }
 
                     productRepository.save(product);
                     importItemRepository.save(importItem);

@@ -1,11 +1,17 @@
 package com.fu.pha.dto.response.exportSlip;
 
 import com.fu.pha.dto.response.ProductDTOResponse;
+import com.fu.pha.dto.response.importPack.ImportItemResponseDto;
 import com.fu.pha.dto.response.importPack.ImportItemResponseForExport;
+import com.fu.pha.dto.response.importPack.ImportResponseDto;
 import com.fu.pha.entity.ExportSlipItem;
+import com.fu.pha.entity.ImportItem;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,6 +26,7 @@ public class ExportSlipItemResponseDto {
     private Long exportSlipId;       // ID của phiếu xuất kho
     private Double totalAmount;      // Tổng số tiền
     private ImportItemResponseForExport importItem;
+    private List<ImportItemResponseForExport> importItems;
 
     public ExportSlipItemResponseDto(ExportSlipItem exportSlipItem) {
         this.id = exportSlipItem.getId();
@@ -36,6 +43,7 @@ public class ExportSlipItemResponseDto {
                 exportSlipItem.getImportItem().getQuantity(),
                 exportSlipItem.getImportItem().getUnitPrice(),
                 exportSlipItem.getImportItem().getUnit(),
+                exportSlipItem.getConversionFactor(),
                 exportSlipItem.getImportItem().getDiscount(),
                 exportSlipItem.getImportItem().getTax(),
                 exportSlipItem.getImportItem().getTotalAmount(),
@@ -43,6 +51,26 @@ public class ExportSlipItemResponseDto {
                 exportSlipItem.getImportItem().getExpiryDate(),
                 exportSlipItem.getImportItem().getCreateDate(),
                 exportSlipItem.getImportItem().getRemainingQuantity());
+
+        if(exportSlipItem.getProduct() != null && exportSlipItem.getProduct().getImportItems() != null){
+            this.importItems = exportSlipItem.getProduct().getImportItems().stream()
+                    .map(importItem -> new ImportItemResponseForExport(
+                            importItem.getId(),
+                            importItem.getImportReceipt().getInvoiceNumber(),
+                            importItem.getQuantity(),
+                            importItem.getUnitPrice(),
+                            importItem.getUnit(),
+                            importItem.getConversionFactor(),
+                            importItem.getDiscount(),
+                            importItem.getTax(),
+                            importItem.getTotalAmount(),
+                            importItem.getBatchNumber(),
+                            importItem.getExpiryDate(),
+                            importItem.getCreateDate(),
+                            importItem.getRemainingQuantity()
+                    ))
+                    .collect(Collectors.toList());
+        }
     }
 
 }
