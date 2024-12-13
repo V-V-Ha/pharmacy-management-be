@@ -81,7 +81,7 @@ public class UserController {
     }
 
     @PostMapping("/create-user")
-    @PreAuthorize("hasRole('PRODUCT_OWNER')")
+//    @PreAuthorize("hasRole('PRODUCT_OWNER')")
     public ResponseEntity<?> createUser(
             @RequestPart("userDto") UserDto userDto,
             @RequestPart(value = "file", required = false) MultipartFile file) {
