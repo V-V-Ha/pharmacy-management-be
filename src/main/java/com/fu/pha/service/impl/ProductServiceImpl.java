@@ -113,6 +113,7 @@ public class ProductServiceImpl implements ProductService {
         product.setPrescriptionDrug(productDTORequest.getPrescriptionDrug());
         product.setNumberWarning(productDTORequest.getNumberWarning());
         product.setStatus(Status.ACTIVE);
+        product.setTotalQuantity(0);
         // Upload the image product if there is a file
         if (file != null && !file.isEmpty()) {
             String imageProduct = uploadImage(file);
