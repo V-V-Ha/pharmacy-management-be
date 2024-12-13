@@ -140,6 +140,7 @@ public class ImportServiceImpl implements ImportService {
                                         importItem.getQuantity(),
                                         importItem.getUnitPrice(),
                                         importItem.getUnit(),
+                                        importItem.getConversionFactor(),
                                         importItem.getDiscount(),
                                         importItem.getTax(),
                                         importItem.getTotalAmount(),
