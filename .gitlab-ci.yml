@@ -38,6 +38,6 @@ deploy:
     - echo "Copying app.jar to $REMOTE_HOST:/home/pha"
     - mv "target/pha-0.0.1-SNAPSHOT.jar" "target/app.jar"
     - sshpass -p "$REMOTE_PW" scp -o StrictHostKeyChecking=no target/app.jar "$REMOTE_USR"@"$REMOTE_HOST":/home/pha
-    - sshpass -p "$REMOTE_PW" ssh -o StrictHostKeyChecking=no "$REMOTE_USR"@"$REMOTE_HOST" "systemctl stop pha-api; systemctl start pha-api"
+    - sshpass -p "$REMOTE_PW" ssh -o StrictHostKeyChecking=no "$REMOTE_USR"@"$REMOTE_HOST" "sudo -i; systemctl stop pha-api; systemctl start pha-api"
   only:
     - feature/cicd-spike
