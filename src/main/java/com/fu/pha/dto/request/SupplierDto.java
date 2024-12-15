@@ -8,6 +8,7 @@ import com.fu.pha.validate.anotation.ValidFullName;
 import com.fu.pha.validate.anotation.ValidPhoneNumber;
 import com.fu.pha.validate.anotation.ValidTax;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,7 +19,7 @@ import lombok.NoArgsConstructor;
 public class SupplierDto {
     private Long id;
 
-    @ValidFullName
+    @NotEmpty(message = "Tên không được trống")
     private String supplierName;
 
     private String address;
