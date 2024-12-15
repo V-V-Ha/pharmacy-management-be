@@ -38,7 +38,7 @@ public class ScheduledTasks {
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 0 7 * * ?") // Hằng ngày lúc 07:00
     public void reportCurrentTime() {
         log.info("The time is now {}", dateFormat.format(new Date()));
     }
@@ -48,7 +48,7 @@ public class ScheduledTasks {
     /**
      * Kiểm tra và thông báo sản phẩm hết hàng.
      */
-    @Scheduled(cron = "0 0 0 * * ?") // Hằng ngày lúc 00:00
+    @Scheduled(cron = "0 0 7 * * ?") // Hằng ngày lúc 07:00
     public void checkOutOfStockProducts() {
         List<OutOfStockProductDto> outOfStockProducts = notificationService.getOutOfStockProducts(null, null, 0, 100).getContent();
         if (!outOfStockProducts.isEmpty()) {
@@ -59,7 +59,7 @@ public class ScheduledTasks {
     /**
      * Kiểm tra và thông báo sản phẩm sắp hết hàng.
      */
-    @Scheduled(cron = "0 40 0 * * ?") // Hằng ngày lúc 00:00
+    @Scheduled(cron = "0 0 7 * * ?") // Hằng ngày lúc 07:00
     public void checkLowStockProducts() {
         List<Product> lowStockProducts = productRepository.findLowStockProducts();
         if (!lowStockProducts.isEmpty()) {
@@ -70,7 +70,7 @@ public class ScheduledTasks {
     /**
      * Kiểm tra và thông báo sản phẩm sắp hết hạn.
      */
-    @Scheduled(cron = "0 40 0 * * ?") // Hằng ngày lúc 00:00
+    @Scheduled(cron = "0 0 7 * * ?") // Hằng ngày lúc 07:00
 //    @Scheduled(cron = "0 0/1 * * * ?") // Mỗi phút
     public void checkNearlyExpiredProducts() {
         int warningDays = 60; // Cảnh báo trước 60 ngày
@@ -94,7 +94,7 @@ public class ScheduledTasks {
     /**
      * Kiểm tra và thông báo sản phẩm đã hết hạn.
      */
-    @Scheduled(cron = "0 0 0 * * ?") // Hằng ngày lúc 00:00
+    @Scheduled(cron = "0 0 7 * * ?") // Hằng ngày lúc 07:00
 //    @Scheduled(cron = "0 0/1 * * * ?") // Mỗi phút
     public void checkExpiredProducts() {
         List<ImportItem> expiredProducts = importItemRepository.findExpiredProducts();
