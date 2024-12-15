@@ -168,7 +168,10 @@ public class ExportSlipServiceImpl implements ExportSlipService {
             }
             Supplier supplier = supplierRepository.findById(exportDto.getSupplierId())
                     .orElseThrow(() -> new ResourceNotFoundException(Message.SUPPLIER_NOT_FOUND));
-            exportSlip.setSupplier(supplier);
+            if (exportSlip.getSupplier() != supplier) {
+                throw new BadRequestException(Message.SUPPLIER_NOT_MATCH);
+            }
+
         } else if (exportDto.getTypeDelivery() == ExportType.DESTROY) {
             exportSlip.setSupplier(null); // Với phiếu hủy, không có supplier
         } else {
@@ -215,6 +218,7 @@ public class ExportSlipServiceImpl implements ExportSlipService {
 
 
             if (exportSlipItem != null) {
+
 
                 if (exportSlip.getStatus() == OrderStatus.CONFIRMED) {
                     product.setTotalQuantity(product.getTotalQuantity() - smallestQuantity);
