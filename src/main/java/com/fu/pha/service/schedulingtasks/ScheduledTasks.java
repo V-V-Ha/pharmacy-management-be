@@ -59,7 +59,7 @@ public class ScheduledTasks {
     /**
      * Kiểm tra và thông báo sản phẩm sắp hết hàng.
      */
-    @Scheduled(cron = "0 0 0 * * ?") // Hằng ngày lúc 00:00
+    @Scheduled(cron = "0 40 0 * * ?") // Hằng ngày lúc 00:00
     public void checkLowStockProducts() {
         List<Product> lowStockProducts = productRepository.findLowStockProducts();
         if (!lowStockProducts.isEmpty()) {
@@ -70,7 +70,7 @@ public class ScheduledTasks {
     /**
      * Kiểm tra và thông báo sản phẩm sắp hết hạn.
      */
-    @Scheduled(cron = "0 0 0 * * ?") // Hằng ngày lúc 00:00
+    @Scheduled(cron = "0 40 0 * * ?") // Hằng ngày lúc 00:00
 //    @Scheduled(cron = "0 0/1 * * * ?") // Mỗi phút
     public void checkNearlyExpiredProducts() {
         int warningDays = 60; // Cảnh báo trước 60 ngày

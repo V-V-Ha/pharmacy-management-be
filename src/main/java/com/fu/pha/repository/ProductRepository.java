@@ -102,7 +102,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     Integer calculateCurrentInventoryQuantity();
 
 
-    @Query(value = "SELECT p.id AS productId, " +
+    @Query(value = "SELECT DISTINCT p.id AS productId, " +
             "       p.product_code AS productCode, " +
             "       p.product_name AS productName, " +
             "       c.category_name AS categoryName, " +
@@ -119,7 +119,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             "AND (:searchText IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "     OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :searchText, '%'))) " +
             "ORDER BY p.total_quantity ASC",
-            countQuery = "SELECT COUNT(*) FROM product p " +
+            countQuery = "SELECT COUNT(DISTINCT p.id) FROM product p " +
                     "WHERE p.total_quantity <= p.number_warning " +
                     "AND p.status = 'ACTIVE' " +
                     "AND (:categoryId IS NULL OR p.category_id = :categoryId) " +
@@ -131,6 +131,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             @Param("searchText") String searchText,
             Pageable pageable
     );
+
 
 
     @Query(
