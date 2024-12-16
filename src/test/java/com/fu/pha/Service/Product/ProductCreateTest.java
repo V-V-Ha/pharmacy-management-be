@@ -48,6 +48,7 @@ public class ProductCreateTest {
 
     @BeforeEach
     void setUpCreate() {
+        // Khởi tạo đối tượng ProductDTORequest với dữ liệu mẫu
         productDTORequest = new ProductDTORequest();
         productDTORequest.setProductName("thuốc ho bổ phế Nam Hà");
         productDTORequest.setCategoryId(1L);
@@ -62,18 +63,9 @@ public class ProductCreateTest {
         productDTORequest.setPrescriptionDrug(false);
         productDTORequest.setProductUnitListDTO(Collections.emptyList());
 
+        // Khởi tạo đối tượng Product với cùng dữ liệu
         product = new Product();
-        product.setProductName("thuốc ho bổ phế Nam Hà");
-        product.setCategoryId(category);
         product.setRegistrationNumber("TCT-00092-22");
-        product.setActiveIngredient("Bạch phàn, Xạ can, Bạc hà");
-        product.setDosageConcentration("125ml");
-        product.setPackingMethod("Chai x 125ml");
-        product.setManufacturer("Nam Hà");
-        product.setCountryOfOrigin("Việt Nam");
-        product.setDosageForms("Siro");
-        product.setNumberWarning(10);
-        product.setPrescriptionDrug(false);
 
         category = new Category();
         category.setId(1L);
@@ -83,12 +75,15 @@ public class ProductCreateTest {
     //test trường hợp tạo sản phẩm thành công
     @Test
     void UTCPC01() {
+        // Mô phỏng hành vi của repository
         when(productRepository.findByRegistrationNumber(productDTORequest.getRegistrationNumber())).thenReturn(Optional.empty());
         when(categoryRepository.findById(productDTORequest.getCategoryId())).thenReturn(Optional.of(category));
         when(productRepository.getLastProductCode()).thenReturn(null);
 
+        // Gọi phương thức cần kiểm thử
         productService.createProduct(productDTORequest, null);
 
+        // Xác minh các tương tác với repository
         verify(productRepository, times(2)).save(any(Product.class));
         verify(productUnitRepository).saveAll(anyIterable());
     }
@@ -98,10 +93,12 @@ public class ProductCreateTest {
     void UTCPC02() {
         productDTORequest.setProductName("");
 
+        //ngoại lệ ResourceNotFoundException khi cố gắng tạo sản phẩm
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             productService.createProduct(productDTORequest, null);
         });
 
+        // Kiểm tra thông điệp ngoại lệ có khớp với message mong muốn
         assertEquals(Message.NULL_FILED, exception.getMessage());
     }
 
