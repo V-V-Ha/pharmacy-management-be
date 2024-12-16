@@ -78,7 +78,7 @@ public class ScheduledTasks {
     @Scheduled(cron = "0 0 7 * * ?", zone = "Asia/Ho_Chi_Minh") // Hằng ngày lúc 15:20
 //    @Scheduled(cron = "0 0/10 * * * ?") // Mỗi 10 phút
     public void checkNearlyExpiredProducts() {
-        int warningDays = 60; // Cảnh báo trước 60 ngày
+        int warningDays = 90; // Cảnh báo trước 60 ngày
         Instant fiveDaysAgo = Instant.now().minus(5, ChronoUnit.DAYS);
 
         List<ExpiredProductDto> expiredProducts = notificationService.getExpiredProducts(null, null, warningDays, 0, 100).getContent();
@@ -102,7 +102,7 @@ public class ScheduledTasks {
     @Scheduled(cron = "0 0 7 * * ?", zone = "Asia/Ho_Chi_Minh") // Hằng ngày lúc 15:20
 //    @Scheduled(cron = "0 0/10 * * * ?") // Mỗi 10 phút
     public void checkExpiredProducts() {
-        List<ImportItem> expiredProducts = importItemRepository.findExpiredProducts();
+        List<ImportItem> expiredProducts = importItemRepository.findExpiredProducts(Instant.now().plus(1, ChronoUnit.DAYS));
         if (!expiredProducts.isEmpty()) {
             notificationService.createExpiredProductNotifications(expiredProducts);
         }

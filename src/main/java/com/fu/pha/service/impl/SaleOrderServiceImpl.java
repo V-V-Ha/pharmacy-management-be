@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -188,7 +189,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
 
             for (ImportItem batch : batches) {
 
-                if (batch.getExpiryDate() != null && batch.getExpiryDate().isBefore(Instant.now())) {
+                if (batch.getExpiryDate() != null && batch.getExpiryDate().isBefore(Instant.now().plus(1, ChronoUnit.DAYS))) {
                     // Bỏ qua lô hàng này nếu đã hết hạn
                     continue;
                 }

@@ -66,7 +66,7 @@ public interface ImportItemRepository extends JpaRepository<ImportItem, Long> {
 
 
     @Query("SELECT new com.fu.pha.dto.response.report.reportEntity.ImportItemReportDto(ii.id, ii.product.id, ii.product.productName, ii.remainingQuantity, (ii.remainingQuantity * ii.unitPrice / ii.conversionFactor), ii.expiryDate) " +
-            "FROM ImportItem ii WHERE ii.expiryDate <= :currentDate AND ii.remainingQuantity > 0 AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
+            "FROM ImportItem ii WHERE ii.expiryDate < :currentDate AND ii.remainingQuantity > 0 AND ii.importReceipt.status = com.fu.pha.enums.OrderStatus.CONFIRMED")
     List<ImportItemReportDto> findExpiredItems(@Param("currentDate") Instant currentDate);
 
     @Query("SELECT new com.fu.pha.dto.response.report.reportEntity.ImportItemReportDto(ii.id, ii.product.id, ii.product.productName, ii.remainingQuantity, (ii.remainingQuantity * ii.unitPrice / ii.conversionFactor), ii.expiryDate) " +
@@ -98,10 +98,10 @@ public interface ImportItemRepository extends JpaRepository<ImportItem, Long> {
 
     @Query(value = "SELECT ii FROM ImportItem ii " +
             "JOIN ii.product p " +
-            "WHERE ii.expiryDate <= CURRENT_DATE " +
+            "WHERE ii.expiryDate < :tomorrow " +
             "AND ii.remainingQuantity > 0 " +
             "AND p.status = 'ACTIVE'")
-    List<ImportItem> findExpiredProducts();
+    List<ImportItem> findExpiredProducts(@Param("tomorrow") Instant tomorrow);
 
 
     List<ImportItem> findByProductId(Long id);

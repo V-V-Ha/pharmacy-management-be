@@ -165,7 +165,7 @@ public class ReportServiceImpl implements ReportService {
         report.setNearlyExpiredItems(!(nearlyExpiredItems == 0) ? nearlyExpiredItems : 0);
 
         // Tính sản phẩm hết hạn
-        int expiredItems = importItemRepository.findExpiredItems(Instant.now()).size();
+        int expiredItems = importItemRepository.findExpiredItems(Instant.now().plus(1, ChronoUnit.DAYS)).size();
         report.setExpiredItems(!(expiredItems == 0) ? expiredItems : 0);
 
 
