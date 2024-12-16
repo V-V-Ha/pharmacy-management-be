@@ -62,8 +62,9 @@ public class NotificationServiceImpl implements NotificationService {
 
                 // Tạo thông báo trong cơ sở dữ liệu
                 Notification notification = Notification.builder()
-                        .title("Sản phẩm hết hàng")
-                        .message("Sản phẩm " + product.getProductName() + " (Mã: " + product.getProductCode() + ") đã hết hàng.")
+                        .title("Sản phẩm sắp hết hàng")
+                        .message("Sản phẩm " + product.getProductName() + " (Mã: " + product.getProductCode() +
+                                ") sắp hết hàng. Số lượng còn lại: " + product.getTotalQuantity() + ".")
                         .type(NotificationType.OUT_OF_STOCK)
                         .createdAt(Instant.now())
                         .user(user)
@@ -94,9 +95,8 @@ public class NotificationServiceImpl implements NotificationService {
                 String url = "/report/inventory/outOfStock";
                 // Tạo thông báo trong cơ sở dữ liệu
                 Notification notification = Notification.builder()
-                        .title("Sản phẩm sắp hết hàng")
-                        .message("Sản phẩm " + product.getProductName() + " (Mã: " + product.getProductCode() +
-                                ") sắp hết hàng. Số lượng còn lại: " + product.getTotalQuantity() + ".")
+                        .title("Sản phẩm hết hàng")
+                        .message("Sản phẩm " + product.getProductName() + " (Mã: " + product.getProductCode() + ") đã hết hàng.")
                         .type(NotificationType.OUT_OF_STOCK)
                         .createdAt(Instant.now())
                         .user(user)

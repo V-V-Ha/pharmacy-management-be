@@ -178,7 +178,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
 
 
-    @Query(value = "SELECT p FROM Product p WHERE p.totalQuantity < p.numberWarning AND p.status = 'ACTIVE'")
+    @Query(value = "SELECT p FROM Product p WHERE p.totalQuantity = 0 AND p.status = 'ACTIVE'")
     List<Product> findLowStockProducts();
 
 
