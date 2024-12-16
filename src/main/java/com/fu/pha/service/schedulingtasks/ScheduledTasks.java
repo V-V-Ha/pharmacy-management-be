@@ -1,6 +1,9 @@
 package com.fu.pha.service.schedulingtasks;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
@@ -102,7 +105,14 @@ public class ScheduledTasks {
     @Scheduled(cron = "0 0 7 * * ?", zone = "Asia/Ho_Chi_Minh") // Hằng ngày lúc 15:20
 //    @Scheduled(cron = "0 0/10 * * * ?") // Mỗi 10 phút
     public void checkExpiredProducts() {
-        List<ImportItem> expiredProducts = importItemRepository.findExpiredProducts(Instant.now().plus(1, ChronoUnit.DAYS));
+
+        ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
+        LocalDate today = LocalDate.now(zoneId);
+        LocalDate tomorrow = today.plusDays(1);
+        ZonedDateTime zonedDateTimeTomorrow = tomorrow.atStartOfDay(zoneId);
+        Instant tomorrowInstant = zonedDateTimeTomorrow.toInstant();
+
+        List<ImportItem> expiredProducts = importItemRepository.findExpiredProducts(tomorrowInstant);
         if (!expiredProducts.isEmpty()) {
             notificationService.createExpiredProductNotifications(expiredProducts);
         }
