@@ -70,8 +70,8 @@ public class ScheduledTasks {
     /**
      * Kiểm tra và thông báo sản phẩm sắp hết hạn.
      */
-    @Scheduled(cron = "0 0 7 * * ?") // Hằng ngày lúc 07:00
-//    @Scheduled(cron = "0 0/1 * * * ?") // Mỗi phút
+//    @Scheduled(cron = "0 0 7 * * ?") // Hằng ngày lúc 07:00
+    @Scheduled(cron = "0 0/5 * * * ?") // Mỗi 5 phút
     public void checkNearlyExpiredProducts() {
         int warningDays = 60; // Cảnh báo trước 60 ngày
         Instant fiveDaysAgo = Instant.now().minus(5, ChronoUnit.DAYS);
@@ -94,8 +94,8 @@ public class ScheduledTasks {
     /**
      * Kiểm tra và thông báo sản phẩm đã hết hạn.
      */
-    @Scheduled(cron = "0 0 7 * * ?") // Hằng ngày lúc 07:00
-//    @Scheduled(cron = "0 0/1 * * * ?") // Mỗi phút
+//    @Scheduled(cron = "0 0 7 * * ?") // Hằng ngày lúc 07:00
+    @Scheduled(cron = "0 0/5 * * * ?") // Mỗi 5 phút
     public void checkExpiredProducts() {
         List<ImportItem> expiredProducts = importItemRepository.findExpiredProducts();
         if (!expiredProducts.isEmpty()) {
