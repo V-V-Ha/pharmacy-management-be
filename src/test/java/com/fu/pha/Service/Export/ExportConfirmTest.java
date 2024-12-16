@@ -65,16 +65,16 @@ public class ExportConfirmTest {
         SecurityContextHolder.setContext(securityContext);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.isAuthenticated()).thenReturn(true);
-        when(authentication.getName()).thenReturn("user");
+        when(authentication.getName()).thenReturn("havv");
 
         // Initialize mock user with ROLE_PRODUCT_OWNER
         currentUser = new User();
         currentUser.setId(1L);
-        currentUser.setUsername("user");
+        currentUser.setUsername("havv");
         currentUser.setRoles(new HashSet<>(Arrays.asList(new Role(ERole.ROLE_PRODUCT_OWNER.name()))));
 
         // Mock userRepository.findByUsername("user") to return currentUser
-        when(userRepository.findByUsername("user")).thenReturn(Optional.of(currentUser));
+        when(userRepository.findByUsername("havv")).thenReturn(Optional.of(currentUser));
 
         // Initialize ExportSlip
         exportSlip = new ExportSlip();
@@ -120,7 +120,7 @@ public class ExportConfirmTest {
     @Test
     void UTCECF01() {
         // Arrange: User not found
-        when(userRepository.findByUsername("user")).thenReturn(Optional.empty());
+        when(userRepository.findByUsername("havv")).thenReturn(Optional.empty());
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -141,7 +141,7 @@ public class ExportConfirmTest {
     void UTCECF02() {
         // Arrange: Change user's roles to not include PRODUCT_OWNER
         currentUser.setRoles(new HashSet<>(Arrays.asList(new Role(ERole.ROLE_STOCK.name()))));
-        when(userRepository.findByUsername("user")).thenReturn(Optional.of(currentUser));
+        when(userRepository.findByUsername("havv")).thenReturn(Optional.of(currentUser));
 
         // Act & Assert
         UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {

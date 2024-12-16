@@ -31,31 +31,13 @@ public class ImportConfirmTest {
     private ImportRepository importRepository;
 
     @Mock
-    private SupplierRepository supplierRepository;
-
-    @Mock
     private UserRepository userRepository;
-
-    @Mock
-    private ProductRepository productRepository;
-
-    @Mock
-    private ProductUnitRepository productUnitRepository;
-
-    @Mock
-    private ImportItemRepository importItemRepository;
-
-    @Mock
-    private InventoryHistoryRepository inventoryHistoryRepository;
 
     @Mock
     private NotificationService notificationService;
 
     @InjectMocks
     private ImportServiceImpl importService;
-
-    @Captor
-    private ArgumentCaptor<Import> importCaptor;
 
     private Import importMock;
     private User currentUser;
