@@ -21,40 +21,43 @@ public interface ReturnOrderRepository extends JpaRepository<ReturnOrder, Long> 
     @Query("SELECT SUM(r.refundAmount) FROM ReturnOrder r WHERE r.returnDate BETWEEN :startDate AND :endDate")
     Double sumTotalRefundsBetweenDates(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
-    @Query("SELECT new com.fu.pha.dto.response.ReturnOrderResponseDto(r) " +
-            " FROM ReturnOrder r " +
-            " WHERE (LOWER(r.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
-            " ORDER BY r.lastModifiedDate DESC")
-    Page<ReturnOrderResponseDto> getListReturnOrderPagingWithoutDate(@Param("invoiceNumber") String invoiceNumber,
-                                                                     Pageable pageable);
+    // ReturnOrderRepository.java
 
-    @Query("SELECT new com.fu.pha.dto.response.ReturnOrderResponseDto(r) " +
-            " FROM ReturnOrder r " +
-            " WHERE (LOWER(r.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
-            " AND r.returnDate >= :fromDate " +
-            " ORDER BY r.lastModifiedDate DESC")
-    Page<ReturnOrderResponseDto> getListReturnOrderPagingFromDate(@Param("invoiceNumber") String invoiceNumber,
-                                                                  @Param("fromDate") Instant fromDate,
-                                                                  Pageable pageable);
-
-    @Query("SELECT new com.fu.pha.dto.response.ReturnOrderResponseDto(r) " +
-            " FROM ReturnOrder r " +
-            " WHERE (LOWER(r.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
-            " AND r.returnDate <= :toDate " +
-            " ORDER BY r.lastModifiedDate DESC")
-    Page<ReturnOrderResponseDto> getListReturnOrderPagingToDate(@Param("invoiceNumber") String invoiceNumber,
-                                                                @Param("toDate") Instant toDate,
-                                                                Pageable pageable);
-
-    @Query("SELECT new com.fu.pha.dto.response.ReturnOrderResponseDto(r) " +
-            " FROM ReturnOrder r " +
-            " WHERE (LOWER(r.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
-            " AND (r.returnDate IS NULL OR r.returnDate BETWEEN :fromDate AND :toDate)" +
-            " ORDER BY r.lastModifiedDate DESC")
-    Page<ReturnOrderResponseDto> getListReturnOrderPaging(@Param("invoiceNumber") String invoiceNumber,
-                                                          @Param("fromDate") Instant fromDate,
-                                                          @Param("toDate") Instant toDate,
+    @Query("SELECT r FROM ReturnOrder r " +
+            "WHERE (LOWER(r.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) " +
+            "OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
+            "ORDER BY r.lastModifiedDate DESC")
+    Page<ReturnOrder> getListReturnOrderPagingWithoutDate(@Param("invoiceNumber") String invoiceNumber,
                                                           Pageable pageable);
+
+    @Query("SELECT r FROM ReturnOrder r " +
+            "WHERE (LOWER(r.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) " +
+            "OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
+            "AND r.returnDate >= :fromDate " +
+            "ORDER BY r.lastModifiedDate DESC")
+    Page<ReturnOrder> getListReturnOrderPagingFromDate(@Param("invoiceNumber") String invoiceNumber,
+                                                       @Param("fromDate") Instant fromDate,
+                                                       Pageable pageable);
+
+    @Query("SELECT r FROM ReturnOrder r " +
+            "WHERE (LOWER(r.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) " +
+            "OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
+            "AND r.returnDate <= :toDate " +
+            "ORDER BY r.lastModifiedDate DESC")
+    Page<ReturnOrder> getListReturnOrderPagingToDate(@Param("invoiceNumber") String invoiceNumber,
+                                                     @Param("toDate") Instant toDate,
+                                                     Pageable pageable);
+
+    @Query("SELECT r FROM ReturnOrder r " +
+            "WHERE (LOWER(r.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')) " +
+            "OR :invoiceNumber IS NULL OR :invoiceNumber = '') " +
+            "AND (r.returnDate IS NULL OR r.returnDate BETWEEN :fromDate AND :toDate)" +
+            "ORDER BY r.lastModifiedDate DESC")
+    Page<ReturnOrder> getListReturnOrderPaging(@Param("invoiceNumber") String invoiceNumber,
+                                               @Param("fromDate") Instant fromDate,
+                                               @Param("toDate") Instant toDate,
+                                               Pageable pageable);
+
 
     @Query("SELECT new com.fu.pha.dto.response.ReturnOrderResponseDto(r) " +
             "FROM ReturnOrder r " +

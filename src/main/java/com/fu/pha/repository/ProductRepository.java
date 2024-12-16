@@ -92,10 +92,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             "LEFT JOIN ImportItem ii ON ii.product.id = p.id " +
             "WHERE p.status = 'ACTIVE' " +
             "GROUP BY p.id, p.productName, p.productCode " +
-            "HAVING SUM(COALESCE(ii.remainingQuantity, 0)) <= :threshold")
+            "HAVING SUM(COALESCE(ii.remainingQuantity, 0)) > 0 AND SUM(COALESCE(ii.remainingQuantity, 0)) <= :threshold")
     List<ProductReportDto> findNearlyOutOfStockProducts(@Param("threshold") int threshold);
-
-
 
 
     @Query("SELECT SUM(p.totalQuantity) FROM Product p")
