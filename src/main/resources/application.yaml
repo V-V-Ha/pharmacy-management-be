@@ -24,7 +24,7 @@ spring:
 #    driver-class-name: org.postgresql.Driver
 
   datasource:
-    url: jdbc:postgresql://157.66.26.21:5432/pha
+    url: jdbc:postgresql://20.205.17.121:5432/pha
     username: postgres
     password: 12345
     driver-class-name: org.postgresql.Driver
@@ -94,6 +94,11 @@ payment:
 logging:
   level:
     com.fu.pha.configuration.FirebaseConfig: INFO
+
+  task:
+    scheduling:
+      time-zone: Asia/Ho_Chi_Minh
+
 
 
 

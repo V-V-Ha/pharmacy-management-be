@@ -15,6 +15,8 @@ public interface ProductUnitRepository extends JpaRepository<ProductUnit, Long> 
             "WHERE pu.product_id = :productId", nativeQuery = true)
     List<Object[]> findUnitsByProductId(Long productId);
 
+    boolean existsByProductIdAndUnitIdAndConversionFactorNot(Long productId, Long unitId, Integer conversionFactor);
+
 //    @Query("SELECT pu " +
 //            " FROM ProductUnit pu " +
 //            " WHERE pu.id = :id")

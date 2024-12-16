@@ -38,7 +38,8 @@ public class ScheduledTasks {
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 0 7 * * ?", zone = "Asia/Ho_Chi_Minh") // Hằng ngày lúc 15:20
+//    @Scheduled(cron = "0 0/10 * * * ?") // Mỗi 10 phút
     public void reportCurrentTime() {
         log.info("The time is now {}", dateFormat.format(new Date()));
     }
@@ -46,20 +47,24 @@ public class ScheduledTasks {
 
 
     /**
-     * Kiểm tra và thông báo sản phẩm hết hàng.
+     * Kiểm tra và thông báo sản phẩm sắp hết hàng.
      */
-    @Scheduled(cron = "0 0 0 * * ?") // Hằng ngày lúc 00:00
+    @Scheduled(cron = "0 0 7 * * ?", zone = "Asia/Ho_Chi_Minh") // Hằng ngày lúc 15:20
+//    @Scheduled(cron = "0 0/10 * * * ?") // Mỗi 10 phút
+
     public void checkOutOfStockProducts() {
-        List<OutOfStockProductDto> outOfStockProducts = notificationService.getOutOfStockProducts(null, null, 0, 100).getContent();
+        List<OutOfStockProductDto> outOfStockProducts = notificationService.getOutOfStockProducts1(null, null, 0, 100).getContent();
         if (!outOfStockProducts.isEmpty()) {
             notificationService.createOutOfStockNotifications(outOfStockProducts);
         }
     }
 
     /**
-     * Kiểm tra và thông báo sản phẩm sắp hết hàng.
+     * Kiểm tra và thông báo sản phẩm hết hàng.
      */
-    @Scheduled(cron = "0 0 0 * * ?") // Hằng ngày lúc 00:00
+    @Scheduled(cron = "0 0 7 * * ?", zone = "Asia/Ho_Chi_Minh") // Hằng ngày lúc 15:20
+//    @Scheduled(cron = "0 0/10 * * * ?") // Mỗi 10 phút
+
     public void checkLowStockProducts() {
         List<Product> lowStockProducts = productRepository.findLowStockProducts();
         if (!lowStockProducts.isEmpty()) {
@@ -70,10 +75,10 @@ public class ScheduledTasks {
     /**
      * Kiểm tra và thông báo sản phẩm sắp hết hạn.
      */
-    @Scheduled(cron = "0 0 0 * * ?") // Hằng ngày lúc 00:00
-//    @Scheduled(cron = "0 0/1 * * * ?") // Mỗi phút
+    @Scheduled(cron = "0 0 7 * * ?", zone = "Asia/Ho_Chi_Minh") // Hằng ngày lúc 15:20
+//    @Scheduled(cron = "0 0/10 * * * ?") // Mỗi 10 phút
     public void checkNearlyExpiredProducts() {
-        int warningDays = 60; // Cảnh báo trước 60 ngày
+        int warningDays = 90; // Cảnh báo trước 60 ngày
         Instant fiveDaysAgo = Instant.now().minus(5, ChronoUnit.DAYS);
 
         List<ExpiredProductDto> expiredProducts = notificationService.getExpiredProducts(null, null, warningDays, 0, 100).getContent();
@@ -94,10 +99,10 @@ public class ScheduledTasks {
     /**
      * Kiểm tra và thông báo sản phẩm đã hết hạn.
      */
-    @Scheduled(cron = "0 0 0 * * ?") // Hằng ngày lúc 00:00
-//    @Scheduled(cron = "0 0/1 * * * ?") // Mỗi phút
+    @Scheduled(cron = "0 0 7 * * ?", zone = "Asia/Ho_Chi_Minh") // Hằng ngày lúc 15:20
+//    @Scheduled(cron = "0 0/10 * * * ?") // Mỗi 10 phút
     public void checkExpiredProducts() {
-        List<ImportItem> expiredProducts = importItemRepository.findExpiredProducts();
+        List<ImportItem> expiredProducts = importItemRepository.findExpiredProducts(Instant.now().plus(1, ChronoUnit.DAYS));
         if (!expiredProducts.isEmpty()) {
             notificationService.createExpiredProductNotifications(expiredProducts);
         }

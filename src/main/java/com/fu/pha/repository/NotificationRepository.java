@@ -24,15 +24,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
                                                         @Param("type") NotificationType type,
                                                         @Param("since") Instant since);
 
-    List<Notification> findByUserId(Long userId);
-
-    // Lọc các thông báo đã đọc, theo loại, theo người dùng và trong 6 ngày gần nhất
-    Page<Notification> findRecentNotificationsByTypeAndIsReadAndUser(
-            NotificationType type, User user, Boolean isRead, Instant createdAt, Pageable pageable);
-
-    // Lọc các thông báo chưa đọc của người dùng
-    Page<Notification> findRecentNotificationsByIsReadAndUser(
-            Boolean isRead, User user, Pageable pageable);
 
     // Lọc các thông báo đã đọc trong 6 ngày gần nhất của người dùng
     @Query("SELECT n FROM Notification n WHERE n.user = :user " +

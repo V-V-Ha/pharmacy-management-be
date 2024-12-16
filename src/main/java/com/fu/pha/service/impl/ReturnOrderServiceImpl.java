@@ -26,10 +26,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,6 +52,9 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
 
     @Autowired
     ProductRepository productRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private GenerateCode generateCode;
@@ -112,7 +112,7 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
             returnOrderItemRepository.save(returnOrderItem);
             // Duyệt qua từng lô trong DTO gửi về và xử lý trả lại
             for (ReturnOrderBatchRequestDto batchRequestDto : batchRequestDtos) {
-                if (remainingQuantityToReturn <= 0) {
+                if (remainingQuantityToReturn < 0) {
                     break;
                 }
 
@@ -294,7 +294,6 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
                 importItemBatchDto.setInvoiceNumber(saleOrderItemBatch.getImportItem().getImportReceipt().getInvoiceNumber());  // Số hóa đơn nhập hàng
                 importItemBatchDto.setBatchNumber(saleOrderItemBatch.getImportItem().getBatchNumber());       // Số lô
                 importItemBatchDto.setQuantityToSell(saleOrderItemBatch.getQuantity());                             // Số lượng trong lô
-
                 importItemBatchDtos.add(importItemBatchDto);
             }
 
@@ -558,23 +557,50 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
     @Override
     public Page<ReturnOrderResponseDto> getAllReturnOrderPaging(int page, int size, String invoiceNumber, Instant fromDate, Instant toDate) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<ReturnOrderResponseDto> returnOrderResponseDto;
+        Page<ReturnOrder> returnOrders;
 
         if (fromDate == null && toDate == null) {
-            returnOrderResponseDto = returnOrderRepository.getListReturnOrderPagingWithoutDate(invoiceNumber, pageable);
+            returnOrders = returnOrderRepository.getListReturnOrderPagingWithoutDate(invoiceNumber, pageable);
         } else if (fromDate != null && toDate == null) {
-            returnOrderResponseDto = returnOrderRepository.getListReturnOrderPagingFromDate(invoiceNumber, fromDate, pageable);
+            returnOrders = returnOrderRepository.getListReturnOrderPagingFromDate(invoiceNumber, fromDate, pageable);
         } else if (fromDate == null) {
-            returnOrderResponseDto = returnOrderRepository.getListReturnOrderPagingToDate(invoiceNumber, toDate, pageable);
+            returnOrders = returnOrderRepository.getListReturnOrderPagingToDate(invoiceNumber, toDate, pageable);
         } else {
-            returnOrderResponseDto = returnOrderRepository.getListReturnOrderPaging(invoiceNumber, fromDate, toDate, pageable);
+            returnOrders = returnOrderRepository.getListReturnOrderPaging(invoiceNumber, fromDate, toDate, pageable);
         }
 
-        if (returnOrderResponseDto.isEmpty()) {
+        if (returnOrders.isEmpty()) {
             throw new ResourceNotFoundException(Message.RETURN_ORDER_NOT_FOUND);
         }
-        return returnOrderResponseDto;
+
+        // Extract unique usernames to minimize database calls
+        Set<String> usernames = returnOrders.stream()
+                .map(ReturnOrder::getCreateBy)
+                .collect(Collectors.toSet());
+
+        // Fetch all users in a single query
+        Map<String, String> usernameToFullNameMap = userRepository.findByUsernameIn(usernames)
+                .stream()
+                .collect(Collectors.toMap(User::getUsername, User::getFullName));
+
+        // Map ReturnOrder to ReturnOrderResponseDto
+        Page<ReturnOrderResponseDto> dtoPage = returnOrders.map(returnOrder -> {
+            ReturnOrderResponseDto dto = new ReturnOrderResponseDto(returnOrder);
+            String fullName = usernameToFullNameMap.get(returnOrder.getCreateBy());
+            dto.setCreatedBy(fullName != null ? fullName : returnOrder.getCreateBy());
+
+            return dto;
+        });
+
+        return dtoPage;
     }
+
+    // Existing method to find full name
+    public String findByFullname(String username){
+        Optional<User> user = userRepository.findByUsername(username);
+        return user.map(User::getFullName).orElse(username);
+    }
+
 
     @Override
     public void exportReturnOrdersToExcel(HttpServletResponse response, Instant fromInstant, Instant toInstant) throws IOException {

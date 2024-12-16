@@ -165,7 +165,7 @@ public class ReportServiceImpl implements ReportService {
         report.setNearlyExpiredItems(!(nearlyExpiredItems == 0) ? nearlyExpiredItems : 0);
 
         // Tính sản phẩm hết hạn
-        int expiredItems = importItemRepository.findExpiredItems(Instant.now()).size();
+        int expiredItems = importItemRepository.findExpiredItems(Instant.now().plus(1, ChronoUnit.DAYS)).size();
         report.setExpiredItems(!(expiredItems == 0) ? expiredItems : 0);
 
 
@@ -244,7 +244,8 @@ public class ReportServiceImpl implements ReportService {
             String productCode, String productName, Long categoryId,
             int pageNumber, int pageSize
     ) {
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        // Thêm điều kiện sắp xếp theo id tăng dần
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("id").ascending());
 
         Instant startInstant;
         Instant endInstant;
@@ -308,25 +309,25 @@ public class ReportServiceImpl implements ReportService {
             int beginningQuantity = calculateBeginningInventoryQuantityByProduct(productId, startInstant);
             double beginningAmount = calculateBeginningInventoryAmountByProduct(productId, startInstant);
             report.setBeginningInventoryQuantity(Math.max(beginningQuantity, 0));
-            report.setBeginningInventoryAmount(beginningAmount >= 0 ? beginningAmount : 0.0);
+            report.setBeginningInventoryAmount(Math.max(beginningAmount, 0.0));
 
             // Nhập kho
             int receivedQuantity = calculateGoodsReceivedQuantityByProduct(productId, startInstant, endInstant);
             double receivedAmount = calculateGoodsReceivedAmountByProduct(productId, startInstant, endInstant);
             report.setGoodsReceivedQuantity(Math.max(receivedQuantity, 0));
-            report.setGoodsReceivedAmount(receivedAmount >= 0 ? receivedAmount : 0.0);
+            report.setGoodsReceivedAmount(Math.max(receivedAmount, 0.0));
 
             // Xuất kho
             int issuedQuantity = calculateGoodsIssuedQuantityByProduct(productId, startInstant, endInstant);
             double issuedAmount = calculateGoodsIssuedAmountByProduct(productId, startInstant, endInstant);
             report.setGoodsIssuedQuantity(Math.max(issuedQuantity, 0));
-            report.setGoodsIssuedAmount(issuedAmount >= 0 ? issuedAmount : 0.0);
+            report.setGoodsIssuedAmount(Math.max(issuedAmount, 0.0));
 
             // Tồn cuối kỳ
             int endingQuantity = beginningQuantity + receivedQuantity - issuedQuantity;
             double endingAmount = beginningAmount + receivedAmount - issuedAmount;
             report.setEndingInventoryQuantity(Math.max(endingQuantity, 0));
-            report.setEndingInventoryAmount(endingAmount >= 0 ? endingAmount : 0.0);
+            report.setEndingInventoryAmount(Math.max(endingAmount, 0.0));
 
             reportList.add(report);
         }
@@ -334,6 +335,7 @@ public class ReportServiceImpl implements ReportService {
         // Trả về kết quả phân trang
         return new PageImpl<>(reportList, pageable, productPage.getTotalElements());
     }
+
 
 
 
@@ -924,7 +926,7 @@ public class ReportServiceImpl implements ReportService {
 
         // Số lượng nhà cung cấp mới và tổng tiền
         long newSuppliers = 0;
-        if (startDate != null && endDate != null) {
+        if (startInstant != null && endInstant != null) {
             newSuppliers = supplierRepository.countNewSuppliersBetweenDates(startInstant, endInstant);
         }
         Double totalImportNewAmount1 = importRepository.sumTotalImportNewAmountBetweenDates(startInstant, endInstant);

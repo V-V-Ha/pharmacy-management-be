@@ -112,4 +112,5 @@ public class Message {
     public static final String NULL_NAME = "Tên không được trống";
     public static final String INVALID_FILE_EXCEL = "Không phải file Excel định dạng .xlsx";
     public static final String NULL_FILE_EXCEL = "File Excel trống";
+    public static final String DUPLICATE_UNIT = "Đơn vị không được trùng lặp";
 }

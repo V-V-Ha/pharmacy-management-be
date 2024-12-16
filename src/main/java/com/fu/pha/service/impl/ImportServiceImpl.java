@@ -36,10 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -140,6 +137,7 @@ public class ImportServiceImpl implements ImportService {
                                         importItem.getQuantity(),
                                         importItem.getUnitPrice(),
                                         importItem.getUnit(),
+                                        importItem.getConversionFactor(),
                                         importItem.getDiscount(),
                                         importItem.getTax(),
                                         importItem.getTotalAmount(),
@@ -342,20 +340,14 @@ public class ImportServiceImpl implements ImportService {
             totalAmount += itemTotalAmount;
 
             // Lấy sản phẩm
-            Product product = productRepository.getProductById(productId)
+            Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new ResourceNotFoundException(Message.PRODUCT_NOT_FOUND));
 
             int smallestQuantity = itemDto.getQuantity() * itemDto.getConversionFactor();
 
             if (importItem != null) {
-                // Cập nhật ImportItem
-                int oldSmallestQuantity = importItem.getRemainingQuantity();
-                int quantityDifference = smallestQuantity - oldSmallestQuantity;
 
                 if (importReceipt.getStatus() == OrderStatus.CONFIRMED) {
-                    // Khôi phục tồn kho từ số lượng cũ
-                    product.setTotalQuantity(product.getTotalQuantity() - oldSmallestQuantity);
-                    // Cập nhật tồn kho với số lượng mới
                     product.setTotalQuantity(product.getTotalQuantity() + smallestQuantity);
                     productRepository.save(product);
                 }
@@ -366,9 +358,12 @@ public class ImportServiceImpl implements ImportService {
                 importItem.setDiscount(itemDto.getDiscount());
                 importItem.setTax(itemDto.getTax());
                 importItem.setBatchNumber(itemDto.getBatchNumber());
-                importItem.setExpiryDate((itemDto.getExpiryDate() == null)
-                        ? LocalDate.now().plusYears(100).atStartOfDay(ZoneId.systemDefault()).toInstant()
-                        : itemDto.getExpiryDate());
+                Instant adjustedExpiryDate = itemDto.getExpiryDate()
+                        .atZone(ZoneId.systemDefault())
+                        .with(LocalTime.MAX)
+                        .toInstant();
+
+                importItem.setExpiryDate(adjustedExpiryDate);
                 itemDto.setTotalAmount(itemTotalAmount);
                 importItem.setTotalAmount(itemTotalAmount);
                 importItem.setConversionFactor(itemDto.getConversionFactor());
@@ -623,9 +618,12 @@ public class ImportServiceImpl implements ImportService {
         importItem.setDiscount(itemDto.getDiscount());
         importItem.setTax(itemDto.getTax());
         importItem.setBatchNumber(itemDto.getBatchNumber());
-        importItem.setExpiryDate((itemDto.getExpiryDate() == null)
-                ? LocalDate.now().plusYears(100).atStartOfDay(ZoneId.systemDefault()).toInstant()
-                : itemDto.getExpiryDate());
+        Instant adjustedExpiryDate = itemDto.getExpiryDate()
+                .atZone(ZoneId.systemDefault())
+                .with(LocalTime.MAX)
+                .toInstant();
+
+        importItem.setExpiryDate(adjustedExpiryDate);
         importItem.setTotalAmount(itemDto.getTotalAmount()); // Sử dụng totalAmount đã tính
         importItem.setConversionFactor(itemDto.getConversionFactor());
         importItem.setRemainingQuantity(smallestQuantity);
