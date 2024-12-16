@@ -95,6 +95,11 @@ logging:
   level:
     com.fu.pha.configuration.FirebaseConfig: INFO
 
+  task:
+    scheduling:
+      time-zone: Asia/Ho_Chi_Minh
+
+
 
 
 
