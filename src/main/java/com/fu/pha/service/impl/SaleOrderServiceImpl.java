@@ -186,10 +186,15 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             List<ImportItem> batches = importItemRepository.findByProductIdOrderByCreateDateAsc(product.getId());
             int remainingQuantity = smallestQuantityToSell;
 
+            ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
+            LocalDate today = LocalDate.now(zoneId);
+            LocalDate tomorrow = today.plusDays(1);
+            ZonedDateTime zonedDateTimeTomorrow = tomorrow.atStartOfDay(zoneId);
+            Instant tomorrowInstant = zonedDateTimeTomorrow.toInstant();
 
             for (ImportItem batch : batches) {
 
-                if (batch.getExpiryDate() != null && batch.getExpiryDate().isBefore(Instant.now().plus(1, ChronoUnit.DAYS))) {
+                if (batch.getExpiryDate() != null && batch.getExpiryDate().isBefore(tomorrowInstant)) {
                     // Bỏ qua lô hàng này nếu đã hết hạn
                     continue;
                 }
