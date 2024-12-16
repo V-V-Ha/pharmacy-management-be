@@ -131,6 +131,42 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     );
 
 
+    @Query(
+            value = "SELECT DISTINCT ON (p.id) p.id AS productId, " +
+                    "       p.product_code AS productCode, " +
+                    "       p.product_name AS productName, " +
+                    "       c.category_name AS categoryName, " +
+                    "       u.unit_name AS unitName, " +
+                    "       p.number_warning AS numberWarning, " +
+                    "       p.total_quantity AS totalQuantity " +
+                    "FROM product p " +
+                    "JOIN category c ON p.category_id = c.id " +
+                    "JOIN product_unit pu ON pu.product_id = p.id AND pu.conversion_factor = 1 " +
+                    "JOIN unit u ON pu.unit_id = u.id " +
+                    "WHERE p.total_quantity <= p.number_warning " +
+                    "  AND p.status = 'ACTIVE' " +
+                    "  AND p.total_quantity > 0 " + // **Điều kiện mới được thêm vào**
+                    "  AND (:categoryId IS NULL OR p.category_id = :categoryId) " +
+                    "  AND (:searchText IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "       OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :searchText, '%'))) " +
+                    "ORDER BY p.id, p.total_quantity ASC",
+
+            countQuery = "SELECT COUNT(DISTINCT p.id) FROM product p " +
+                    "WHERE p.total_quantity <= p.number_warning " +
+                    "  AND p.status = 'ACTIVE' " +
+                    "  AND p.total_quantity > 0 " + // **Điều kiện mới được thêm vào**
+                    "  AND (:categoryId IS NULL OR p.category_id = :categoryId) " +
+                    "  AND (:searchText IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "       OR LOWER(p.product_code) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+
+            nativeQuery = true
+    )
+    Page<OutOfStockProductDto> findOutOfStockProducts1(
+            @Param("categoryId") Long categoryId,
+            @Param("searchText") String searchText,
+            Pageable pageable
+    );
+
 
 
     @Query(

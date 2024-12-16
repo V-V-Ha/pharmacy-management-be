@@ -24,6 +24,8 @@ public interface NotificationService {
 
     void markNotificationAsRead(Long notificationId);
 
+    Page<OutOfStockProductDto> getOutOfStockProducts1(Long categoryId, String searchText, int pageNumber, int pageSize);
+
     Page<OutOfStockProductDto> getOutOfStockProducts(Long categoryId, String searchText, int pageNumber, int pageSize);
 
     Page<ExpiredProductDto> getExpiredProducts(Long categoryId, String searchText, int warningDays, int pageNumber, int pageSize);

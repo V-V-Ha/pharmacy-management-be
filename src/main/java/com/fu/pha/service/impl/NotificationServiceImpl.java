@@ -246,6 +246,11 @@ public class NotificationServiceImpl implements NotificationService {
         return productRepository.findOutOfStockProducts(categoryId, searchText, PageRequest.of(pageNumber, pageSize));
     }
 
+    @Override
+    public Page<OutOfStockProductDto> getOutOfStockProducts1(Long categoryId, String searchText, int pageNumber, int pageSize) {
+        return productRepository.findOutOfStockProducts(categoryId, searchText, PageRequest.of(pageNumber, pageSize));
+    }
+
 
     @Override
     public Page<ExpiredProductDto> getExpiredProducts(Long categoryId, String searchText, int warningDays, int pageNumber, int pageSize) {
