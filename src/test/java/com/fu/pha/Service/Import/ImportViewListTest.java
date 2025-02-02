@@ -10,11 +10,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fu.pha.dto.response.importPack.ImportResponseDto;
 import com.fu.pha.enums.PaymentMethod;
 import com.fu.pha.repository.ImportRepository;
 import com.fu.pha.exception.ResourceNotFoundException;
-import com.fu.pha.service.ImportService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -26,7 +24,6 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 @ExtendWith(MockitoExtension.class)
 public class ImportViewListTest {
 
@@ -58,7 +55,7 @@ public class ImportViewListTest {
 
         Supplier mockSupplier = new Supplier();
         mockSupplier.setId(1L);
-        mockSupplier.setSupplierName("Supplier Name");
+        mockSupplier.setSupplierName("Traphaco");
         importMock.setSupplier(mockSupplier);
 
         importMock.setCreateDate(Instant.now());
@@ -124,7 +121,7 @@ public class ImportViewListTest {
         when(importRepository.getListImportPagingFromDate(anyString(), any(OrderStatus.class), eq(fromDate), eq(pageRequest)))
                 .thenReturn(importPage);
 
-        Page<ImportViewListDto> result = importService.getAllImportPaging(0, 10, "Supplier Name", OrderStatus.PENDING, fromDate, null);
+        Page<ImportViewListDto> result = importService.getAllImportPaging(0, 10, "Traphaco", OrderStatus.PENDING, fromDate, null);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
