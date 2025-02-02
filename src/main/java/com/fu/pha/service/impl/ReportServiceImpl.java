@@ -164,7 +164,6 @@ public class ReportServiceImpl implements ReportService {
         int nearlyExpiredItems = importItemRepository.findNearlyExpiredItems(Instant.now(),thresholdDate).size();
         report.setNearlyExpiredItems(!(nearlyExpiredItems == 0) ? nearlyExpiredItems : 0);
 
-
         ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
         LocalDate today = LocalDate.now(zoneId);
         LocalDate tomorrow = today.plusDays(1);

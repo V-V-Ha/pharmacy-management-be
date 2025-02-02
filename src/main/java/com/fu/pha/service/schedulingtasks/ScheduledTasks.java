@@ -105,7 +105,6 @@ public class ScheduledTasks {
     @Scheduled(cron = "0 0 7 * * ?", zone = "Asia/Ho_Chi_Minh") // Hằng ngày lúc 15:20
 //    @Scheduled(cron = "0 0/10 * * * ?") // Mỗi 10 phút
     public void checkExpiredProducts() {
-
         ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
         LocalDate today = LocalDate.now(zoneId);
         LocalDate tomorrow = today.plusDays(1);
