@@ -1,4 +1,4 @@
-# SEP490_G27_Pharmacy management
+# Pharmacy management
 
 
 
